@@ -28,7 +28,6 @@ module.exports = {
                 .setColor('Red')
                 .setDescription(await t(interaction, 'economy_rob_rob_cannot_rob_self'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -39,7 +38,6 @@ module.exports = {
                 .setColor(kythia.bot.color)
                 .setDescription(await t(interaction, 'economy_withdraw_no_account_desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -50,19 +48,17 @@ module.exports = {
                 .setColor(kythia.bot.color)
                 .setDescription(await t(interaction, 'economy_rob_rob_target_no_account_desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const cooldown = checkCooldown(user.lastRob, 3600);
+        const cooldown = checkCooldown(user.lastRob, kythia.addons.economy.robCooldown || 10800); // Default to 3 hours
 
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setColor('Yellow')
                 .setDescription(await t(interaction, 'economy_rob_rob_cooldown', { time: cooldown.time }))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -93,7 +89,6 @@ module.exports = {
                     .setColor('Red')
                     .setDescription(await t(interaction, 'economy_rob_rob_target_not_enough_money'))
                     .setThumbnail(interaction.user.displayAvatarURL())
-                    // .setTimestamp()
                     .setFooter(await embedFooter(interaction));
                 return interaction.editReply({ embeds: [embed] });
             }
@@ -115,7 +110,6 @@ module.exports = {
                         target: targetUser.username,
                     })
                 )
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             await interaction.editReply({ embeds: [embed] });
 
@@ -128,7 +122,6 @@ module.exports = {
                         amount: robAmount,
                     })
                 )
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             await targetUser.send({ embeds: [embedToTarget] });
         } else {
@@ -138,7 +131,6 @@ module.exports = {
                     .setColor('Red')
                     .setDescription(await t(interaction, 'economy_rob_rob_user_not_enough_money_fail'))
                     .setThumbnail(interaction.user.displayAvatarURL())
-                    // .setTimestamp()
                     .setFooter(await embedFooter(interaction));
                 return interaction.editReply({ embeds: [embed] });
             }
@@ -170,7 +162,6 @@ module.exports = {
                         poison: poison ? await t(interaction, 'economy_rob_rob_fail_poison') : '',
                     })
                 )
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             await interaction.editReply({ embeds: [embed] });
 
@@ -186,7 +177,6 @@ module.exports = {
                         poison: poison ? await t(interaction, 'economy_rob_rob_fail_poison_dm') : '',
                     })
                 )
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             await targetUser.send({ embeds: [embedToTarget] });
         }

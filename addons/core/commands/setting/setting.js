@@ -287,60 +287,6 @@ const command = new SlashCommandBuilder()
                     .addStringOption((opt) => opt.setName('background').setDescription('Background for welcome out').setRequired(true))
             )
     )
-    // COOLDOWN
-    .addSubcommandGroup((group) =>
-        group
-            .setName('cooldown')
-            .setDescription('⏳ Cooldown settings in the system')
-            .addSubcommand((sub) =>
-                sub
-                    .setName('daily')
-                    .setDescription('⏳ Set daily cooldown')
-                    .addIntegerOption((opt) => opt.setName('cooldown').setDescription('Cooldown in seconds').setRequired(true))
-            )
-            .addSubcommand((sub) =>
-                sub
-                    .setName('beg')
-                    .setDescription('⏳ Set beg cooldown')
-                    .addIntegerOption((opt) => opt.setName('cooldown').setDescription('Cooldown in seconds').setRequired(true))
-            )
-            .addSubcommand((sub) =>
-                sub
-                    .setName('lootbox')
-                    .setDescription('⏳ Set lootbox cooldown')
-                    .addIntegerOption((opt) => opt.setName('cooldown').setDescription('Cooldown in seconds').setRequired(true))
-            )
-            .addSubcommand((sub) =>
-                sub
-                    .setName('work')
-                    .setDescription('⏳ Set work cooldown')
-                    .addIntegerOption((opt) => opt.setName('cooldown').setDescription('Cooldown in seconds').setRequired(true))
-            )
-            .addSubcommand((sub) =>
-                sub
-                    .setName('rob')
-                    .setDescription('⏳ Set rob cooldown')
-                    .addIntegerOption((opt) => opt.setName('cooldown').setDescription('Cooldown in seconds').setRequired(true))
-            )
-            .addSubcommand((sub) =>
-                sub
-                    .setName('hack')
-                    .setDescription('⏳Set hack cooldown')
-                    .addIntegerOption((opt) => opt.setName('cooldown').setDescription('Cooldown in seconds').setRequired(true))
-            )
-            .addSubcommand((sub) =>
-                sub
-                    .setName('pet')
-                    .setDescription('⏳ Set pet cooldown')
-                    .addIntegerOption((opt) => opt.setName('cooldown').setDescription('Cooldown in seconds').setRequired(true))
-            )
-            .addSubcommand((sub) =>
-                sub
-                    .setName('gacha')
-                    .setDescription('⏳ Set gacha cooldown')
-                    .addIntegerOption((opt) => opt.setName('cooldown').setDescription('Cooldown in seconds').setRequired(true))
-            )
-    )
     // LEVELING
     .addSubcommandGroup((group) =>
         group
@@ -1350,24 +1296,6 @@ module.exports = {
                         return interaction.editReply({ content: msg });
                     }
                 }
-            }
-            case 'cooldown': {
-                const cooldown = interaction.options.getInteger('cooldown');
-                const cooldownMap = {
-                    daily: ['dailyCooldown', await t(interaction, 'core_setting_setting_cooldown_daily')],
-                    beg: ['begCooldown', await t(interaction, 'core_setting_setting_cooldown_beg')],
-                    lootbox: ['lootboxCooldown', await t(interaction, 'core_setting_setting_cooldown_lootbox')],
-                    work: ['workCooldown', await t(interaction, 'core_setting_setting_cooldown_work')],
-                    rob: ['robCooldown', await t(interaction, 'core_setting_setting_cooldown_rob')],
-                    hack: ['hackCooldown', await t(interaction, 'core_setting_setting_cooldown_hack')],
-                    pet: ['petCooldown', await t(interaction, 'core_setting_setting_cooldown_pet')],
-                    gacha: ['gachaCooldown', await t(interaction, 'core_setting_setting_cooldown_gacha')],
-                };
-                const [settingKey, featureName] = cooldownMap[sub];
-                serverSetting[settingKey] = cooldown;
-                await serverSetting.saveAndUpdateCache('guildId');
-                embed.setDescription(await t(interaction, 'core_setting_setting_cooldown_set', { feature: featureName, cooldown }));
-                return interaction.editReply({ embeds: [embed] });
             }
             case 'welcome': {
                 switch (sub) {

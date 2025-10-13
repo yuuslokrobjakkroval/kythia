@@ -488,28 +488,6 @@ router.post('/dashboard/:guildId/settings/minecraft', isAuthorized, checkServerA
     }
 });
 
-router.post('/dashboard/:guildId/settings/cooldown', isAuthorized, checkServerAccess, async (req, res) => {
-    try {
-        const settings = req.settings;
-        const body = req.body;
-
-        if (body.dailyCooldown) settings.dailyCooldown = parseInt(body.dailyCooldown);
-        if (body.begCooldown) settings.begCooldown = parseInt(body.begCooldown);
-        if (body.lootboxCooldown) settings.lootboxCooldown = parseInt(body.lootboxCooldown);
-        if (body.workCooldown) settings.workCooldown = parseInt(body.workCooldown);
-        if (body.robCooldown) settings.robCooldown = parseInt(body.robCooldown);
-        if (body.hackCooldown) settings.hackCooldown = parseInt(body.hackCooldown);
-        if (body.petCooldown) settings.petCooldown = parseInt(body.petCooldown);
-        if (body.gachaCooldown) settings.gachaCooldown = parseInt(body.gachaCooldown);
-
-        await settings.saveAndUpdateCache('guildId');
-        res.redirect(`/dashboard/${req.guild.id}/settings/cooldown?success=true`);
-    } catch (error) {
-        console.error('Error saving cooldown settings:', error);
-        res.redirect(`/dashboard/${req.guild.id}/settings/cooldown?error=true`);
-    }
-});
-
 router.post('/dashboard/:guildId/settings/language', isAuthorized, checkServerAccess, async (req, res) => {
     try {
         const settings = req.settings;

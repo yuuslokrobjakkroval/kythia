@@ -19,10 +19,9 @@ const symbols = {
     '🔔': { weight: 10, payout: { two: 3, three: 25 } },
     '⭐': { weight: 4, payout: { two: 5, three: 50 } },
     '💎': { weight: 2, payout: { two: 10, three: 100 } },
-    '💰': { weight: 1, payout: { two: 20, three: 250 } }, // Jackpot!
+    '💰': { weight: 1, payout: { two: 20, three: 250 } },
 };
 
-// Helper function untuk mendapatkan simbol acak berdasarkan bobot
 function getRandomSymbol() {
     const totalWeight = Object.values(symbols).reduce((sum, { weight }) => sum + weight, 0);
     let randomNum = Math.random() * totalWeight;
@@ -50,7 +49,6 @@ module.exports = {
         const bet = interaction.options.getInteger('bet');
         const user = await KythiaUser.getCache({ userId: interaction.user.id });
 
-        // No account
         if (!user) {
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)
@@ -60,7 +58,6 @@ module.exports = {
             return interaction.reply({ embeds: [embed], ephemeral: true });
         }
 
-        // Not enough coin
         if (user.kythiaCoin < bet) {
             const embed = new EmbedBuilder()
                 .setColor('Red')
@@ -74,7 +71,6 @@ module.exports = {
             return interaction.reply({ embeds: [embed], ephemeral: true });
         }
 
-        // --- SPINNING EFFECT ---
         const spinningEmbed = new EmbedBuilder()
             .setColor('Yellow')
             .setDescription(
@@ -84,10 +80,9 @@ module.exports = {
 
         await interaction.reply({ embeds: [spinningEmbed], fetchReply: true });
 
-        // Dramatic pause
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        user.kythiaCoin -= bet; // Deduct bet immediately
+        user.kythiaCoin -= bet;
 
         const reels = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
         const [r1, r2, r3] = reels;
@@ -97,18 +92,12 @@ module.exports = {
         let winnings = 0;
         let payoutMultiplier = 0;
 
-        // --- WIN LOGIC ---
-
-        // 1. Three of a Kind (Jackpot / 3 same)
         if (r1.emoji === r2.emoji && r2.emoji === r3.emoji) {
             payoutMultiplier = r1.payout.three;
             winnings = Math.floor(bet * payoutMultiplier);
             resultKey = 'eco_slots_jackpot_title';
             resultColor = 'Gold';
-        }
-        // 2. Two of a Kind (2 same)
-        else if (r1.emoji === r2.emoji || r1.emoji === r3.emoji || r2.emoji === r3.emoji) {
-            // Find the symbol that appears twice
+        } else if (r1.emoji === r2.emoji || r1.emoji === r3.emoji || r2.emoji === r3.emoji) {
             let pairSymbol;
             if (r1.emoji === r2.emoji) pairSymbol = r1;
             else if (r1.emoji === r3.emoji) pairSymbol = r1;
@@ -117,10 +106,8 @@ module.exports = {
             winnings = Math.floor(bet * payoutMultiplier);
             resultKey = 'eco_slots_bigwin_title';
             resultColor = 'Green';
-        }
-        // 3. There is a jackpot symbol (💰) but not a win
-        else if (reels.some((r) => r.emoji === '💰')) {
-            winnings = bet; // Break even
+        } else if (reels.some((r) => r.emoji === '💰')) {
+            winnings = bet;
             payoutMultiplier = 1;
             resultKey = 'eco_slots_lucky_title';
             resultColor = 'Blue';
@@ -132,7 +119,6 @@ module.exports = {
 
         await user.saveAndUpdateCache();
 
-        // --- FINAL RESULT EMBED ---
         const fakeRow = () => `${getRandomSymbol().emoji}  |  ${getRandomSymbol().emoji}  |  ${getRandomSymbol().emoji}`;
         const slotDisplay = [
             '```',

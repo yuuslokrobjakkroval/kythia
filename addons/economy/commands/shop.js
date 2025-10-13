@@ -53,9 +53,6 @@ async function generateShopEmbed(interaction, user, category, page) {
     return { embed, pageItems, page, totalPages };
 }
 
-/**
- * Membuat Action Rows (Tombol & Menu)
- */
 async function generateActionRows(interaction, page, totalPages, category, pageItems) {
     const categoryOptions = await Promise.all(
         Object.keys(shopData).map(async (cat) => ({

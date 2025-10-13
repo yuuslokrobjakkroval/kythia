@@ -91,56 +91,6 @@ function getFeatureToggles(settings) {
 }
 
 /**
- * Get cooldown settings in a readable format
- * @param {Object} settings - Server settings object
- * @returns {Object} Cooldown settings with human-readable values
- */
-function getCooldownSettings(settings) {
-    return {
-        daily: {
-            value: settings.dailyCooldown || 86400,
-            hours: Math.floor((settings.dailyCooldown || 86400) / 3600),
-            minutes: Math.floor((settings.dailyCooldown || 86400) / 60),
-        },
-        beg: {
-            value: settings.begCooldown || 3600,
-            hours: Math.floor((settings.begCooldown || 3600) / 3600),
-            minutes: Math.floor((settings.begCooldown || 3600) / 60),
-        },
-        work: {
-            value: settings.workCooldown || 28800,
-            hours: Math.floor((settings.workCooldown || 28800) / 3600),
-            minutes: Math.floor((settings.workCooldown || 28800) / 60),
-        },
-        rob: {
-            value: settings.robCooldown || 7200,
-            hours: Math.floor((settings.robCooldown || 7200) / 3600),
-            minutes: Math.floor((settings.robCooldown || 7200) / 60),
-        },
-        hack: {
-            value: settings.hackCooldown || 3600,
-            hours: Math.floor((settings.hackCooldown || 3600) / 3600),
-            minutes: Math.floor((settings.hackCooldown || 3600) / 60),
-        },
-        lootbox: {
-            value: settings.lootboxCooldown || 14400,
-            hours: Math.floor((settings.lootboxCooldown || 14400) / 3600),
-            minutes: Math.floor((settings.lootboxCooldown || 14400) / 60),
-        },
-        pet: {
-            value: settings.petCooldown || 28800,
-            hours: Math.floor((settings.petCooldown || 28800) / 3600),
-            minutes: Math.floor((settings.petCooldown || 28800) / 60),
-        },
-        gacha: {
-            value: settings.gachaCooldown || 3600,
-            hours: Math.floor((settings.gachaCooldown || 3600) / 3600),
-            minutes: Math.floor((settings.gachaCooldown || 3600) / 60),
-        },
-    };
-}
-
-/**
  * Get server statistics summary
  * @param {Object} guild - Discord guild object
  * @param {Object} settings - Server settings object
@@ -177,25 +127,6 @@ function validateSettings(data, category) {
             if (data.levelingCooldown && (data.levelingCooldown < 1 || data.levelingCooldown > 3600)) {
                 errors.push('XP cooldown must be between 1 and 3600 seconds');
             }
-            break;
-
-        case 'cooldown':
-            const cooldownFields = [
-                'dailyCooldown',
-                'begCooldown',
-                'workCooldown',
-                'robCooldown',
-                'hackCooldown',
-                'lootboxCooldown',
-                'petCooldown',
-                'gachaCooldown',
-            ];
-            cooldownFields.forEach((field) => {
-                if (data[field] && (data[field] < 1 || data[field] > 604800)) {
-                    // Max 7 days
-                    errors.push(`${field} must be between 1 and 604800 seconds`);
-                }
-            });
             break;
 
         case 'welcome':
@@ -287,12 +218,6 @@ function getSettingCategories() {
             icon: 'fas fa-cube',
             color: 'secondary',
         },
-        cooldown: {
-            name: 'Cooldowns',
-            description: 'Command cooldown timers',
-            icon: 'fas fa-clock',
-            color: 'dark',
-        },
         language: {
             name: 'Language',
             description: 'Bot language settings',
@@ -336,7 +261,6 @@ module.exports = {
     getAvailableLanguages,
     ensureArray,
     getFeatureToggles,
-    getCooldownSettings,
     getServerStats,
     validateSettings,
     isValidUrl,

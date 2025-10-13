@@ -32,7 +32,6 @@ module.exports = {
                 .setColor(kythia.bot.color)
                 .setDescription(await t(interaction, 'economy_withdraw_no_account_desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -44,7 +43,6 @@ module.exports = {
                 .setColor('Red')
                 .setDescription(await t(interaction, 'economy_coinflip_coinflip_not_enough_cash'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -64,7 +62,6 @@ module.exports = {
                         amount: bet,
                     })
                 )
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         } else {
@@ -80,7 +77,6 @@ module.exports = {
                         amount: bet,
                     })
                 )
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }

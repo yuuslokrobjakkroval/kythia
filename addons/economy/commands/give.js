@@ -30,7 +30,6 @@ module.exports = {
                 .setColor(kythia.bot.color)
                 .setDescription(await t(interaction, 'economy_withdraw_no_account_desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -40,7 +39,6 @@ module.exports = {
                 .setColor('Yellow')
                 .setDescription(await t(interaction, 'economy_give_give_invalid_amount'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -50,7 +48,6 @@ module.exports = {
                 .setColor('Yellow')
                 .setDescription(await t(interaction, 'economy_give_give_self'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -61,7 +58,6 @@ module.exports = {
                 .setColor('Red')
                 .setDescription(await t(interaction, 'economy_give_give_no_target_account'))
                 .setThumbnail(target.displayAvatarURL ? target.displayAvatarURL() : null)
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -71,7 +67,6 @@ module.exports = {
                 .setColor('Red')
                 .setDescription(await t(interaction, 'economy_give_give_not_enough_cash'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -94,7 +89,6 @@ module.exports = {
                 })
             )
             .setThumbnail(interaction.user.displayAvatarURL())
-            // .setTimestamp()
             .setFooter(await embedFooter(interaction));
         return interaction.editReply({ embeds: [embed] });
     },

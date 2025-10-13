@@ -24,19 +24,16 @@ module.exports = {
                 .setColor(kythia.bot.color)
                 .setDescription(await t(interaction, 'economy_withdraw_no_account_desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
-
-        const serverSetting = await ServerSetting.getCache({ guildId: interaction.guild.id });
-        const cooldown = checkCooldown(user.lastLootbox, serverSetting.lootboxCooldown);
+        // Check if lootbox feature is enabled in server settings
+        const cooldown = checkCooldown(user.lastLootbox, kythia.addons.economy.lootboxCooldown || 43200); // Default to 12 hours
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)
                 .setDescription(await t(interaction, 'economy_lootbox_lootbox_cooldown', { time: cooldown.time }))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -54,7 +51,6 @@ module.exports = {
             .setTitle(await t(interaction, 'economy_lootbox_lootbox_title'))
             .setThumbnail(interaction.user.displayAvatarURL())
             .setDescription(await t(interaction, 'economy_lootbox_lootbox_success', { amount: randomReward }))
-            // .setTimestamp()
             .setFooter(await embedFooter(interaction));
         await interaction.editReply({ embeds: [embed] });
     },

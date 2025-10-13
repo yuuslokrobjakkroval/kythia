@@ -35,19 +35,17 @@ module.exports = {
                 .setColor(kythia.bot.color)
                 .setDescription(await t(interaction, 'economy_withdraw_no_account_desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
 
         // Cooldown check
-        const cooldown = checkCooldown(user.lastHack, 3600);
+        const cooldown = checkCooldown(user.lastHack, kythia.addons.economy.hackCooldown || 7200); // Default to 2 hours
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setColor('Yellow')
                 .setDescription(await t(interaction, 'economy_hack_hack_cooldown', { time: cooldown.time }))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -58,7 +56,6 @@ module.exports = {
                 .setColor('Red')
                 .setDescription(await t(interaction, 'economy_hack_hack_user_or_target_not_found'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -69,7 +66,6 @@ module.exports = {
                 .setColor('Red')
                 .setDescription(await t(interaction, 'economy_hack_hack_self'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -80,7 +76,6 @@ module.exports = {
                 .setColor('Red')
                 .setDescription(await t(interaction, 'economy_hack_hack_target_no_bank'))
                 .setThumbnail(targetUser.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -91,7 +86,6 @@ module.exports = {
                 .setColor('Red')
                 .setDescription(await t(interaction, 'economy_hack_hack_user_no_bank'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -140,7 +134,6 @@ module.exports = {
                             target: targetUser.username,
                         })
                     )
-                    // .setTimestamp()
                     .setFooter(await embedFooter(interaction));
 
                 await interaction.editReply({ embeds: [successEmbed] });
@@ -165,7 +158,6 @@ module.exports = {
                             penalty,
                         })
                     )
-                    // .setTimestamp()
                     .setFooter(await embedFooter(interaction));
 
                 await interaction.editReply({ embeds: [failureEmbed] });

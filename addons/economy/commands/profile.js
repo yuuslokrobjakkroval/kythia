@@ -40,7 +40,6 @@ module.exports = {
                 .setColor(kythia.bot.color)
                 .setDescription(await t(interaction, 'economy_withdraw_no_account_desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -108,7 +107,6 @@ module.exports = {
                 ].join('\n')
             )
             .setFooter(await embedFooter(interaction));
-        // .setTimestamp();
 
         return interaction.editReply({ embeds: [embed] });
     },

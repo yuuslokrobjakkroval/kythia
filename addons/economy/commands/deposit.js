@@ -35,7 +35,6 @@ module.exports = {
                 .setColor(kythia.bot.color)
                 .setDescription(await t(interaction, 'economy_withdraw_no_account_desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -48,7 +47,6 @@ module.exports = {
                     .setColor('Yellow')
                     .setDescription(await t(interaction, 'economy_deposit_deposit_amount_required'))
                     .setThumbnail(interaction.user.displayAvatarURL())
-                    // .setTimestamp()
                     .setFooter(await embedFooter(interaction));
                 return interaction.editReply({ embeds: [embed] });
             }
@@ -59,7 +57,6 @@ module.exports = {
                 .setColor('Yellow')
                 .setDescription(await t(interaction, 'economy_deposit_deposit_invalid_amount'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -69,7 +66,6 @@ module.exports = {
                 .setColor('Red')
                 .setDescription(await t(interaction, 'economy_deposit_deposit_not_enough_cash'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -79,7 +75,6 @@ module.exports = {
                 .setColor('Yellow')
                 .setDescription(await t(interaction, 'economy_deposit_deposit_zero_cash'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -94,7 +89,6 @@ module.exports = {
             .setColor(kythia.bot.color)
             .setThumbnail(interaction.user.displayAvatarURL())
             .setDescription(await t(interaction, 'economy_deposit_deposit_success', { amount }))
-            // .setTimestamp()
             .setFooter(await embedFooter(interaction));
 
         return interaction.editReply({ embeds: [embed] });

@@ -23,19 +23,17 @@ module.exports = {
                 .setColor(kythia.bot.color)
                 .setDescription(await t(interaction, 'economy_withdraw_no_account_desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
 
         // Cooldown check
-        const cooldown = checkCooldown(user.lastBeg, 300);
+        const cooldown = checkCooldown(user.lastBeg, kythia.addons.economy.begCooldown || 3600); // Default to 1 hour
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)
                 .setDescription(await t(interaction, 'economy_beg_beg_cooldown', { time: cooldown.time }))
                 .setThumbnail(interaction.user.displayAvatarURL())
-                // .setTimestamp()
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
@@ -52,7 +50,6 @@ module.exports = {
             .setColor(kythia.bot.color)
             .setThumbnail(interaction.user.displayAvatarURL())
             .setDescription(await t(interaction, 'economy_beg_beg_success', { amount: randomCoin }))
-            // .setTimestamp()
             .setFooter(await embedFooter(interaction));
         return interaction.editReply({ embeds: [embed] });
     },

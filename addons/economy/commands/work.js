@@ -19,7 +19,6 @@ module.exports = {
 
     async execute(interaction, container) {
         await interaction.deferReply();
-        // const { t } = container || {}; // now always require from @utils/translator
 
         const user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
@@ -32,10 +31,10 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const userInventory = await Inventory.getAllCache({ where: { userId: user.userId } });
+        const userInventory = await Inventory.getAllCache({ userId: user.userId });
 
-        // --- Cek Cooldown (tidak dipengaruhi item lagi) ---
-        const cooldown = checkCooldown(user.lastWork, 3600);
+        const cooldown = checkCooldown(user.lastWork, kythia.addons.economy.workCooldown || 28800);
+
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setColor('Yellow')
@@ -49,15 +48,12 @@ module.exports = {
         let availableJobs = [];
         const userItemNames = new Set(userInventory.map((item) => item.itemName));
 
-        // 1. Ambil semua kunci tier (tier1, tier2, dst) dan urutkan dari TERTINGGI ke terendah
         const tierKeys = Object.keys(jobs).sort().reverse();
 
-        // 2. Loop dari tier tertinggi
         for (const tierKey of tierKeys) {
             const tier = jobs[tierKey];
             let hasRequirement = false;
 
-            // Logika pengecekan item tetap sama
             if (tier.requiredItem === null) {
                 hasRequirement = true;
             } else if (Array.isArray(tier.requiredItem)) {
@@ -70,14 +66,12 @@ module.exports = {
                 }
             }
 
-            // 3. JIKA syarat terpenuhi, langsung isi daftarnya dan HENTIKAN PENCARIAN!
             if (hasRequirement) {
                 availableJobs = [...tier.jobs];
-                break; // <-- Ini kuncinya! Loop berhenti setelah menemukan tier tertinggi yang valid.
+                break;
             }
         }
 
-        // Fallback jika user benar-benar tidak punya pekerjaan (seharusnya tidak terjadi)
         if (availableJobs.length === 0) {
             const embed = new EmbedBuilder()
                 .setColor('Red')
@@ -91,11 +85,9 @@ module.exports = {
         const job = availableJobs[Math.floor(Math.random() * availableJobs.length)];
         const scenario = job.scenarios[Math.floor(Math.random() * job.scenarios.length)];
 
-        // --- Penerjemahan Dinamis ---
         const jobName = await t(interaction, job.nameKey);
         const scenarioDesc = await t(interaction, scenario.descKey);
 
-        // --- Kalkulasi Gaji ---
         const baseEarning = Math.floor(Math.random() * (job.basePay[1] - job.basePay[0] + 1)) + job.basePay[0];
         const careerBonus = Math.floor(baseEarning * (user.careerLevel || 0) * 0.05);
         const finalEarning = Math.floor(baseEarning * scenario.modifier) + careerBonus;
@@ -103,7 +95,6 @@ module.exports = {
         user.kythiaCoin += finalEarning;
         user.lastWork = new Date();
 
-        // --- Sistem Level Up Karir ---
         let levelUpText = '';
         if (scenario.outcome === 'success' && (user.careerLevel || 0) < 50) {
             user.careerLevel = (user.careerLevel || 0) + 1;
@@ -112,7 +103,6 @@ module.exports = {
 
         await user.saveAndUpdateCache();
 
-        // --- Embed Hasil Kerja yang Dinamis & Keren ---
         const outcomeColors = {
             success: 'Green',
             neutral: 'Blue',

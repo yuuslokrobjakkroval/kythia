@@ -134,16 +134,6 @@ class ServerSetting extends KythiaModel {
 
                 welcomeOutExtraDraw: { type: DataTypes.STRING, defaultValue: 'classicCentered' },
 
-                // COOLDOWNS
-                dailyCooldown: { type: DataTypes.INTEGER, defaultValue: 86400 }, // 1 day
-                begCooldown: { type: DataTypes.INTEGER, defaultValue: 3600 }, // 1 hour
-                lootboxCooldown: { type: DataTypes.INTEGER, defaultValue: 14400 }, // 4 hours
-                workCooldown: { type: DataTypes.INTEGER, defaultValue: 28800 }, // 8 hours
-                robCooldown: { type: DataTypes.INTEGER, defaultValue: 7200 }, // 2 hours
-                hackCooldown: { type: DataTypes.INTEGER, defaultValue: 3600 }, // 1 hour
-                petCooldown: { type: DataTypes.INTEGER, defaultValue: 28800 }, // 8 hours
-                petGachaCooldown: { type: DataTypes.INTEGER, defaultValue: 3600 }, // 1 hours
-
                 // MINECRAFT
                 minecraftIp: { type: DataTypes.STRING, allowNull: true },
                 minecraftPort: { type: DataTypes.INTEGER, allowNull: true },
