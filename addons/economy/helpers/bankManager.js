@@ -3,7 +3,7 @@ const BANKS = {
         id: 'apex_financial',
         name: 'Apex Financial',
         emoji: '🏦',
-        description: 'Bonus penghasilan aktif untuk para pekerja keras.',
+        description: 'Active income bonus for hard workers.',
 
         incomeBonusPercent: 10,
         interestRatePercent: 1,
@@ -18,7 +18,7 @@ const BANKS = {
         id: 'titan_holdings',
         name: 'Titan Holdings',
         emoji: '🏛️',
-        description: 'Maksimalkan keuntungan pasif dengan bunga tertinggi.',
+        description: 'Maximize passive profit with the highest interest.',
 
         incomeBonusPercent: 0,
         interestRatePercent: 5,
@@ -33,7 +33,7 @@ const BANKS = {
         id: 'zenith_commerce',
         name: 'Zenith Commerce',
         emoji: '🌐',
-        description: 'Transaksi tanpa batas dengan biaya transfer terendah.',
+        description: 'Unlimited transactions with the lowest transfer fees.',
 
         incomeBonusPercent: 0,
         interestRatePercent: 2,
@@ -48,7 +48,7 @@ const BANKS = {
         id: 'crimson_syndicate',
         name: 'Crimson Syndicate',
         emoji: '🗡️',
-        description: 'Keberuntungan berpihak pada yang berani. Bonus dari aktivitas ilegal.',
+        description: 'Luck favors the bold. Bonus from illegal activities.',
 
         incomeBonusPercent: -5,
         interestRatePercent: 0,
@@ -63,7 +63,7 @@ const BANKS = {
         id: 'solara_mutual',
         name: 'Solara Mutual',
         emoji: '☀️',
-        description: 'Pilihan aman untuk memulai perjalanan ekonomimu.',
+        description: 'A safe choice to start your economic journey.',
 
         incomeBonusPercent: 2,
         interestRatePercent: 2,

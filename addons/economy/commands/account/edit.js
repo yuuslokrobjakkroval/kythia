@@ -34,6 +34,8 @@ module.exports = {
         try {
             const bankType = interaction.options.getString('bank');
             const userId = interaction.user.id;
+            const userBank = BankManager.getBank(bankType);
+            const bankDisplay = `${userBank.emoji} ${userBank.name}`;
 
             // Check if user has an account
             const existingUser = await KythiaUser.getCache({ userId: userId });
@@ -54,7 +56,7 @@ module.exports = {
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)
                 .setDescription(
-                    await t(interaction, 'economy_account_edit_account_edit_success_desc', { bankType: bankType.toUpperCase() })
+                    await t(interaction, 'economy_account_edit_account_edit_success_desc', { bankType: bankDisplay })
                 )
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));

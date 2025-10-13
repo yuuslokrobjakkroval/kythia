@@ -102,7 +102,6 @@ module.exports = {
             )
             .setThumbnail(interaction.user.displayAvatarURL())
             .setColor(kythia.bot.color);
-        // .setTimestamp(new Date());
 
         await interaction.editReply({ embeds: [embed] });
 
@@ -121,16 +120,35 @@ module.exports = {
                 const robSuccessBonusPercent = userBank.robSuccessBonusPercent;
                 const hackBonus = Math.floor(target.kythiaBank * (robSuccessBonusPercent / 100));
                 const totalHacked = target.kythiaBank + hackBonus;
-                
+
                 user.kythiaBank += totalHacked;
                 if (user.hackMastered < 100) {
                     user.hackMastered = (user.hackMastered || 10) + 1;
                 }
                 target.kythiaBank = 0;
+                user.lastHack = Date.now(); // Set lastHack like @beg.js
                 user.changed('kythiaBank', true);
+                user.changed('lastHack', true); // Mark lastHack as changed
                 target.changed('kythiaBank', true);
                 await user.saveAndUpdateCache('userId');
                 await target.saveAndUpdateCache('userId');
+
+                // DM notification to the victim like rob.js
+                const embedToTarget = new EmbedBuilder()
+                    .setColor('Red')
+                    .setThumbnail(interaction.user.displayAvatarURL())
+                    .setDescription(
+                        await t(interaction, 'economy_hack_hack_success_dm', {
+                            hacker: interaction.user.username,
+                            amount: totalHacked,
+                        })
+                    )
+                    .setFooter(await embedFooter(interaction));
+                try {
+                    await targetUser.send({ embeds: [embedToTarget] });
+                } catch (err) {
+                    // Ignore DM errors
+                }
 
                 const successEmbed = new EmbedBuilder()
                     .setColor(kythia.bot.color)
@@ -149,7 +167,7 @@ module.exports = {
                 const robPenaltyMultiplier = userBank ? userBank.robPenaltyMultiplier : 1;
                 const basePenalty = Math.floor(Math.random() * 20) + 1;
                 const penalty = Math.floor(basePenalty * robPenaltyMultiplier);
-                
+
                 if (user.kythiaBank >= penalty) {
                     user.kythiaBank -= penalty;
                     target.kythiaBank += penalty;
@@ -158,6 +176,11 @@ module.exports = {
                     await user.saveAndUpdateCache('userId');
                     await target.saveAndUpdateCache('userId');
                 }
+
+                // Set lastHack even if failed
+                user.lastHack = Date.now();
+                user.changed('lastHack', true);
+                await user.saveAndUpdateCache('userId');
 
                 const failureEmbed = new EmbedBuilder()
                     .setColor('Red')

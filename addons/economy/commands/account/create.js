@@ -32,7 +32,8 @@ module.exports = {
         await interaction.deferReply();
         const bankType = interaction.options.getString('bank');
         const userId = interaction.user.id;
-
+        const userBank = BankManager.getBank(bankType);
+        const bankDisplay = `${userBank.emoji} ${userBank.name}`;
         const existingUser = await KythiaUser.getCache({ userId: userId });
         if (existingUser) {
             const embed = new EmbedBuilder()
@@ -49,7 +50,7 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(kythia.bot.color)
             .setDescription(
-                await t(interaction, 'economy_account_create_account_create_success_desc', { bankType: bankType.toUpperCase() })
+                await t(interaction, 'economy_account_create_account_create_success_desc', { bankType: bankDisplay })
             )
             .setThumbnail(interaction.user.displayAvatarURL())
             .setFooter(await embedFooter(interaction));
