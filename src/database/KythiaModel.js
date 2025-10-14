@@ -191,15 +191,16 @@ class KythiaModel extends Model {
             } else if (Array.isArray(data)) {
                 plainData = data.map((item) => (item && typeof item.toJSON === 'function' ? item.toJSON() : item));
             }
-            const valueToStore = plainData === null ? NEGATIVE_CACHE_PLACEHOLDER : JSON.stringify(plainData);
+
+            const replacer = (key, value) => (typeof value === 'bigint' ? value.toString() : value);
+
+            const valueToStore = plainData === null ? NEGATIVE_CACHE_PLACEHOLDER : JSON.stringify(plainData, replacer);
 
             const multi = this.redis.multi();
             multi.set(cacheKey, valueToStore, 'PX', ttl);
-
             for (const tag of tags) {
                 multi.sadd(tag, cacheKey);
             }
-
             await multi.exec();
             this.cacheStats.sets++;
         } catch (err) {
@@ -232,9 +233,7 @@ class KythiaModel extends Model {
 
             // --- TAMBAHKAN BLOK INI ---
             // Normalisasi 'includeOptions' biar selalu jadi array
-            const includeAsArray = includeOptions 
-                ? (Array.isArray(includeOptions) ? includeOptions : [includeOptions]) 
-                : null;
+            const includeAsArray = includeOptions ? (Array.isArray(includeOptions) ? includeOptions : [includeOptions]) : null;
             // -------------------------
 
             if (Array.isArray(parsedData)) {
@@ -331,7 +330,11 @@ class KythiaModel extends Model {
             } else if (Array.isArray(data)) {
                 plainData = data.map((item) => (item && typeof item.toJSON === 'function' ? item.toJSON() : item));
             }
-            const dataCopy = plainData;
+
+            const replacer = (key, value) => (typeof value === 'bigint' ? value.toString() : value);
+
+            const dataCopy = JSON.parse(JSON.stringify(plainData, replacer));
+
             this.localCache.set(cacheKey, { data: dataCopy, expires: Date.now() + ttl });
             this.localNegativeCache.delete(cacheKey);
         }
@@ -364,9 +367,7 @@ class KythiaModel extends Model {
 
             // --- TAMBAHKAN BLOK INI ---
             // Normalisasi 'includeOptions' biar selalu jadi array
-            const includeAsArray = includeOptions 
-                ? (Array.isArray(includeOptions) ? includeOptions : [includeOptions]) 
-                : null;
+            const includeAsArray = includeOptions ? (Array.isArray(includeOptions) ? includeOptions : [includeOptions]) : null;
             // -------------------------
 
             if (Array.isArray(parsedData)) {
@@ -746,7 +747,7 @@ class KythiaModel extends Model {
         try {
             const parentPk = ParentModel.primaryKeyAttribute;
             const parent = await ParentModel.findByPk(childInstance[foreignKeyField]);
-            
+
             if (parent) {
                 parent.changed(timestampField, true);
                 await parent.save({ fields: [timestampField] });
