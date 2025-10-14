@@ -348,7 +348,7 @@ module.exports = {
                         }
 
                         if (interaction.guild) {
-                            const reactEmbed = await Embed.findOne({ where: { messageId } });
+                            const reactEmbed = await Embed.getCache({ messageId });
 
                             if (!reactEmbed) {
                                 return interaction.editReply({

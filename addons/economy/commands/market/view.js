@@ -19,7 +19,7 @@ function formatMarketTable(rows) {
 
 function getChangeEmoji(percent) {
     if (percent > 0) return '🟢 ▲';
-    if (percent < 0) return '🔻 ▼';
+    if (percent < 0) return '🔴 ▼';
     return '⏹️';
 }
 
@@ -50,112 +50,90 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        try {
-            const marketData = await getMarketData();
-            const assetId = interaction.options.getString('asset');
-            let embed;
-            let files = [];
+        const marketData = await getMarketData();
+        const assetId = interaction.options.getString('asset');
+        let embed;
+        let files = [];
 
-            if (assetId) {
-                // --- Single asset mode (menyiapkan embed chart) ---
-                const data = marketData[assetId];
-                if (!data) {
-                    embed = new EmbedBuilder()
-                        .setColor('Red')
-                        .setDescription(
-                            `## ${await t(interaction, 'economy_market_view_asset_not_found_title')}\n${await t(interaction, 'economy_market_view_asset_not_found_desc', { asset: assetId.toUpperCase() })}`
-                        );
-                } else {
-                    const percent = data.usd_24h_change.toFixed(2);
-                    const emoji = getChangeEmoji(data.usd_24h_change);
-
-                    embed = new EmbedBuilder()
-                        .setColor(kythia.bot.color)
-                        .setTitle(await t(interaction, 'economy_market_view_chart_title', { asset: assetId.toUpperCase() }))
-                        .addFields(
-                            {
-                                name: await t(interaction, 'economy_market_view_price_label'),
-                                value: `$${data.usd.toLocaleString()}`,
-                                inline: true,
-                            },
-                            {
-                                name: await t(interaction, 'economy_market_view_24h_change_label'),
-                                value: `${emoji} ${percent}%`,
-                                inline: true,
-                            },
-                            {
-                                name: await t(interaction, 'economy_market_view_market_cap_label'),
-                                value: `$${data.usd_market_cap.toLocaleString()}`,
-                                inline: true,
-                            },
-                            {
-                                name: await t(interaction, 'economy_market_view_24h_vol_label'),
-                                value: `$${data.usd_24h_vol.toLocaleString()}`,
-                                inline: true,
-                            }
-                        )
-                        .setFooter(await embedFooter(interaction));
-
-                    const openOrders = await MarketOrder.getAllCache({
-                        where: {
-                            userId: interaction.user.id,
-                            assetId: assetId,
-                            status: 'open',
-                        },
-                        cacheTags: [`MarketOrder:open:byUser:${interaction.user.id}:byAsset:${assetId}`],
-                    });
-
-                    if (openOrders.length > 0) {
-                        const orderSummary = openOrders
-                            .map((order) => {
-                                return `- **${order.side.toUpperCase()} ${order.quantity} ${order.assetId.toUpperCase()}** at $${order.price} (${order.type})`;
-                            })
-                            .join('\n');
-                        embed.addFields({ name: await t(interaction, 'economy_market_view_open_orders_label'), value: orderSummary });
-                    }
-
-                    const chartBuffer = await getChartBuffer(assetId);
-                    if (chartBuffer) {
-                        const attachment = new AttachmentBuilder(chartBuffer, { name: 'market-chart.png' });
-                        files.push(attachment);
-                        embed.setImage('attachment://market-chart.png');
-                    }
-                }
+        if (assetId) {
+            const data = marketData[assetId];
+            if (!data) {
+                embed = new EmbedBuilder()
+                    .setColor('Red')
+                    .setDescription(
+                        `## ${await t(interaction, 'economy_market_view_asset_not_found_title')}\n${await t(interaction, 'economy_market_view_asset_not_found_desc', { asset: assetId.toUpperCase() })}`
+                    );
             } else {
-                // --- All assets mode (menyiapkan embed tabel) ---
-                const assetRows = ASSET_IDS.map((id) => {
-                    const data = marketData[id];
-                    if (!data) {
-                        return `${id.toUpperCase().padEnd(8)}| ${'Data not found'.padEnd(15)}| N/A`;
-                    }
-                    const symbol = id.toUpperCase().padEnd(8);
-                    const price = `$${data.usd.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                    })}`.padEnd(15);
-                    const percent = data.usd_24h_change.toFixed(2);
-                    const emoji = getChangeEmoji(data.usd_24h_change);
-                    const change = `${emoji} ${percent}%`;
-
-                    return `${symbol}| ${price}| ${change}`;
-                });
-                const prettyTable = formatMarketTable(assetRows);
+                const percent = data.usd_24h_change.toFixed(2);
+                const emoji = getChangeEmoji(data.usd_24h_change);
 
                 embed = new EmbedBuilder()
                     .setColor(kythia.bot.color)
-                    .setDescription(`## ${await t(interaction, 'economy_market_view_all_title')}\n` + prettyTable)
+                    .setTitle(await t(interaction, 'economy_market_view_chart_title', { asset: assetId.toUpperCase() }))
+                    .addFields(
+                        {
+                            name: await t(interaction, 'economy_market_view_price_label'),
+                            value: `$${data.usd.toLocaleString()}`,
+                            inline: true,
+                        },
+                        {
+                            name: await t(interaction, 'economy_market_view_24h_change_label'),
+                            value: `${emoji} ${percent}%`,
+                            inline: true,
+                        }
+                    )
                     .setFooter(await embedFooter(interaction));
-            }
 
-            await interaction.editReply({ embeds: [embed], files: files });
-        } catch (error) {
-            console.error('Error in market view:', error);
-            const errorEmbed = new EmbedBuilder()
-                .setColor('Red')
-                .setDescription(
-                    `## ${await t(interaction, 'economy_market_view_error_title')}\n${await t(interaction, 'economy_market_view_error_desc')}`
-                );
-            if (!interaction.replied) await interaction.editReply({ embeds: [errorEmbed] });
+                const openOrders = await MarketOrder.getAllCache({
+                    where: {
+                        userId: interaction.user.id,
+                        assetId: assetId,
+                        status: 'open',
+                    },
+                    cacheTags: [`MarketOrder:open:byUser:${interaction.user.id}:byAsset:${assetId}`],
+                });
+
+                if (openOrders.length > 0) {
+                    const orderSummary = openOrders
+                        .map((order) => {
+                            return `- **${order.side.toUpperCase()} ${order.quantity} ${order.assetId.toUpperCase()}** at $${order.price} (${order.type})`;
+                        })
+                        .join('\n');
+                    embed.addFields({ name: await t(interaction, 'economy_market_view_open_orders_label'), value: orderSummary });
+                }
+
+                const chartBuffer = await getChartBuffer(assetId);
+                if (chartBuffer) {
+                    const attachment = new AttachmentBuilder(chartBuffer, { name: 'market-chart.png' });
+                    files.push(attachment);
+                    embed.setImage('attachment://market-chart.png');
+                }
+            }
+        } else {
+            const assetRows = ASSET_IDS.map((id) => {
+                const data = marketData[id];
+                if (!data) {
+                    return `${id.toUpperCase().padEnd(8)}| ${'Data not found'.padEnd(15)}| N/A`;
+                }
+                const symbol = id.toUpperCase().padEnd(8);
+                const price = `$${data.usd.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                })}`.padEnd(15);
+                const percent = data.usd_24h_change.toFixed(2);
+                const emoji = getChangeEmoji(data.usd_24h_change);
+                const change = `${emoji} ${percent}%`;
+
+                return `${symbol}| ${price}| ${change}`;
+            });
+            const prettyTable = formatMarketTable(assetRows);
+
+            embed = new EmbedBuilder()
+                .setColor(kythia.bot.color)
+                .setDescription(`## ${await t(interaction, 'economy_market_view_all_title')}\n` + prettyTable)
+                .setFooter(await embedFooter(interaction));
         }
+
+        await interaction.editReply({ embeds: [embed], files: files });
     },
 };

@@ -105,7 +105,7 @@ module.exports = {
 
         await interaction.editReply({ embeds: [embed] });
 
-        const desktop = await Inventory.findOne({ where: { userId: interaction.user.id, itemName: '🖥️ Desktop' } });
+        const desktop = await Inventory.getCache({ userId: interaction.user.id, itemName: '🖥️ Desktop' });
         let successChance = 1;
         if (desktop) {
             successChance = 1.5;

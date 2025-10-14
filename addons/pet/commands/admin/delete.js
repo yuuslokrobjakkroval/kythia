@@ -7,7 +7,7 @@
  */
 const { EmbedBuilder } = require('discord.js');
 const { embedFooter } = require('@src/utils/discord');
-const { Pet } = require('../../database/models');
+const Pet = require('../../database/models/Pet');
 const { t } = require('@utils/translator');
 
 module.exports = {

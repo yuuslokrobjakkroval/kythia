@@ -64,10 +64,10 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const guard = await Inventory.findOne({ where: { userId: target.userId, itemName: '🚓 Guard' } });
+        const guard = await Inventory.getCache({ userId: target.userId, itemName: '🚓 Guard' });
         let poison = null;
         if (!guard) {
-            poison = await Inventory.findOne({ where: { userId: target.userId, itemName: '🧪 Poison' } });
+            poison = await Inventory.getCache({ userId: target.userId, itemName: '🧪 Poison' });
         }
 
         // ==== EDITED LOGIC FOR BANK INFLUENCE ON SUCCESS CHANCE ====

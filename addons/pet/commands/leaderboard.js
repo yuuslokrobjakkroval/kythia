@@ -5,11 +5,11 @@
  * @assistant chaa & graa
  * @version 0.9.9-beta-rc.3
  */
-const { UserPet, Pet } = require('../database/models');
+const UserPet = require('../database/models/UserPet');
+const Pet = require('../database/models/Pet');
 const { embedFooter } = require('@utils/discord');
 const { EmbedBuilder } = require('discord.js');
-const { t } = require('@utils/translator');
-const User = require('@coreModels/User');
+const { t } = require('@utils/translator');;
 
 module.exports = {
     subcommand: true,
@@ -18,10 +18,10 @@ module.exports = {
         await interaction.deferReply();
 
         const leaderboard = await UserPet.getAllCache({
-            include: { model: Pet, as: 'pet' },
+            include: [{ model: Pet, as: 'pet' }],
             order: [
                 [
-                    User.sequelize.literal(
+                    UserPet.sequelize.literal(
                         'CASE WHEN pet.rarity = "common" THEN 1 WHEN pet.rarity = "rare" THEN 2 WHEN pet.rarity = "epic" THEN 3 WHEN pet.rarity = "legendary" THEN 4 END'
                     ),
                     'DESC',
@@ -39,6 +39,7 @@ module.exports = {
                     t(interaction, 'pet_leaderboard_entry', {
                         index: index + 1,
                         userId: pet.userId,
+                        username: interaction.client.users.cache.get(pet.userId)?.username || 'Unknown',
                         icon: pet.pet.icon,
                         rarity: pet.pet.rarity,
                         name: pet.pet.name,
@@ -52,9 +53,8 @@ module.exports = {
         }
 
         const embed = new EmbedBuilder()
-            .setDescription(`## ${await t(interaction, 'pet_leaderboard_title')}\n${leaderboardDesc}`)
+            .setDescription(`${await t(interaction, 'pet_leaderboard_title')}\n${leaderboardDesc}`)
             .setColor(kythia.bot.color)
-            .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
             .setFooter(await embedFooter(interaction))
             .setTimestamp();
 

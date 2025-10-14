@@ -6,7 +6,7 @@
  * @version 0.9.9-beta-rc.3
  */
 const { EmbedBuilder } = require('discord.js');
-const { Pet } = require('../../database/models');
+const Pet = require('../../database/models/Pet');
 const { embedFooter } = require('@utils/discord');
 const { t } = require('@utils/translator');
 
@@ -34,7 +34,7 @@ module.exports = {
             .setDescription(`## ${await t(interaction, 'pet_admin_list_list_title')}\n${await t(interaction, 'pet_admin_list_list_desc')}`)
             .setColor(kythia.bot.color)
             .setThumbnail(interaction.client.user.displayAvatarURL({ dynamic: true }))
-            .setFooter({ text: await t(interaction, 'pet_admin_list_list_footer') });
+            .setFooter(await embedFooter(interaction));
 
         // Use for...of with await to ensure all fields are added before sending
         for (const pet of pets) {

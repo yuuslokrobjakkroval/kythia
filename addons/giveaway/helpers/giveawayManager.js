@@ -10,6 +10,7 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const User = require('@coreModels/User');
 const { t } = require('@utils/translator');
+const KythiaUser = require('@addons/core/database/models/KythiaUser');
 
 /**
  * Update the giveaway message with translated content and embed.
@@ -32,7 +33,9 @@ async function updateGiveawayMessage(client, giveaway, interaction = null) {
         let desc = `${await t(tCtx, 'giveaway_helpers_giveawayManager_embed_title')}\n`;
         desc += await t(tCtx, 'giveaway_helpers_giveawayManager_embed_desc', {
             prize: giveaway.prize,
-            endRelative: !isNaN(endTimestamp) ? `<t:${endTimestamp}:R>` : await t(tCtx, 'giveaway_helpers_giveawayManager_embed_ending_soon'),
+            endRelative: !isNaN(endTimestamp)
+                ? `<t:${endTimestamp}:R>`
+                : await t(tCtx, 'giveaway_helpers_giveawayManager_embed_ending_soon'),
             endFull: !isNaN(endTimestamp) ? `<t:${endTimestamp}:F>` : await t(tCtx, 'giveaway_helpers_giveawayManager_embed_ending_soon'),
             host: `<@${giveaway.hostId}>`,
         });
@@ -144,20 +147,6 @@ async function announceWinners(client, giveaway, isReroll = false, interaction =
         await channel.send({
             embeds: [embed],
         });
-    }
-
-    // Otomatisasi Hadiah (jika tipe 'money')
-    if (giveaway.type === 'money' && winners.length > 0) {
-        const amount = parseInt(giveaway.prize);
-        if (!isNaN(amount)) {
-            for (const winnerId of winners) {
-                const user = await User.findOne({ where: { userId: winnerId, guildId: giveaway.guildId } });
-                if (user) {
-                    user.cash += amount;
-                    await user.saveAndUpdateCache();
-                }
-            }
-        }
     }
 
     if (!giveaway.ended) {

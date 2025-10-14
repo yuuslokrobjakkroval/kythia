@@ -47,13 +47,13 @@ class Playlist extends KythiaModel {
         return this;
     }
 
-    static associate(models) {
-        this.hasMany(models.PlaylistTrack, {
-            foreignKey: 'playlistId',
-            as: 'tracks',
-            onDelete: 'CASCADE',
-        });
-    }
+    // static associate(models) {
+    //     this.hasMany(models.PlaylistTrack, {
+    //         foreignKey: 'playlistId',
+    //         as: 'tracks',
+    //         onDelete: 'CASCADE',
+    //     });
+    // }
 }
 
 Playlist.init(sequelize);

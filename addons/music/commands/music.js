@@ -7,7 +7,7 @@
  */
 const { SlashCommandBuilder, EmbedBuilder, GuildMember, PermissionFlagsBits, InteractionContextType } = require('discord.js');
 const Favorite = require('../database/models/Favorite');
-const { Playlist } = require('../database/models');
+const Playlist = require('../database/models/Playlist');
 const {
     handlePlay,
     handlePause,

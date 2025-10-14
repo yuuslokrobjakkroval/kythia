@@ -35,9 +35,9 @@ class UserPet extends KythiaModel {
         return this;
     }
 
-    static associate(models) {
-        this.belongsTo(models.Pet, { foreignKey: 'petId', as: 'pet' });
-    }
+    // static associate(models) {
+    //     this.belongsTo(models.Pet, { foreignKey: 'petId', as: 'pet' });
+    // }
 }
 
 UserPet.init(sequelize);

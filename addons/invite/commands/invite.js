@@ -52,7 +52,7 @@ module.exports = {
 
         if (sub === 'user') {
             const target = interaction.options.getUser('user') || interaction.user;
-            const row = await Invite.findOne({ where: { guildId, userId: target.id } });
+            const row = await Invite.getCache({ guildId, userId: target.id });
             const invites = row?.invites || 0;
             const leaves = row?.leaves || 0;
             const fake = row?.fake || 0;

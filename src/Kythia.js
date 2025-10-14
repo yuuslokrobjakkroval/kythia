@@ -92,8 +92,8 @@ class Kythia {
 
         this.client.cooldowns = new Collection();
 
-        this.readyHooks = [];
-
+        this.dbReadyHooks = [];
+        this.clientReadyHooks = [];
         this.eventHandlers = new Map();
     }
 
@@ -1699,12 +1699,18 @@ class Kythia {
         }
         return counts;
     }
+
     /**
-     * [BARU] Method untuk addon "menitipkan" tugas.
-     * @param {function} callback - Fungsi yang akan dijalankan saat client ready.
+     * Adds a callback to be executed when the database is ready.
+     * The callback will be executed after all database models have been
+     * synchronized.
+     * @param {function} callback - Callback to be executed when the database is ready.
      */
-    addReadyHook(callback) {
-        this.readyHooks.push(callback);
+    addDbReadyHook(callback) {
+        this.dbReadyHooks.push(callback);
+    }
+    addClientReadyHook(callback) {
+        this.clientReadyHooks.push(callback);
     }
     /**
      * 🚦 Initialize Master Event Handlers
@@ -1823,36 +1829,53 @@ class Kythia {
             logger.info('▬▬▬▬▬▬▬▬▬▬▬[ Load Locales & Fonts ]▬▬▬▬▬▬▬▬▬▬▬');
             loadLocales();
             loadFonts();
-            logger.info('▬▬▬▬▬▬▬▬▬▬▬▬▬▬[ Load KythiaORM ]▬▬▬▬▬▬▬▬▬▬▬▬▬▬');
+
+            // --- INI URUTAN BARUNYA ---
+
+            // 1. Inisialisasi Redis DULU
+            logger.info('▬▬▬▬▬▬▬▬▬▬▬▬▬▬[ Initialize Cache ]▬▬▬▬▬▬▬▬▬▬▬▬▬▬');
             KythiaModel.initialize(kythia.db.redis);
-            const sequelize = await KythiaORM();
-            this.container.sequelize = sequelize;
-            this.kythiaManager = new KythiaManager(ServerSetting);
-            this.container.kythiaManager = this.kythiaManager;
+
+            // 2. Load SEMUA Addons. Di sini `readyHooks` akan diisi.
             logger.info('▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬[ Kythia Addons ]▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬');
             const allCommands = await this._loadAddons();
+
+            // 3. SEKARANG baru jalankan ORM. Dia akan pakai `readyHooks` yang sudah ada.
+            logger.info('▬▬▬▬▬▬▬▬▬▬▬▬▬▬[ Load KythiaORM ]▬▬▬▬▬▬▬▬▬▬▬▬▬▬');
+            const sequelize = await KythiaORM(this); // Oper 'this' untuk akses readyHooks
+            this.container.sequelize = sequelize;
+
+            // 4. Inisialisasi service lain yang butuh sequelize
+            this.kythiaManager = new KythiaManager(ServerSetting);
+            this.container.kythiaManager = this.kythiaManager;
+
+            // 5. Lanjutkan sisa startup
             this._initializeEventHandlers();
             this._initializeInteractionHandler();
+
             logger.info('▬▬▬▬▬▬▬▬▬▬▬▬▬[ Deploy Commands ]▬▬▬▬▬▬▬▬▬▬▬▬▬');
             if (shouldDeploy) {
                 await this._deployCommands(allCommands);
             } else {
                 logger.info('⏭️  Skipping command deployment. Use --deploy flag to force update.');
             }
+
             this._initializeGlobalIntervalTracker();
             this._shutdownCollectorsOnExit();
+
             logger.info('▬▬▬▬▬▬▬▬▬▬▬[ Systems Initializing ]▬▬▬▬▬▬▬▬▬▬▬▬');
             const auditLogger = new AuditLogger(this);
             auditLogger.initialize();
-            this.client.once('clientReady', async () => {
-                logger.info(`🌸 Logged in as ${this.client.user.tag}`);
 
-                logger.info(`🚀 Executing ${this.readyHooks.length} ready hooks...`);
-                for (const hook of this.readyHooks) {
+            this.client.once('clientReady', async (c) => {
+                logger.info(`🌸 Logged in as ${this.client.user.tag}`);
+                // Eksekusi semua hook yang butuh client untuk siap
+                logger.info(`🚀 Executing ${this.clientReadyHooks.length} client-ready hooks...`);
+                for (const hook of this.clientReadyHooks) {
                     try {
-                        hook(this.client);
+                        await hook(c); // Oper 'c' (client) ke dalam hook-nya
                     } catch (error) {
-                        logger.error('Failed to execute a ready hook:', error);
+                        logger.error('Failed to execute a client-ready hook:', error);
                     }
                 }
             });

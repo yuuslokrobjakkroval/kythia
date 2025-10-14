@@ -6,7 +6,8 @@
  * @version 0.9.9-beta-rc.3
  */
 const { EmbedBuilder } = require('discord.js');
-const { Pet } = require('../../database/models');
+const UserPet = require('../../database/models/UserPet');
+const Pet = require('../../database/models/Pet');
 const { embedFooter } = require('@utils/discord');
 const { t } = require('@utils/translator');
 
@@ -32,8 +33,8 @@ module.exports = {
             .addStringOption((option) =>
                 option
                     .setName('bonus_type')
-                    .setDescription('Bonus type (XP or Money)')
-                    .addChoices({ name: 'XP', value: 'xp' }, { name: 'Money', value: 'money' })
+                    .setDescription('Bonus type (Coin or Ruby)')
+                    .addChoices({ name: 'Coin', value: 'coin' }, { name: 'Ruby', value: 'ruby' })
                     .setRequired(true)
             )
             .addIntegerOption((option) => option.setName('bonus_value').setDescription('Bonus value').setRequired(true)),

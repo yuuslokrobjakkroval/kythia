@@ -6,7 +6,8 @@
  * @version 0.9.9-beta-rc.3
  */
 const { EmbedBuilder } = require('discord.js');
-const { UserPet, Pet } = require('../database/models');
+const UserPet = require('../database/models/UserPet');
+const Pet = require('../database/models/Pet');
 const { embedFooter } = require('@utils/discord');
 const { t } = require('@utils/translator');
 

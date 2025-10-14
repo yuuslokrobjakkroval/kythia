@@ -7,11 +7,13 @@
  */
 const { EmbedBuilder } = require('discord.js');
 const ServerSetting = require('@coreModels/ServerSetting');
-const { UserPet, Pet } = require('../database/models');
+const UserPet = require('../database/models/UserPet');
+const Pet = require('../database/models/Pet');
 const { embedFooter } = require('@utils/discord');
 const { checkCooldown } = require('@utils/time');
 const { t } = require('@utils/translator');
-const User = require('@coreModels/User');
+const KythiaUser = require('@coreModels/KythiaUser');
+const { updatePetStatus } = require('../helpers/status'); // <--- Import status helper
 
 module.exports = {
     subcommand: true,
@@ -19,65 +21,86 @@ module.exports = {
     async execute(interaction) {
         await interaction.deferReply();
 
-        // Cooldown check
         const userId = interaction.user.id;
-        const guildId = interaction.guild.id;
-        const setting = await ServerSetting.getCache({ guildId: guildId });
-        const user = await User.getCache({ userId, guildId: interaction.guild.id });
-        const userPet = await UserPet.getCache({ userId: userId, include: [{ model: Pet, as: 'pet' }] });
+
+        // Ganti: gunakan KythiaUser dan UserPet langsung filter isDead false
+        const kythiaUser = await KythiaUser.getCache({ userId });
+        let userPet = await UserPet.getCache({
+            where: { userId: userId, isDead: false },
+            include: [{ model: Pet, as: 'pet' }],
+        });
+
         if (!userPet) {
             const embed = new EmbedBuilder()
                 .setDescription(`## ${await t(interaction, 'pet_use_no_pet_title')}\n${await t(interaction, 'pet_use_no_pet')}`)
-                .setColor("Red")
+                .setColor('Red')
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
-        const cooldown = checkCooldown(userPet.lastUse, kythia.addons.pet.useCooldown || 14400); // 4 hours
+
+        // Update pet status
+        const { pet: updatedPet, justDied } = updatePetStatus(userPet);
+        await updatedPet.saveAndUpdateCache();
+
+        if (justDied) {
+            try {
+                await interaction.user.send('Pesan duka: Pet-mu telah mati karena tidak terurus! 💀');
+            } catch (e) {
+                /* abaikan jika DM gagal */
+            }
+            const embed = new EmbedBuilder()
+                .setDescription(`## ${await t(interaction, 'pet_use_dead_title')}\n${await t(interaction, 'pet_use_dead')}`)
+                .setColor('Red')
+                .setFooter(await embedFooter(interaction));
+            return interaction.editReply({ embeds: [embed] });
+        }
+
+        // Cooldown check (pakai updatedPet.lastUse)
+        const cooldown = checkCooldown(updatedPet.lastUse, kythia.addons.pet.useCooldown || 14400);
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setDescription(
                     `## ${await t(interaction, 'pet_use_cooldown_title')}\n${await t(interaction, 'pet_use_cooldown', { time: cooldown.time })}`
                 )
-                .setColor("Red")
+                .setColor('Red')
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
-        if (userPet.isDead) {
-            const embed = new EmbedBuilder()
-                .setDescription(`## ${await t(interaction, 'pet_use_dead_title')}\n${await t(interaction, 'pet_use_dead')}`)
-                .setColor("Red")
-                .setFooter(await embedFooter(interaction));
-            return interaction.editReply({ embeds: [embed] });
-        }
-        userPet.level += 1;
+
+        // Bonus logic baru
+        updatedPet.level += 1;
+
         let multiplier = 1;
-        if (userPet.level >= 30) multiplier = 5;
-        else if (userPet.level >= 20) multiplier = 4;
-        else if (userPet.level >= 10) multiplier = 3;
-        else if (userPet.level >= 5) multiplier = 2;
-        user.xp += userPet.pet.bonusValue * multiplier;
+        if (updatedPet.level >= 30) multiplier = 5;
+        else if (updatedPet.level >= 20) multiplier = 4;
+        else if (updatedPet.level >= 10) multiplier = 3;
+        else if (updatedPet.level >= 5) multiplier = 2;
 
-        userPet.lastUse = new Date();
-        userPet.changed('lastUse', true);
-        await userPet.saveAndUpdateCache('userId');
+        let bonusValue = updatedPet.pet.bonusValue * multiplier;
+        let bonusTypeDisplay = '';
 
-        if (userPet.pet.bonusType === 'xp') {
-            user.xp += userPet.pet.bonusValue * multiplier;
-        } else if (userPet.pet.bonusType === 'money') {
-            user.cash += userPet.pet.bonusValue * multiplier;
+        // Gunakan KythiaUser coin/ruby, bukan cash/xp, dan bonusType baru
+        if (updatedPet.pet.bonusType === 'coin') {
+            kythiaUser.kythiaCoin = (BigInt(kythiaUser.kythiaCoin) || 0n) + BigInt(bonusValue);
+            bonusTypeDisplay = 'KythiaCoin';
+        } else if (updatedPet.pet.bonusType === 'ruby') {
+            kythiaUser.kythiaRuby = (BigInt(kythiaUser.kythiaRuby) || 0n) + BigInt(bonusValue);
+            bonusTypeDisplay = 'KythiaRuby';
         }
 
-        user.changed('xp', true);
-        await user.saveAndUpdateCache('userId');
+        updatedPet.lastUse = new Date();
+        await updatedPet.saveAndUpdateCache();
+        await kythiaUser.saveAndUpdateCache();
+
         const embed = new EmbedBuilder()
             .setDescription(
                 `## ${await t(interaction, 'pet_use_success_title')}\n${await t(interaction, 'pet_use_success', {
-                    icon: userPet.pet.icon,
-                    name: userPet.pet.name,
-                    rarity: userPet.pet.rarity,
-                    bonusType: userPet.pet.bonusType,
-                    bonusValue: userPet.pet.bonusValue * multiplier,
-                    level: userPet.level,
+                    icon: updatedPet.pet.icon,
+                    name: updatedPet.pet.name,
+                    rarity: updatedPet.pet.rarity,
+                    bonusType: bonusTypeDisplay,
+                    bonusValue: bonusValue,
+                    level: updatedPet.level,
                 })}`
             )
             .setColor(kythia.bot.color)

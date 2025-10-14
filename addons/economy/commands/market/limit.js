@@ -33,8 +33,12 @@ module.exports = {
                     .setRequired(true)
                     .addChoices(...ASSET_IDS.map((id) => ({ name: id.toUpperCase(), value: id })))
             )
-            .addNumberOption((option) => option.setName('quantity').setDescription('The amount of the asset to buy or sell').setRequired(true).setMinValue(0.000001))
-            .addNumberOption((option) => option.setName('price').setDescription('The price at which to place the order').setRequired(true).setMinValue(0.01)),
+            .addNumberOption((option) =>
+                option.setName('quantity').setDescription('The amount of the asset to buy or sell').setRequired(true).setMinValue(0.000001)
+            )
+            .addNumberOption((option) =>
+                option.setName('price').setDescription('The price at which to place the order').setRequired(true).setMinValue(0.01)
+            ),
 
     async execute(interaction) {
         await interaction.deferReply();
@@ -60,7 +64,9 @@ module.exports = {
                 if (user.kythiaCoin < totalCost) {
                     const embed = new EmbedBuilder()
                         .setColor('Red')
-                        .setDescription(`## ${await t(interaction, 'economy_market_buy_insufficient_funds_title')}\n${await t(interaction, 'economy_market_buy_insufficient_funds_desc', { amount: totalCost.toLocaleString() })}`)
+                        .setDescription(
+                            `## ${await t(interaction, 'economy_market_buy_insufficient_funds_title')}\n${await t(interaction, 'economy_market_buy_insufficient_funds_desc', { amount: totalCost.toLocaleString() })}`
+                        )
                         .setThumbnail(interaction.user.displayAvatarURL())
                         .setFooter(await embedFooter(interaction));
                     return interaction.editReply({ embeds: [embed] });
@@ -80,18 +86,24 @@ module.exports = {
 
                 const successEmbed = new EmbedBuilder()
                     .setColor('Green')
-                    .setDescription(`## ${await t(interaction, 'economy_market_limit_buy_success_title')}\n${await t(interaction, 'economy_market_limit_buy_success_desc', { quantity: quantity, asset: assetId.toUpperCase(), price: price.toLocaleString() })}\n\nOrder ID: \`${order.id}\``)
+                    .setDescription(
+                        `## ${await t(interaction, 'economy_market_limit_buy_success_title')}\n${await t(interaction, 'economy_market_limit_buy_success_desc', { quantity: quantity, asset: assetId.toUpperCase(), price: price.toLocaleString() })}\n\nOrder ID: \`${order.id}\``
+                    )
                     .setFooter(await embedFooter(interaction));
                 return interaction.editReply({ embeds: [successEmbed] });
-            } else { // sell
-                const holding = await MarketPortfolio.findOne({
-                    where: { userId: interaction.user.id, assetId: assetId },
+            } else {
+                // sell
+                const holding = await MarketPortfolio.getCache({
+                    userId: interaction.user.id,
+                    assetId: assetId,
                 });
 
                 if (!holding || holding.quantity < quantity) {
                     const embed = new EmbedBuilder()
                         .setColor('Red')
-                        .setDescription(`## ${await t(interaction, 'economy_market_sell_insufficient_asset_title')}\n${await t(interaction, 'economy_market_sell_insufficient_asset_desc', { asset: assetId.toUpperCase() })}`)
+                        .setDescription(
+                            `## ${await t(interaction, 'economy_market_sell_insufficient_asset_title')}\n${await t(interaction, 'economy_market_sell_insufficient_asset_desc', { asset: assetId.toUpperCase() })}`
+                        )
                         .setThumbnail(interaction.user.displayAvatarURL())
                         .setFooter(await embedFooter(interaction));
                     return interaction.editReply({ embeds: [embed] });
@@ -115,13 +127,19 @@ module.exports = {
 
                 const successEmbed = new EmbedBuilder()
                     .setColor('Yellow')
-                    .setDescription(`## ${await t(interaction, 'economy_market_limit_sell_success_title')}\n${await t(interaction, 'economy_market_limit_sell_success_desc', { quantity: quantity, asset: assetId.toUpperCase(), price: price.toLocaleString() })}\n\nOrder ID: \`${order.id}\``)
+                    .setDescription(
+                        `## ${await t(interaction, 'economy_market_limit_sell_success_title')}\n${await t(interaction, 'economy_market_limit_sell_success_desc', { quantity: quantity, asset: assetId.toUpperCase(), price: price.toLocaleString() })}\n\nOrder ID: \`${order.id}\``
+                    )
                     .setFooter(await embedFooter(interaction));
                 return interaction.editReply({ embeds: [successEmbed] });
             }
         } catch (error) {
             console.error('Error in limit order:', error);
-            const errorEmbed = new EmbedBuilder().setColor('Red').setDescription(`## ${await t(interaction, 'economy_market_order_error_title')}\n${await t(interaction, 'economy_market_order_error_desc')}`);
+            const errorEmbed = new EmbedBuilder()
+                .setColor('Red')
+                .setDescription(
+                    `## ${await t(interaction, 'economy_market_order_error_title')}\n${await t(interaction, 'economy_market_order_error_desc')}`
+                );
             await interaction.editReply({ embeds: [errorEmbed] });
         }
     },

@@ -74,13 +74,13 @@ class PlaylistTrack extends KythiaModel {
         return this;
     }
 
-    static associate(models) {
-        this.belongsTo(models.Playlist, {
-            foreignKey: 'playlistId',
-            as: 'playlist',
-            onDelete: 'CASCADE',
-        });
-    }
+    // static associate(models) {
+    //     this.belongsTo(models.Playlist, {
+    //         foreignKey: 'playlistId',
+    //         as: 'playlist',
+    //         onDelete: 'CASCADE',
+    //     });
+    // }
 
     static async touchParentPlaylist(trackInstance) {
         if (!trackInstance || !trackInstance.playlistId) return;

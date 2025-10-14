@@ -53,7 +53,6 @@ const fs = require('fs');
  * @returns {string} - A short MD5 hash representing the model's schema state.
  */
 function generateModelHash(model) {
-    // 1. Hashing Attributes
     const attributes = Object.entries(model.rawAttributes)
         .sort()
         .map(([attrName, attr]) => {
@@ -77,13 +76,11 @@ function generateModelHash(model) {
         })
         .join(',');
 
-    // 2. Hashing Associations (dependency-aware)
     const associations = Object.values(model.associations)
         .sort((a, b) => a.as.localeCompare(b.as))
         .map((assoc) => `${assoc.associationType}:${assoc.as}:${assoc.target.name}:${assoc.foreignKey}`)
         .join(',');
 
-    // 3. Hashing Indexes
     const indexes = (model.options.indexes || [])
         .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
         .map((idx) => {
@@ -226,19 +223,14 @@ async function checkForDestructiveChanges(model) {
         const droppedColumns = dbColumns.filter((col) => !modelColumns.has(col));
 
         if (isProduction && droppedColumns.length > 0) {
-            // Tanyakan ke user, bukan langsung exit
             const proceed = await askForDestructiveChangeConfirmation(model.name, droppedColumns);
             if (!proceed) {
                 process.exit(1);
             }
-            // else lanjut saja
         }
 
-        // Jika tidak ada destructive change, atau user setuju, lanjut
         return true;
     } catch (error) {
-        // Inilah bagian yang di-upgrade!
-        // Cek jika errornya adalah "table doesn't exist", baik dari pesan error Sequelize atau error code asli dari MySQL.
         const isTableNotFoundError =
             (error.name === 'SequelizeDatabaseError' && error.original && error.original.code === 'ER_NO_SUCH_TABLE') ||
             (typeof error.message === 'string' && error.message.match(/table.*?doesn't exist/i)) ||
@@ -246,12 +238,10 @@ async function checkForDestructiveChanges(model) {
 
         if (isTableNotFoundError) {
             logger.info(` -> Table '${tableName}' not found, will be created.`);
-            // Karena tabel belum ada, tidak ada perubahan destruktif.
-            // Kita tidak perlu melakukan apa-apa di sini, biarkan KythiaORM yang melakukan model.sync() nanti.
-            return true; // Cukup kembalikan dan lanjutkan proses
+
+            return true;
         }
 
-        // Untuk error lain yang tidak terduga, kita tetap lemparkan
         logger.error(`❌ Error when checking for destructive changes in model '${model.name}':`, error);
         throw error;
     }
@@ -285,24 +275,62 @@ async function checkForDestructiveChanges(model) {
  * @param {object} [options] - Options for the sync.
  * @param {boolean} [options.force=false] - Force sync in production mode.
  */
-async function KythiaORM(client, options = { force: false }) {
+async function KythiaORM(kythiaInstance, options = {}) {
     try {
         const rootDir = path.join(__dirname, '..', '..');
         loadAllAddonModels(rootDir);
 
-        KythiaModel.attachHooksToAllModels(sequelize, client);
+        logger.info('↔️ Performing model associations from ready hooks...');
+
+        for (const hook of kythiaInstance.dbReadyHooks) {
+            try {
+                hook(sequelize);
+            } catch (error) {
+                logger.error('Failed to execute an association hook:', error);
+            }
+        }
+        logger.info('✅ All model associations performed.');
+
+        KythiaModel.attachHooksToAllModels(sequelize, kythiaInstance.client);
 
         const isProduction = kythia.env === 'production';
+        const shouldReset = process.argv.includes('--db-reset');
+
+        // --- INI DIA KUNCI PENGAMANNYA ---
+        if (!isProduction && shouldReset) {
+            logger.warn('==================== 🔥 DATABASE RESET 🔥 ====================');
+            logger.warn('`--db-reset` flag detected in development mode.');
+            logger.warn('ALL TABLES will be dropped and recreated.');
+            logger.warn('===============================================================');
+
+            // Tanya konfirmasi sekali lagi biar aman
+            const proceed = await new Promise((resolve) => {
+                const rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });
+                rl.question('Are you sure you want to reset the database? (y/N): ', (answer) => {
+                    rl.close();
+                    resolve(answer.toLowerCase() === 'y');
+                });
+            });
+
+            if (proceed) {
+                logger.info('☢️ Dropping all tables and recreating schema...');
+                await sequelize.sync({ force: true });
+                logger.info('✅ Database has been completely reset.');
+            } else {
+                logger.error('❌ Database reset aborted by user.');
+                process.exit(0);
+            }
+        }
+        // --- SELESAI BLOK PENGAMAN ---
+
         const versionTable = 'model_versions';
 
-        // Create the model_versions table if it doesn't exist
         await sequelize.query(`CREATE TABLE IF NOT EXISTS ${versionTable} (
             model_name VARCHAR(255) PRIMARY KEY,
             hash VARCHAR(50) NOT NULL,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )`);
 
-        // Fetch all current model hashes from DB
         const [dbVersions] = await sequelize.query(`SELECT model_name, hash FROM ${versionTable}`);
         const dbVersionsMap = new Map(dbVersions.map((row) => [row.model_name, row.hash]));
 
@@ -314,11 +342,8 @@ async function KythiaORM(client, options = { force: false }) {
             const currentHash = dbVersionsMap.get(model.name);
 
             if (newHash !== currentHash) {
-                // !! INI DIA UPGRADENYA !!
-                // Sebelum memasukkan model ke daftar sync, cek dulu keamanannya.
                 const safe = await checkForDestructiveChanges(model);
                 if (!safe) {
-                    // Sudah di-handle di checkForDestructiveChanges (exit), tapi jaga-jaga
                     continue;
                 }
                 modelsToSync.push({ model, newHash });
@@ -327,11 +352,9 @@ async function KythiaORM(client, options = { force: false }) {
 
         if (modelsToSync.length > 0) {
             const changedModels = modelsToSync.map((m) => m.model.name).join(', ');
-            logger.warn(`🔄 Schema change detected for models: ${changedModels}`);
+            logger.warn(`🔄  Schema change detected for models: ${changedModels}`);
 
-            // Interactive safety net for production
             if (isProduction && !options.force) {
-                // Interactive prompt
                 const proceed = await askForProductionSyncConfirmation(changedModels);
                 if (!proceed) {
                     process.exit(1);
@@ -346,7 +369,6 @@ async function KythiaORM(client, options = { force: false }) {
                 logger.info(`  -> Syncing ${model.name}...`);
                 await model.sync({ alter: true });
 
-                // Update hash in DB for this model (UPSERT)
                 await sequelize.query(
                     `INSERT INTO ${versionTable} (model_name, hash) VALUES (?, ?)
                      ON DUPLICATE KEY UPDATE hash = ?`,
@@ -360,7 +382,6 @@ async function KythiaORM(client, options = { force: false }) {
 
         return sequelize;
     } catch (err) {
-        // Custom error log for missing table description
         if (err && typeof err.message === 'string' && err.message.match(/^No description found for "?(.+?)"? table/i)) {
             logger.error(
                 '❌ An error occurred during the smart sync process: ' +

@@ -6,37 +6,35 @@
  * @version 0.9.9-beta-rc.3
  */
 
-const UserPet = require("../database/models/UserPet");
+const UserPet = require('../database/models/UserPet');
 
-async function updatePetStatus(pet) {
+function updatePetStatus(pet) {
     const now = Date.now();
-    const lastUpdated = pet.lastUpdatedAt ? pet.lastUpdatedAt.getTime() : now;
-    const hoursPassed = Math.floor((now - lastUpdated) / (1000 * 60 * 60));
-    if (hoursPassed <= 0) return;
+    // Jika pet baru dibuat, lastUpdatedAt mungkin null, jadi kita anggap 'now'
+    const lastUpdated = pet.lastUpdatedAt ? new Date(pet.lastUpdatedAt).getTime() : now;
 
+    // Hitung selisih dalam jam, tapi pakai desimal biar lebih akurat
+    const hoursPassed = (now - lastUpdated) / (1000 * 60 * 60);
+    if (hoursPassed <= 0) {
+        // Kembalikan pet tanpa perubahan jika belum ada waktu berlalu
+        return { pet, justDied: false };
+    }
+
+    // Kalkulasi status baru
     pet.hunger = Math.max(pet.hunger - 5 * hoursPassed, 0);
     pet.happiness = Math.max(pet.happiness - 10 * hoursPassed, 0);
 
+    let justDied = false;
+    // Cek apakah pet mati di pembaruan kali ini
     if (pet.hunger <= 0 && pet.happiness <= 0 && !pet.isDead) {
         pet.isDead = true;
-
-        const user = await UserPet.findOne({ where: { userId: pet.userId, isDead: false } });
-
-        if (user) {
-            const embed = new EmbedBuilder()
-                .setTitle('> 💀 Pet Kamu Telah Mati!')
-                .setDescription(`Pet kamu telah mati karena kelaparan!`)
-                .setColor('Red');
-
-            try {
-                const discordUser = await client.users.fetch(user.userId);
-                await discordUser.send({ embeds: [embed] });
-            } catch (sendErr) {
-                console.error(`gagal mengirim pesan ke user ${user.userId}:`, sendErr);
-            }
-        }
+        justDied = true; // Set flag bahwa pet BARU SAJA mati
     }
 
-    pet.lastUpdatedAt = new Date();
-    await pet.save();
+    pet.lastUpdatedAt = new Date(now);
+
+    // Kembalikan hasilnya, jangan di-save di sini
+    return { pet, justDied };
 }
+
+module.exports = { updatePetStatus };

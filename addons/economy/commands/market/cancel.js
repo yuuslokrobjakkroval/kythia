@@ -18,24 +18,21 @@ module.exports = {
         subcommand
             .setName('cancel')
             .setDescription('Cancel an open order.')
-            .addStringOption((option) =>
-                option
-                    .setName('order_id')
-                    .setDescription('The ID of the order to cancel')
-                    .setRequired(true)
-            ),
+            .addStringOption((option) => option.setName('order_id').setDescription('The ID of the order to cancel').setRequired(true)),
 
     async execute(interaction) {
         await interaction.deferReply();
         const orderId = interaction.options.getString('order_id');
 
         try {
-            const order = await MarketOrder.findOne({ where: { id: orderId, userId: interaction.user.id, status: 'open' } });
+            const order = await MarketOrder.getCache({ id: orderId, userId: interaction.user.id, status: 'open' });
 
             if (!order) {
                 const notFoundEmbed = new EmbedBuilder()
                     .setColor('Red')
-                    .setDescription(`## ${await t(interaction, 'economy_market_cancel_not_found_title')}\n${await t(interaction, 'economy_market_cancel_not_found_desc')}`);
+                    .setDescription(
+                        `## ${await t(interaction, 'economy_market_cancel_not_found_title')}\n${await t(interaction, 'economy_market_cancel_not_found_desc')}`
+                    );
                 return interaction.editReply({ embeds: [notFoundEmbed] });
             }
 
@@ -45,8 +42,9 @@ module.exports = {
                 const totalCost = order.quantity * order.price;
                 user.kythiaCoin += totalCost;
                 await user.saveAndUpdateCache();
-            } else { // sell
-                const portfolio = await MarketPortfolio.findOne({ where: { userId: interaction.user.id, assetId: order.assetId } });
+            } else {
+                // sell
+                const portfolio = await MarketPortfolio.getCache({ userId: interaction.user.id, assetId: order.assetId });
                 if (portfolio) {
                     portfolio.quantity += order.quantity;
                     await portfolio.save();
@@ -65,12 +63,17 @@ module.exports = {
 
             const successEmbed = new EmbedBuilder()
                 .setColor('Green')
-                .setDescription(`## ${await t(interaction, 'economy_market_cancel_success_title')}\n${await t(interaction, 'economy_market_cancel_success_desc', { orderId: order.id })}`);
+                .setDescription(
+                    `## ${await t(interaction, 'economy_market_cancel_success_title')}\n${await t(interaction, 'economy_market_cancel_success_desc', { orderId: order.id })}`
+                );
             await interaction.editReply({ embeds: [successEmbed] });
-
         } catch (error) {
             console.error('Error in cancel order:', error);
-            const errorEmbed = new EmbedBuilder().setColor('Red').setDescription(`## ${await t(interaction, 'economy_market_cancel_error_title')}\n${await t(interaction, 'economy_market_cancel_error_desc')}`);
+            const errorEmbed = new EmbedBuilder()
+                .setColor('Red')
+                .setDescription(
+                    `## ${await t(interaction, 'economy_market_cancel_error_title')}\n${await t(interaction, 'economy_market_cancel_error_desc')}`
+                );
             await interaction.editReply({ embeds: [errorEmbed] });
         }
     },

@@ -20,8 +20,8 @@ class Pet extends KythiaModel {
                     type: DataTypes.ENUM('common', 'rare', 'epic', 'legendary'),
                     defaultValue: 'common',
                 },
-                bonusType: { type: DataTypes.ENUM('xp', 'money'), defaultValue: 'xp' },
-                bonusValue: { type: DataTypes.INTEGER, defaultValue: 10 },
+                bonusType: { type: DataTypes.ENUM('coin','ruby'), defaultValue: 'coin' },
+                bonusValue: { type: DataTypes.INTEGER, defaultValue: 0 },
             },
             {
                 sequelize: sequelizeInstance,
@@ -34,9 +34,9 @@ class Pet extends KythiaModel {
         return this;
     }
 
-    static associate(models) {
-        this.hasMany(models.UserPet, { foreignKey: 'petId', as: 'userPets' });
-    }
+    // static associate(models) {
+    //     this.hasMany(models.UserPet, { foreignKey: 'petId', as: 'userPets' });
+    // }
 }
 
 // Properly initialize the model with the imported sequelize instance

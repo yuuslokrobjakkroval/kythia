@@ -15,7 +15,7 @@ const { EmbedBuilder } = require('discord.js');
 
 module.exports = async (bot, member) => {
     // Optional: Track leaving user if necessary
-    let user = await User.findOne({ where: { userId: member.user.id } });
+    let user = await User.getCache( { userId: member.user.id  });
     if (!user) {
         user = await User.create({ userId: member.user.id, guildId: member.guild.id });
     }

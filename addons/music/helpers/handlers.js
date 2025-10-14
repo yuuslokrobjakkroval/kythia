@@ -1131,13 +1131,6 @@ async function _handlePlaylistLoad(interaction, player) {
     const playlistName = interaction.options.getString('name');
     const userId = interaction.user.id;
 
-    // const playlist = await Playlist.findOne({
-    //   where: {
-    //     userId: userId,
-    //     name: playlistName,
-    //   },
-    //   include: [{ model: PlaylistTrack, as: 'tracks' }]
-    // });
     const playlist = await Playlist.getCache({
         userId: userId,
         name: playlistName,
@@ -2141,7 +2134,7 @@ async function _handleFavoriteAdd(interaction, player) {
     }
 
     // Check for duplicate
-    const existing = await Favorite.findOne({
+    const existing = await Favorite.getCache({
         where: {
             userId,
             identifier: track.info.identifier,

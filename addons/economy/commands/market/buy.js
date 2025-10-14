@@ -49,7 +49,9 @@ module.exports = {
         if (user.kythiaCoin < amountToSpend) {
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)
-                .setDescription(`## ${await t(interaction, 'economy_market_buy_insufficient_funds_title')}\n${await t(interaction, 'economy_market_buy_insufficient_funds_desc', { amount: amountToSpend.toLocaleString() })}`)
+                .setDescription(
+                    `## ${await t(interaction, 'economy_market_buy_insufficient_funds_title')}\n${await t(interaction, 'economy_market_buy_insufficient_funds_desc', { amount: amountToSpend.toLocaleString() })}`
+                )
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
@@ -61,7 +63,9 @@ module.exports = {
         if (!assetData) {
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)
-                .setDescription(`## ${await t(interaction, 'economy_market_buy_asset_not_found_title')}\n${await t(interaction, 'economy_market_buy_asset_not_found_desc')}`)
+                .setDescription(
+                    `## ${await t(interaction, 'economy_market_buy_asset_not_found_title')}\n${await t(interaction, 'economy_market_buy_asset_not_found_desc')}`
+                )
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
@@ -71,8 +75,9 @@ module.exports = {
         const quantityToBuy = amountToSpend / currentPrice;
 
         try {
-            const existingHolding = await MarketPortfolio.findOne({
-                where: { userId: interaction.user.id, assetId: assetId },
+            const existingHolding = await MarketPortfolio.getCache({
+                userId: interaction.user.id,
+                assetId: assetId,
             });
 
             if (existingHolding) {
@@ -117,7 +122,9 @@ module.exports = {
             console.error('Error during market buy:', error);
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)
-                .setDescription(`## ${await t(interaction, 'economy_market_buy_error_title')}\n${await t(interaction, 'economy_market_buy_error_desc')}`)
+                .setDescription(
+                    `## ${await t(interaction, 'economy_market_buy_error_title')}\n${await t(interaction, 'economy_market_buy_error_desc')}`
+                )
                 .setFooter(await embedFooter(interaction));
             await interaction.editReply({ embeds: [embed] });
         }

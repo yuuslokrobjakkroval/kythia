@@ -6,23 +6,26 @@
  * @version 0.9.9-beta-rc.3
  */
 
-const InviteModel = require('../database/models/Invite');
+const Invite = require('../database/models/Invite');
 const InviteHistory = require('../database/models/InviteHistory');
 
 module.exports = async (bot, member) => {
     if (!member || !member.guild) return;
     const { guild, id: memberId } = member;
 
-    const history = await InviteHistory.findOne({
-        where: { guildId: guild.id, memberId: memberId, status: 'active' },
+    const history = await InviteHistory.getCache({
+        guildId: guild.id,
+        memberId: memberId,
+        status: 'active',
     });
 
     if (history && history.inviterId) {
         history.status = 'left';
         await history.save();
 
-        const inviterStats = await InviteModel.findOne({
-            where: { guildId: guild.id, userId: history.inviterId },
+        const inviterStats = await Invite.getCache({
+            guildId: guild.id,
+            userId: history.inviterId,
         });
 
         if (inviterStats) {

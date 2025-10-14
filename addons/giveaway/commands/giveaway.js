@@ -29,13 +29,6 @@ module.exports = {
                 .setName('start')
                 .setDescription('Start a giveaway')
                 .addStringOption((option) =>
-                    option
-                        .setName('type')
-                        .setDescription('Giveaway type')
-                        .setRequired(true)
-                        .addChoices({ name: 'In Server Money', value: 'money' }, { name: 'Other', value: 'another' })
-                )
-                .addStringOption((option) =>
                     option.setName('duration').setDescription('Duration (e.g. 1 week 4 days 12 minutes)').setRequired(true)
                 )
                 .addIntegerOption((option) => option.setName('winners').setDescription('Number of winners').setRequired(true))
@@ -100,7 +93,6 @@ async function startGiveaway(interaction) {
     const durationInput = interaction.options.getString('duration');
     const winners = interaction.options.getInteger('winners');
     const prize = interaction.options.getString('prize');
-    const type = interaction.options.getString('type') || 'other';
     const color = interaction.options.getString('color') || 'Random';
     const role = interaction.options.getRole('role');
 
@@ -165,7 +157,6 @@ async function startGiveaway(interaction) {
             channelId: interaction.channel.id,
             guildId: interaction.guild.id,
             hostId: interaction.user.id,
-            type: type,
             duration: durationMs,
             endTime: new Date(endTime),
             winners: winners,
@@ -200,7 +191,7 @@ async function startGiveaway(interaction) {
 async function endGiveaway(interaction) {
     await interaction.deferReply({ ephemeral: true });
     const messageId = interaction.options.getString('message_id');
-    const giveaway = await Giveaway.findOne({ where: { messageId } });
+    const giveaway = await Giveaway.getCache({ messageId });
 
     if (!giveaway || giveaway.ended) {
         const embed = new EmbedBuilder()
@@ -223,7 +214,7 @@ async function endGiveaway(interaction) {
 async function rerollGiveaway(interaction) {
     await interaction.deferReply({ ephemeral: true });
     const messageId = interaction.options.getString('message_id');
-    const giveaway = await Giveaway.findOne({ where: { messageId } });
+    const giveaway = await Giveaway.getCache({ messageId });
 
     if (!giveaway) {
         const embed = new EmbedBuilder()

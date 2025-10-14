@@ -296,8 +296,8 @@ module.exports = {
                     },
                 });
 
-                const topUser = await Streak.findOne({
-                    where: { guildId },
+                const topUser = await Streak.getCache({
+                    guildId,
                     order: [
                         ['highestStreak', 'DESC'],
                         ['currentStreak', 'DESC'],
@@ -320,8 +320,8 @@ module.exports = {
                     }
                 }
 
-                const lastClaim = await Streak.findOne({
-                    where: { guildId },
+                const lastClaim = await Streak.getCache({
+                    guildId,
                     order: [['lastClaimTimestamp', 'DESC']],
                 });
                 let lastClaimInfo = '-';

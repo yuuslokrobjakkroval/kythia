@@ -6,23 +6,14 @@
  * @version 0.9.9-beta-rc.3
  */
 
-// addons/dashboard/register.js
-
 const logger = require('@utils/logger');
 const { generateCommandSchema } = require('./helpers/commandSchema');
 const { initializeAiTasks } = require('./tasks/dailyGreeter');
 
 module.exports = {
-    /**
-     * Fungsi initialize ini akan dipanggil oleh command handler utama (Bot.js)
-     * saat memuat semua addon.
-     * @param {Bot} bot Instance dari kelas Bot utama.
-     */
     async initialize(bot) {
         const summery = [];
-        // 1. Buat skema command untuk AI setelah bot siap dan semua command ter-load
-        bot.client.once('clientReady', () => {
-            // Kita simpan skema ini di dalam objek bot agar bisa diakses di mana saja
+        bot.addClientReadyHook(() => {
             bot.aiCommandSchema = generateCommandSchema(bot.client);
             logger.info(`✅ Successfully loaded ${bot.aiCommandSchema.length} command schema for AI.`);
         });

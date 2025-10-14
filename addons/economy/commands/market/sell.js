@@ -27,7 +27,11 @@ module.exports = {
                     .addChoices(...ASSET_IDS.map((id) => ({ name: id.toUpperCase(), value: id })))
             )
             .addNumberOption((option) =>
-                option.setName('quantity').setDescription('The amount of the asset you want to sell (e.g., 0.5)').setRequired(true).setMinValue(0.000001)
+                option
+                    .setName('quantity')
+                    .setDescription('The amount of the asset you want to sell (e.g., 0.5)')
+                    .setRequired(true)
+                    .setMinValue(0.000001)
             ),
 
     async execute(interaction) {
@@ -46,14 +50,17 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const holding = await MarketPortfolio.findOne({
-            where: { userId: interaction.user.id, assetId: assetId },
+        const holding = await MarketPortfolio.getCache({
+            userId: interaction.user.id,
+            assetId: assetId,
         });
 
         if (!holding || holding.quantity < sellQuantity) {
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)
-                .setDescription(`## ${await t(interaction, 'economy_market_sell_insufficient_asset_title')}\n${await t(interaction, 'economy_market_sell_insufficient_asset_desc', { asset: assetId.toUpperCase() })}`)
+                .setDescription(
+                    `## ${await t(interaction, 'economy_market_sell_insufficient_asset_title')}\n${await t(interaction, 'economy_market_sell_insufficient_asset_desc', { asset: assetId.toUpperCase() })}`
+                )
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
@@ -65,7 +72,9 @@ module.exports = {
         if (!assetData) {
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)
-                .setDescription(`## ${await t(interaction, 'economy_market_sell_asset_not_found_title')}\n${await t(interaction, 'economy_market_sell_asset_not_found_desc')}`)
+                .setDescription(
+                    `## ${await t(interaction, 'economy_market_sell_asset_not_found_title')}\n${await t(interaction, 'economy_market_sell_asset_not_found_desc')}`
+                )
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
@@ -112,7 +121,9 @@ module.exports = {
             console.error('Error during market sell:', error);
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)
-                .setDescription(`## ${await t(interaction, 'economy_market_sell_error_title')}\n${await t(interaction, 'economy_market_sell_error_desc')}`)
+                .setDescription(
+                    `## ${await t(interaction, 'economy_market_sell_error_title')}\n${await t(interaction, 'economy_market_sell_error_desc')}`
+                )
                 .setFooter(await embedFooter(interaction));
             await interaction.editReply({ embeds: [embed] });
         }

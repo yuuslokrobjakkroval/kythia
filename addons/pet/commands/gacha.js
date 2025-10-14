@@ -6,12 +6,13 @@
  * @version 0.9.9-beta-rc.3
  */
 const { EmbedBuilder } = require('discord.js');
-const ServerSetting = require('@coreModels/ServerSetting');
-const { UserPet, Pet } = require('../database/models');
+const UserPet = require('../database/models/UserPet');
+const Pet = require('../database/models/Pet');
 const { checkCooldown } = require('@utils/time');
 const { t } = require('@utils/translator');
 const User = require('@coreModels/User');
 const { Op } = require('sequelize');
+const { embedFooter } = require('@utils/discord');
 
 module.exports = {
     subcommand: true,
@@ -65,10 +66,13 @@ module.exports = {
         // Calculate the new pet level as 40% of the previous pet's level
         const newLevel = Math.floor(userPet.level * 0.4);
 
-        // Delete the old pet and create the new one
+        // Set lastGacha to now
+        const now = new Date();
+
+        // Delete the old pet and create the new one (register lastGacha)
         const petName = `${userPet.petName}`;
         await userPet.destroy();
-        await UserPet.create({ userId, petId: selectedPet.id, petName: petName, level: newLevel });
+        await UserPet.create({ userId, petId: selectedPet.id, petName: petName, level: newLevel, lastGacha: now });
 
         const embed = new EmbedBuilder()
             .setDescription(

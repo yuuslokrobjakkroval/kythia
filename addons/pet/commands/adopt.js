@@ -6,9 +6,11 @@
  * @version 0.9.9-beta-rc.3
  */
 const { EmbedBuilder } = require('discord.js');
-const { UserPet, Pet } = require('../database/models');
 const { t } = require('@utils/translator');
 const { embedFooter } = require('@utils/discord');
+const KythiaUser = require('@coreModels/KythiaUser');
+const UserPet = require('../database/models/UserPet');
+const Pet = require('../database/models/Pet');
 
 module.exports = {
     subcommand: true,
@@ -19,53 +21,75 @@ module.exports = {
             .addStringOption((option) => option.setName('name').setDescription('Pet name').setRequired(true)),
     async execute(interaction) {
         await interaction.deferReply();
-        const userId = interaction.user.id;
-        const name = interaction.options.getString('name');
-        const existingPet = await UserPet.getCache({ userId, isDead: false, include: [{ model: Pet, as: 'pet' }] });
-        if (existingPet) {
+
+        const user = await KythiaUser.getCache({ userId: interaction.user.id });
+        if (!user) {
             const embed = new EmbedBuilder()
-                .setDescription(`## ${await t(interaction, 'pet_adopt_already_title')}\n${await t(interaction, 'pet_adopt_already')}`)
-                .setColor('Red')
+                .setColor(kythia.bot.color)
+                .setDescription(await t(interaction, 'economy_withdraw_no_account_desc'))
+                .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const deadPet = await UserPet.getCache({ userId, isDead: true });
+        const existingPet = await UserPet.getCache({
+            where: { userId: interaction.user.id, isDead: false },
+        });
+        if (existingPet) {
+            const title = await t(interaction, 'pet_adopt_embed_already_title');
+            const desc = await t(interaction, 'pet_adopt_already');
+            const embed = new EmbedBuilder()
+                .setDescription(`## ${title}\n${desc}`)
+                .setColor(kythia.bot.color)
+                .setFooter(await embedFooter(interaction));
+            return interaction.editReply({
+                embeds: [embed],
+            });
+        }
+
+        const deadPet = await UserPet.getCache({
+            where: { userId: interaction.user.id, isDead: true },
+        });
         if (deadPet) {
             await deadPet.destroy();
         }
-        const pets = await Pet.getAllCache({
-            cacheTags: ['Pet:all'],
-        });
+
+        const pets = await Pet.getAllCache({ cacheTags: ['Pet:all'] });
         const rarities = {
             common: 50,
             rare: 25,
             epic: 20,
             legendary: 5,
         };
-
         const weightedPets = pets.flatMap((pet) => Array(rarities[pet.rarity]).fill(pet));
+        const selectedPet = weightedPets[Math.floor(Math.random() * weightedPets.length)];
 
-        const randomPet = weightedPets[Math.floor(Math.random() * weightedPets.length)];
+        const name = interaction.options.getString('name');
 
-        // Create user pet
-        await UserPet.create({ userId, petId: randomPet.id, petName: name });
+        await UserPet.create({
+            userId: interaction.user.id,
+            petId: selectedPet.id,
+            petName: name,
+        });
 
-        // Create embed
+        const title = await t(interaction, 'pet_adopt_embed_success_title', {
+            name: selectedPet.name,
+            icon: selectedPet.icon ?? '',
+            rarity: selectedPet.rarity,
+        });
+        const desc = await t(interaction, 'pet_adopt_success_simple', {
+            name: selectedPet.name,
+            icon: selectedPet.icon ?? '',
+            rarity: selectedPet.rarity,
+        });
+
         const embed = new EmbedBuilder()
-            .setDescription(
-                `## ${await t(interaction, 'pet_adopt_success_title')}\n${await t(interaction, 'pet_adopt_success', {
-                    icon: randomPet.icon,
-                    name: randomPet.name,
-                    rarity: randomPet.rarity,
-                    bonusType: randomPet.bonusType,
-                    bonusValue: randomPet.bonusValue,
-                })}`
-            )
+            .setDescription(`## ${title}\n${desc}`)
             .setColor(kythia.bot.color)
-            .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
-            .setFooter({ text: await t(interaction, 'pet_adopt_footer') });
+            .setFooter(await embedFooter(interaction));
 
-        return interaction.editReply({ embeds: [embed] });
+        return interaction.editReply({
+            embeds: [embed],
+        });
     },
 };

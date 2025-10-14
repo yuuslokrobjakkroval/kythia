@@ -19,7 +19,6 @@ class Giveaway extends KythiaModel {
                 channelId: { type: DataTypes.STRING, allowNull: false },
                 messageId: { type: DataTypes.STRING, allowNull: false },
                 hostId: { type: DataTypes.STRING, allowNull: false },
-                type: { type: DataTypes.STRING, allowNull: false },
                 duration: { type: DataTypes.INTEGER, allowNull: false },
                 winners: { type: DataTypes.INTEGER, allowNull: false },
                 prize: { type: DataTypes.STRING, allowNull: false },

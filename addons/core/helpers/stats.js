@@ -230,7 +230,6 @@ async function updateStats(client, activeSettings) {
         if (!guild) continue;
 
         try {
-            // Assume members and channels are already cached/fetched at clientReady
             const members = guild.members.cache;
             const bots = members.filter((m) => m.user.bot).size;
             const online = members.filter((m) => m.presence && m.presence.status !== 'offline').size;

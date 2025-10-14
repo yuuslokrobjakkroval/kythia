@@ -22,7 +22,7 @@ const initialize = (bot) => {
         console.error("Failed to register button handler 'giveawayjoin':", error);
     }
 
-    bot.addReadyHook(() => {
+    bot.addClientReadyHook(() => {
         initializeGiveawayScheduler(bot.client);
     });
 

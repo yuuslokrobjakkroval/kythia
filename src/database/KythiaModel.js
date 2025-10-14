@@ -230,28 +230,28 @@ class KythiaModel extends Model {
                 return { hit: true, data: parsedData };
             }
 
-            const rebuild = (data) => {
-                const instance = this.build(data, { isNewRecord: false });
+            // --- TAMBAHKAN BLOK INI ---
+            // Normalisasi 'includeOptions' biar selalu jadi array
+            const includeAsArray = includeOptions 
+                ? (Array.isArray(includeOptions) ? includeOptions : [includeOptions]) 
+                : null;
+            // -------------------------
 
-                if (includeOptions && Array.isArray(includeOptions)) {
-                    for (const include of includeOptions) {
-                        const as = include.as;
-                        const ModelToBuild = include.model;
-
-                        if (as && ModelToBuild && data[as] && Array.isArray(data[as])) {
-                            const associatedInstances = ModelToBuild.bulkBuild(data[as], { isNewRecord: false });
-                            instance[as] = associatedInstances;
-                            instance.dataValues[as] = associatedInstances;
-                        }
-                    }
-                }
-
-                return instance;
-            };
-
-            const finalInstance = Array.isArray(parsedData) ? parsedData.map(rebuild) : rebuild(parsedData);
-
-            return { hit: true, data: finalInstance };
+            if (Array.isArray(parsedData)) {
+                // Gunakan bulkBuild untuk array, ini lebih efisien dan otomatis handle include
+                const instances = this.bulkBuild(parsedData, {
+                    isNewRecord: false,
+                    include: includeAsArray,
+                });
+                return { hit: true, data: instances };
+            } else {
+                // Gunakan build untuk objek tunggal
+                const instance = this.build(parsedData, {
+                    isNewRecord: false,
+                    include: includeAsArray,
+                });
+                return { hit: true, data: instance };
+            }
         } catch (err) {
             logger.error(`❌ [REDIS GET] Failed for key ${cacheKey}. Falling back. Error:`, err.message);
             this.isRedisConnected = false;
@@ -362,28 +362,28 @@ class KythiaModel extends Model {
                 return { hit: true, data: parsedData };
             }
 
-            const rebuild = (data) => {
-                const instance = this.build(data, { isNewRecord: false });
+            // --- TAMBAHKAN BLOK INI ---
+            // Normalisasi 'includeOptions' biar selalu jadi array
+            const includeAsArray = includeOptions 
+                ? (Array.isArray(includeOptions) ? includeOptions : [includeOptions]) 
+                : null;
+            // -------------------------
 
-                if (includeOptions && Array.isArray(includeOptions)) {
-                    for (const include of includeOptions) {
-                        const as = include.as;
-                        const ModelToBuild = include.model;
-
-                        if (as && ModelToBuild && data[as] && Array.isArray(data[as])) {
-                            const associatedInstances = ModelToBuild.bulkBuild(data[as], { isNewRecord: false });
-                            instance[as] = associatedInstances;
-                            instance.dataValues[as] = associatedInstances;
-                        }
-                    }
-                }
-
-                return instance;
-            };
-
-            const finalInstance = Array.isArray(parsedData) ? parsedData.map(rebuild) : rebuild(parsedData);
-
-            return { hit: true, data: finalInstance };
+            if (Array.isArray(parsedData)) {
+                // Gunakan bulkBuild untuk array, ini lebih efisien dan otomatis handle include
+                const instances = this.bulkBuild(parsedData, {
+                    isNewRecord: false,
+                    include: includeAsArray,
+                });
+                return { hit: true, data: instances };
+            } else {
+                // Gunakan build untuk objek tunggal
+                const instance = this.build(parsedData, {
+                    isNewRecord: false,
+                    include: includeAsArray,
+                });
+                return { hit: true, data: instance };
+            }
         }
 
         if (entry) this.localCache.delete(cacheKey);
@@ -410,11 +410,23 @@ class KythiaModel extends Model {
      */
     static _normalizeFindOptions(options) {
         if (!options || typeof options !== 'object' || Object.keys(options).length === 0) return { where: {} };
-        if (options.where) return options;
+        if (options.where) {
+            // Remove known cacheOptions that shouldn't be sent to Sequelize's query (like cacheTags, noCache)
+            const sequelizeOptions = { ...options };
+            delete sequelizeOptions.cacheTags;
+            delete sequelizeOptions.noCache;
+            return sequelizeOptions;
+        }
         const knownOptions = ['order', 'limit', 'attributes', 'include', 'group', 'having'];
+        // Filter out cache-specific options that would break Sequelize's query (such as cacheTags, noCache)
+        const cacheSpecificOptions = ['cacheTags', 'noCache'];
         const whereClause = {};
         const otherOptions = {};
         for (const key in options) {
+            if (cacheSpecificOptions.includes(key)) {
+                // Ignore, do not add to whereClause nor otherOptions
+                continue;
+            }
             if (knownOptions.includes(key)) otherOptions[key] = options[key];
             else whereClause[key] = options[key];
         }
@@ -429,6 +441,9 @@ class KythiaModel extends Model {
      */
     static async getCache(keys, options = {}) {
         if (options.noCache) {
+            // Remove cacheTags from options to avoid breaking Sequelize query
+            const filteredOpts = { ...options };
+            delete filteredOpts.cacheTags;
             return this.findOne(this._normalizeFindOptions(keys));
         }
         if (!keys || Array.isArray(keys)) {
@@ -478,10 +493,13 @@ class KythiaModel extends Model {
      * @returns {Promise<Model[]>} An array of model instances.
      */
     static async getAllCache(options = {}) {
-        if (options.noCache) {
-            return this.findAll(this._normalizeFindOptions(options));
+        // Remove any cache-only options before passing to Sequelize ".findAll"
+        const { cacheTags, noCache, ...queryOptions } = options || {};
+
+        if (noCache) {
+            return this.findAll(this._normalizeFindOptions(queryOptions));
         }
-        const normalizedOptions = this._normalizeFindOptions(options);
+        const normalizedOptions = this._normalizeFindOptions(queryOptions);
         const cacheKey = this.getCacheKey(normalizedOptions);
 
         const cacheResult = await this.getCachedEntry(cacheKey, normalizedOptions.include);
@@ -499,8 +517,8 @@ class KythiaModel extends Model {
             .then((records) => {
                 const tags = [`${this.name}`];
 
-                if (options.cacheTags && Array.isArray(options.cacheTags)) {
-                    tags.push(...options.cacheTags);
+                if (Array.isArray(cacheTags)) {
+                    tags.push(...cacheTags);
                 }
                 this.setCacheEntry(cacheKey, records, undefined, tags);
 
@@ -525,6 +543,9 @@ class KythiaModel extends Model {
         if (!options || !options.where) {
             throw new Error("findOrCreateWithCache requires a 'where' option.");
         }
+        // Strip cache-only fields before querying DB
+        const { cacheTags, noCache, ...findOrCreateOptions } = options;
+
         const cacheKey = this.getCacheKey(options.where);
         const cacheResult = await this.getCachedEntry(cacheKey);
         if (cacheResult.hit && cacheResult.data) {
@@ -534,7 +555,7 @@ class KythiaModel extends Model {
         if (this.pendingQueries.has(cacheKey)) {
             return this.pendingQueries.get(cacheKey);
         }
-        const findOrCreatePromise = this.findOrCreate(options)
+        const findOrCreatePromise = this.findOrCreate(findOrCreateOptions)
             .then(([instance, created]) => {
                 const tags = [`${this.name}`];
                 if (instance) {
@@ -559,14 +580,17 @@ class KythiaModel extends Model {
      * @returns {Promise<number>} The total number of matching records.
      */
     static async countWithCache(options = {}, ttl = 5 * 60 * 1000) {
-        const cacheKeyOptions = { queryType: 'count', ...options };
+        // Remove cache-specific options before passing to Sequelize's count
+        const { cacheTags, noCache, ...countOptions } = options || {};
+
+        const cacheKeyOptions = { queryType: 'count', ...countOptions };
         const cacheKey = this.getCacheKey(cacheKeyOptions);
         const cacheResult = await this.getCachedEntry(cacheKey);
         if (cacheResult.hit) {
             return cacheResult.data;
         }
         this.cacheStats.misses++;
-        const count = await this.count(options);
+        const count = await this.count(countOptions);
 
         const tags = [`${this.name}`];
         this.setCacheEntry(cacheKey, count, ttl, tags);
@@ -607,9 +631,10 @@ class KythiaModel extends Model {
      * @returns {Promise<*>} The raw result from the aggregation.
      */
     static async aggregateWithCache(options = {}, cacheOptions = {}) {
-        const { ttl = 5 * 60 * 1000, cacheTags = [] } = cacheOptions;
-
-        const cacheKeyOptions = { queryType: 'aggregate', ...options };
+        // Remove cache-specific options before passing to findAll
+        const { cacheTags, noCache, ...queryOptions } = options || {};
+        const { ttl = 5 * 60 * 1000 } = cacheOptions || {};
+        const cacheKeyOptions = { queryType: 'aggregate', ...queryOptions };
         const cacheKey = this.getCacheKey(cacheKeyOptions);
 
         const cacheResult = await this.getCachedEntry(cacheKey);
@@ -620,9 +645,10 @@ class KythiaModel extends Model {
         this.cacheStats.misses++;
 
         // aggregate() di Sequelize v6, atau bisa tetap pakai findAll untuk versi lama
-        const result = await this.findAll(options);
+        const result = await this.findAll(queryOptions);
 
-        const tags = [`${this.name}`].concat(cacheTags);
+        const tags = [`${this.name}`];
+        if (Array.isArray(cacheTags)) tags.push(...cacheTags);
         this.setCacheEntry(cacheKey, result, ttl, tags);
 
         return result;
