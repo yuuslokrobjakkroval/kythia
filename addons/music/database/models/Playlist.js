@@ -14,27 +14,10 @@ class Playlist extends KythiaModel {
     static init(sequelize) {
         super.init(
             {
-                id: {
-                    type: DataTypes.INTEGER,
-                    primaryKey: true,
-                    autoIncrement: true,
-                },
-                userId: {
-                    type: DataTypes.STRING,
-                    allowNull: false,
-                    comment: 'Discord User ID of the playlist owner.',
-                },
-                name: {
-                    type: DataTypes.STRING,
-                    allowNull: false,
-                    comment: 'Name of the playlist.',
-                },
-                shareCode: {
-                    type: DataTypes.STRING,
-                    allowNull: true,
-                    unique: true,
-                    comment: 'Unique code for sharing this playlist.',
-                },
+                id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+                userId: { type: DataTypes.STRING, allowNull: false, comment: 'Discord User ID of the playlist owner.' },
+                name: { type: DataTypes.STRING, allowNull: false, comment: 'Name of the playlist.' },
+                shareCode: { type: DataTypes.STRING, allowNull: true, unique: true, comment: 'Unique code for sharing this playlist.' },
             },
             {
                 sequelize,
@@ -46,14 +29,6 @@ class Playlist extends KythiaModel {
 
         return this;
     }
-
-    // static associate(models) {
-    //     this.hasMany(models.PlaylistTrack, {
-    //         foreignKey: 'playlistId',
-    //         as: 'tracks',
-    //         onDelete: 'CASCADE',
-    //     });
-    // }
 }
 
 Playlist.init(sequelize);

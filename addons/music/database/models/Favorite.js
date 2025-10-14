@@ -6,8 +6,6 @@
  * @version 0.9.9-beta-rc.3
  */
 
-// addons/music/database/models/Favorite.js
-
 const { DataTypes } = require('sequelize');
 const sequelize = require('@src/database/KythiaSequelize');
 const KythiaModel = require('@src/database/KythiaModel');
@@ -17,44 +15,19 @@ class Favorite extends KythiaModel {
     static init(sequelize) {
         super.init(
             {
-                id: {
-                    type: DataTypes.INTEGER,
-                    primaryKey: true,
-                    autoIncrement: true,
-                },
-                userId: {
-                    type: DataTypes.STRING,
-                    allowNull: false,
-                    comment: 'Discord User ID of the owner.',
-                },
-                // Kita simpan semua info yang dibutuhkan untuk memutar ulang lagu
-                identifier: {
-                    type: DataTypes.STRING,
-                    allowNull: false,
-                },
-                title: {
-                    type: DataTypes.STRING,
-                    allowNull: false,
-                },
-                author: {
-                    type: DataTypes.STRING,
-                    allowNull: false,
-                },
-                length: {
-                    type: DataTypes.BIGINT,
-                    allowNull: false,
-                },
-                uri: {
-                    type: DataTypes.STRING,
-                    allowNull: false,
-                },
+                id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+                userId: { type: DataTypes.STRING, allowNull: false, comment: 'Discord User ID of the owner.' },
+                identifier: { type: DataTypes.STRING, allowNull: false },
+                title: { type: DataTypes.STRING, allowNull: false },
+                author: { type: DataTypes.STRING, allowNull: false },
+                length: { type: DataTypes.BIGINT, allowNull: false },
+                uri: { type: DataTypes.STRING, allowNull: false },
             },
             {
                 sequelize,
                 modelName: 'Favorite',
                 tableName: 'favorites',
                 timestamps: true,
-                // Tambahkan unique index untuk mencegah user me-like lagu yang sama berkali-kali
                 indexes: [
                     {
                         unique: true,

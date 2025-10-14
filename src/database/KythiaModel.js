@@ -728,6 +728,58 @@ class KythiaModel extends Model {
             }
         }
     }
+
+    /**
+     * 🔄 Touches (updates the timestamp of) a parent model instance.
+     * This is useful for updating parent records when child records change.
+     * @param {Object} childInstance - The child model instance that triggered the touch.
+     * @param {string} foreignKeyField - The field name in the child that references the parent's primary key.
+     * @param {typeof KythiaModel} ParentModel - The parent model class to touch.
+     * @param {string} [timestampField='updatedAt'] - The timestamp field to update on the parent.
+     * @returns {Promise<void>}
+     */
+    static async touchParent(childInstance, foreignKeyField, ParentModel, timestampField = 'updatedAt') {
+        if (!childInstance || !childInstance[foreignKeyField]) {
+            return;
+        }
+
+        try {
+            const parentPk = ParentModel.primaryKeyAttribute;
+            const parent = await ParentModel.findByPk(childInstance[foreignKeyField]);
+            
+            if (parent) {
+                parent.changed(timestampField, true);
+                await parent.save({ fields: [timestampField] });
+                logger.info(`🔄 Touched parent ${ParentModel.name} #${parent[parentPk]} due to change in ${this.name}.`);
+            }
+        } catch (e) {
+            logger.error(`🔄 Failed to touch parent ${ParentModel.name}`, e);
+        }
+    }
+
+    /**
+     * 🔄 Configures automatic parent touching on model hooks.
+     * This method sets up hooks that automatically update parent timestamps when child records change.
+     * @param {string} foreignKeyField - The field name in the child that references the parent's primary key.
+     * @param {typeof KythiaModel} ParentModel - The parent model class to touch.
+     * @param {string} [timestampField='updatedAt'] - The timestamp field to update on the parent.
+     * @returns {void}
+     */
+    static setupParentTouch(foreignKeyField, ParentModel, timestampField = 'updatedAt') {
+        const touchHandler = (instance) => {
+            return this.touchParent(instance, foreignKeyField, ParentModel, timestampField);
+        };
+
+        const bulkTouchHandler = (instances) => {
+            if (instances && instances.length > 0) {
+                return this.touchParent(instances[0], foreignKeyField, ParentModel, timestampField);
+            }
+        };
+
+        this.addHook('afterSave', touchHandler);
+        this.addHook('afterDestroy', touchHandler);
+        this.addHook('afterBulkCreate', bulkTouchHandler);
+    }
 }
 
 module.exports = KythiaModel;
