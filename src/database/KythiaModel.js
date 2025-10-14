@@ -110,30 +110,27 @@ class KythiaModel extends Model {
             lastAutoReconnectTs = Date.now();
             logger.warn(`🟢 [REDIS] Attempting auto-reconnect after ${RECONNECT_DELAY_MINUTES}min downtime...`);
             try {
-                // Safely disconnect old instance if exists
-                if (this.redis && typeof this.redis.disconnect === "function") {
+                if (this.redis && typeof this.redis.disconnect === 'function') {
                     this.redis.disconnect();
                 }
                 this.redis = null;
-                // Clear possible lingering redis object
+
                 setTimeout(() => {
-                    // Avoid race, check again
                     if (!this.isRedisConnected) {
                         this.initialize(lastRedisOpts);
                     }
-                }, 1000); // Short delay to release internal resources before reconnect
+                }, 1000);
             } catch (e) {
-                logger.error("❌ [REDIS][SMART RECONNECT] Failed to re-initiate", e);
+                logger.error('❌ [REDIS][SMART RECONNECT] Failed to re-initiate', e);
             }
         };
 
         this.redis.on('connect', () => {
-            // If previously down, announce recovery
             if (!this.isRedisConnected) {
                 logger.info('✅ [REDIS] Connection established. Switching to Redis Cache mode.');
             }
             this.isRedisConnected = true;
-            // Clear any auto-reconnect timers
+
             if (reconnectTimeout) {
                 clearTimeout(reconnectTimeout);
                 reconnectTimeout = null;
@@ -141,25 +138,25 @@ class KythiaModel extends Model {
         });
 
         this.redis.on('error', (err) => {
-            // ioredis gives errors even when already "down", so keep quiet, only log occasionally
-            if (err && (err.code === "ECONNREFUSED" || err.message)) {
+            if (err && (err.code === 'ECONNREFUSED' || err.message)) {
                 logger.warn(`🟠 [REDIS] Error: ${err.message}`);
             }
         });
 
         this.redis.on('close', () => {
-            // Only log first transition
             if (this.isRedisConnected) {
                 logger.error('❌ [REDIS] Connection closed. Falling back to In-Memory Cache mode.');
             }
             this.isRedisConnected = false;
 
-            // If not already scheduled, set up a reconnection after the interval.
             if (!reconnectTimeout) {
-                reconnectTimeout = setTimeout(() => {
-                    reconnectTimeout = null;
-                    smartAutoReconnect();
-                }, RECONNECT_DELAY_MINUTES * 60 * 1000);
+                reconnectTimeout = setTimeout(
+                    () => {
+                        reconnectTimeout = null;
+                        smartAutoReconnect();
+                    },
+                    RECONNECT_DELAY_MINUTES * 60 * 1000
+                );
             }
         });
 
@@ -279,13 +276,16 @@ class KythiaModel extends Model {
             logger.error(`❌ [REDIS SET] Failed for key ${cacheKey}. Falling back. Error:`, err.message);
             this.isRedisConnected = false;
             if (!reconnectTimeout) {
-                reconnectTimeout = setTimeout(() => {
-                    reconnectTimeout = null;
-                    // Try to smart auto-reconnect after error
-                    if (typeof KythiaModel.initialize === "function") {
-                        KythiaModel.initialize(lastRedisOpts);
-                    }
-                }, RECONNECT_DELAY_MINUTES * 60 * 1000);
+                reconnectTimeout = setTimeout(
+                    () => {
+                        reconnectTimeout = null;
+
+                        if (typeof KythiaModel.initialize === 'function') {
+                            KythiaModel.initialize(lastRedisOpts);
+                        }
+                    },
+                    RECONNECT_DELAY_MINUTES * 60 * 1000
+                );
             }
         }
     }
@@ -306,27 +306,21 @@ class KythiaModel extends Model {
             this.cacheStats.redisHits++;
             if (result === NEGATIVE_CACHE_PLACEHOLDER) return { hit: true, data: null };
 
-            // USE SAFE PARSE
             const parsedData = safeParse(result);
 
             if (typeof parsedData !== 'object' || parsedData === null) {
                 return { hit: true, data: parsedData };
             }
 
-            // --- TAMBAHKAN BLOK INI ---
-            // Normalisasi 'includeOptions' biar selalu jadi array
             const includeAsArray = includeOptions ? (Array.isArray(includeOptions) ? includeOptions : [includeOptions]) : null;
-            // -------------------------
 
             if (Array.isArray(parsedData)) {
-                // Gunakan bulkBuild untuk array, ini lebih efisien dan otomatis handle include
                 const instances = this.bulkBuild(parsedData, {
                     isNewRecord: false,
                     include: includeAsArray,
                 });
                 return { hit: true, data: instances };
             } else {
-                // Gunakan build untuk objek tunggal
                 const instance = this.build(parsedData, {
                     isNewRecord: false,
                     include: includeAsArray,
@@ -337,12 +331,15 @@ class KythiaModel extends Model {
             logger.error(`❌ [REDIS GET] Failed for key ${cacheKey}. Falling back. Error:`, err.message);
             this.isRedisConnected = false;
             if (!reconnectTimeout) {
-                reconnectTimeout = setTimeout(() => {
-                    reconnectTimeout = null;
-                    if (typeof KythiaModel.initialize === "function") {
-                        KythiaModel.initialize(lastRedisOpts);
-                    }
-                }, RECONNECT_DELAY_MINUTES * 60 * 1000);
+                reconnectTimeout = setTimeout(
+                    () => {
+                        reconnectTimeout = null;
+                        if (typeof KythiaModel.initialize === 'function') {
+                            KythiaModel.initialize(lastRedisOpts);
+                        }
+                    },
+                    RECONNECT_DELAY_MINUTES * 60 * 1000
+                );
             }
             return { hit: false, data: undefined };
         }
@@ -362,12 +359,15 @@ class KythiaModel extends Model {
             logger.error(`❌ [REDIS DEL] Failed for key ${JSON.stringify(cacheKey)}. Bypassing. Error:`, err.message);
             this.isRedisConnected = false;
             if (!reconnectTimeout) {
-                reconnectTimeout = setTimeout(() => {
-                    reconnectTimeout = null;
-                    if (typeof KythiaModel.initialize === "function") {
-                        KythiaModel.initialize(lastRedisOpts);
-                    }
-                }, RECONNECT_DELAY_MINUTES * 60 * 1000);
+                reconnectTimeout = setTimeout(
+                    () => {
+                        reconnectTimeout = null;
+                        if (typeof KythiaModel.initialize === 'function') {
+                            KythiaModel.initialize(lastRedisOpts);
+                        }
+                    },
+                    RECONNECT_DELAY_MINUTES * 60 * 1000
+                );
             }
         }
     }
@@ -380,33 +380,28 @@ class KythiaModel extends Model {
         if (!this.isRedisConnected || !Array.isArray(tags) || tags.length === 0) return;
 
         try {
-            const multi = this.redis.multi();
-            const keysToDelete = new Set();
+            const keysToDelete = await this.redis.sunion(tags);
 
-            for (const tag of tags) {
-                const members = await this.redis.smembers(tag);
-                members.forEach((member) => keysToDelete.add(member));
+            if (keysToDelete && keysToDelete.length > 0) {
+                logger.info(`🎯 [SNIPER] Invalidating ${keysToDelete.length} keys for tags: ${tags.join(', ')}`);
+
+                await this.redis.multi().del(keysToDelete).del(tags).exec();
+            } else {
+                await this.redis.del(tags);
             }
-            const keysArray = Array.from(keysToDelete);
-
-            if (keysArray.length > 0) {
-                logger.info(`🎯 [SNIPER] Invalidating ${keysArray.length} keys for tags: ${tags.join(', ')}`);
-                multi.del(...keysArray);
-            }
-
-            multi.del(...tags);
-
-            await multi.exec();
         } catch (err) {
             logger.error(`❌ [SNIPER] Failed to invalidate tags. Error:`, err.message);
             this.isRedisConnected = false;
             if (!reconnectTimeout) {
-                reconnectTimeout = setTimeout(() => {
-                    reconnectTimeout = null;
-                    if (typeof KythiaModel.initialize === "function") {
-                        KythiaModel.initialize(lastRedisOpts);
-                    }
-                }, RECONNECT_DELAY_MINUTES * 60 * 1000);
+                reconnectTimeout = setTimeout(
+                    () => {
+                        reconnectTimeout = null;
+                        if (typeof KythiaModel.initialize === 'function') {
+                            KythiaModel.initialize(lastRedisOpts);
+                        }
+                    },
+                    RECONNECT_DELAY_MINUTES * 60 * 1000
+                );
             }
         }
     }
@@ -463,26 +458,28 @@ class KythiaModel extends Model {
         if (entry && entry.expires > Date.now()) {
             this.cacheStats.mapHits++;
 
-            const parsedData = entry.data;
+            const dataRaw = entry.data;
+
+            let parsedData;
+            if (typeof dataRaw === 'string') {
+                parsedData = safeParse(dataRaw);
+            } else {
+                parsedData = dataRaw;
+            }
 
             if (typeof parsedData !== 'object' || parsedData === null) {
                 return { hit: true, data: parsedData };
             }
 
-            // --- TAMBAHKAN BLOK INI ---
-            // Normalisasi 'includeOptions' biar selalu jadi array
             const includeAsArray = includeOptions ? (Array.isArray(includeOptions) ? includeOptions : [includeOptions]) : null;
-            // -------------------------
 
             if (Array.isArray(parsedData)) {
-                // Gunakan bulkBuild untuk array, ini lebih efisien dan otomatis handle include
                 const instances = this.bulkBuild(parsedData, {
                     isNewRecord: false,
                     include: includeAsArray,
                 });
                 return { hit: true, data: instances };
             } else {
-                // Gunakan build untuk objek tunggal
                 const instance = this.build(parsedData, {
                     isNewRecord: false,
                     include: includeAsArray,
@@ -516,20 +513,18 @@ class KythiaModel extends Model {
     static _normalizeFindOptions(options) {
         if (!options || typeof options !== 'object' || Object.keys(options).length === 0) return { where: {} };
         if (options.where) {
-            // Remove known cacheOptions that shouldn't be sent to Sequelize's query (like cacheTags, noCache)
             const sequelizeOptions = { ...options };
             delete sequelizeOptions.cacheTags;
             delete sequelizeOptions.noCache;
             return sequelizeOptions;
         }
         const knownOptions = ['order', 'limit', 'attributes', 'include', 'group', 'having'];
-        // Filter out cache-specific options that would break Sequelize's query (such as cacheTags, noCache)
+
         const cacheSpecificOptions = ['cacheTags', 'noCache'];
         const whereClause = {};
         const otherOptions = {};
         for (const key in options) {
             if (cacheSpecificOptions.includes(key)) {
-                // Ignore, do not add to whereClause nor otherOptions
                 continue;
             }
             if (knownOptions.includes(key)) otherOptions[key] = options[key];
@@ -546,7 +541,6 @@ class KythiaModel extends Model {
      */
     static async getCache(keys, options = {}) {
         if (options.noCache) {
-            // Remove cacheTags from options to avoid breaking Sequelize query
             const filteredOpts = { ...options };
             delete filteredOpts.cacheTags;
             return this.findOne(this._normalizeFindOptions(keys));
@@ -598,7 +592,6 @@ class KythiaModel extends Model {
      * @returns {Promise<Model[]>} An array of model instances.
      */
     static async getAllCache(options = {}) {
-        // Remove any cache-only options before passing to Sequelize ".findAll"
         const { cacheTags, noCache, ...queryOptions } = options || {};
 
         if (noCache) {
@@ -648,7 +641,7 @@ class KythiaModel extends Model {
         if (!options || !options.where) {
             throw new Error("findOrCreateWithCache requires a 'where' option.");
         }
-        // Strip cache-only fields before querying DB
+
         const { cacheTags, noCache, ...findOrCreateOptions } = options;
 
         const cacheKey = this.getCacheKey(options.where);
@@ -685,7 +678,6 @@ class KythiaModel extends Model {
      * @returns {Promise<number>} The total number of matching records.
      */
     static async countWithCache(options = {}, ttl = 5 * 60 * 1000) {
-        // Remove cache-specific options before passing to Sequelize's count
         const { cacheTags, noCache, ...countOptions } = options || {};
 
         const cacheKeyOptions = { queryType: 'count', ...countOptions };
@@ -736,7 +728,6 @@ class KythiaModel extends Model {
      * @returns {Promise<*>} The raw result from the aggregation.
      */
     static async aggregateWithCache(options = {}, cacheOptions = {}) {
-        // Remove cache-specific options before passing to findAll
         const { cacheTags, noCache, ...queryOptions } = options || {};
         const { ttl = 5 * 60 * 1000 } = cacheOptions || {};
         const cacheKeyOptions = { queryType: 'aggregate', ...queryOptions };
@@ -749,7 +740,6 @@ class KythiaModel extends Model {
 
         this.cacheStats.misses++;
 
-        // aggregate() di Sequelize v6, atau bisa tetap pakai findAll untuk versi lama
         const result = await this.findAll(queryOptions);
 
         const tags = [`${this.name}`];
