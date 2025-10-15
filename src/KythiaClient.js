@@ -16,7 +16,7 @@ module.exports = function kythiaClient() {
             GatewayIntentBits.DirectMessageTyping,
         ],
 
-        partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.User],
+        partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.User, Partials.GuildMember],
 
         makeCache: Options.cacheWithLimits({
             MessageManager: 25,
@@ -43,7 +43,7 @@ module.exports = function kythiaClient() {
             users: {
                 interval: 3600,
 
-                filter: () => (user) => !user.bot && user.id !== client.user.id,
+                filter: (user) => !user.bot && user.id !== client.user.id,
             },
         },
     });
