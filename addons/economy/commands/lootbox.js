@@ -29,7 +29,7 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const cooldown = checkCooldown(user.lastLootbox, kythia.addons.economy.lootboxCooldown || 43200);
+        const cooldown = checkCooldown(user.lastLootbox, kythia.addons.economy.lootboxCooldown || 43200, interaction);
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)

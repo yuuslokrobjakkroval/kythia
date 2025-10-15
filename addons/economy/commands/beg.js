@@ -28,7 +28,7 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const cooldown = checkCooldown(user.lastBeg, kythia.addons.economy.begCooldown || 3600);
+        const cooldown = checkCooldown(user.lastBeg, kythia.addons.economy.begCooldown || 3600, interaction);
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)

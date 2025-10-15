@@ -53,7 +53,7 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const cooldown = checkCooldown(user.lastRob, kythia.addons.economy.robCooldown || 10800);
+        const cooldown = checkCooldown(user.lastRob, kythia.addons.economy.robCooldown || 10800, interaction);
 
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()

@@ -34,7 +34,7 @@ module.exports = {
 
         const userInventory = await Inventory.getAllCache({ userId: user.userId });
 
-        const cooldown = checkCooldown(user.lastWork, kythia.addons.economy.workCooldown || 28800);
+        const cooldown = checkCooldown(user.lastWork, kythia.addons.economy.workCooldown || 28800, interaction);
 
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()

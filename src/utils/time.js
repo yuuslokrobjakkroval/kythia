@@ -5,6 +5,7 @@
  * © 2025 kenndeclouv — v0.9.8-beta
  */
 const { t } = require('@utils/translator');
+const { isOwner } = require('@utils/discord'); // Use the local isOwner, which may proxy or match @discord.js needs
 
 /**
  * Parses a human-readable duration string into milliseconds.
@@ -72,10 +73,15 @@ function parseDuration(duration) {
  * Checks cooldown based on the last execution time and cooldown length.
  * @param {number} lastTime - Timestamp in ms when the action last ran.
  * @param {number} cooldownInSeconds - Cooldown length in seconds.
+ * @param {object} [interaction] - Discord interaction object with .user
  * @returns {{remaining:boolean,time?:string}} Remaining flag and friendly remaining time if active.
  */
-function checkCooldown(lastTime, cooldownInSeconds) {
-    if (kythia.settings.ownerSkipCooldown) {
+function checkCooldown(lastTime, cooldownInSeconds, interaction) {
+    if (
+        typeof interaction !== 'undefined' &&
+        kythia.settings.ownerSkipCooldown &&
+        isOwner(interaction.user.id)
+    ) {
         return { remaining: false };
     }
     const now = Date.now();

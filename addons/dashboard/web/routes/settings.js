@@ -621,6 +621,7 @@ router.post('/dashboard/:guildId/settings/booster', isAuthorized, checkServerAcc
         const settings = req.settings;
         const body = req.body;
 
+        settings.boostLogOn = body.boostLogOn === 'on';
         if (body.boostLogChannelId) settings.boostLogChannelId = body.boostLogChannelId;
         if (body.boostLogMessage !== undefined) settings.boostLogMessage = body.boostLogMessage;
 

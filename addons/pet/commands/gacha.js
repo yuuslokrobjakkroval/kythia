@@ -31,7 +31,7 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const cooldown = checkCooldown(userPet.lastGacha, kythia.addons.pet.gachaCooldown || 86400); // Default to 24 hours
+        const cooldown = checkCooldown(userPet.lastGacha, kythia.addons.pet.gachaCooldown || 86400, interaction); // Default to 24 hours
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setDescription(

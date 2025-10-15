@@ -100,7 +100,23 @@ module.exports = {
                 price: currentPrice,
             });
 
-            user.kythiaCoin = BigInt(user.kythiaCoin) + BigInt(totalUsdReceived);
+            // Fix: Don't use BigInt if value is not integer. Use Number for fractional currency.
+            // If kythiaCoin is BigInt in DB, convert to float field, otherwise this logic works for decimal field too.
+            // If user.kythiaCoin is a string with only integer, parseInt, otherwise use parseFloat.
+            // We'll treat kythiaCoin as decimal (float) value here.
+            // Defensive: If it's integer string, parseInt, else parseFloat.
+            let kythiaCoinNumeric =
+                typeof user.kythiaCoin === 'bigint'
+                    ? Number(user.kythiaCoin)
+                    : typeof user.kythiaCoin === 'number'
+                    ? user.kythiaCoin
+                    : /^\d+$/.test(user.kythiaCoin)
+                    ? parseInt(user.kythiaCoin, 10)
+                    : parseFloat(user.kythiaCoin);
+
+            kythiaCoinNumeric += totalUsdReceived;
+
+            user.kythiaCoin = kythiaCoinNumeric;
 
             user.changed('kythiaCoin', true);
 

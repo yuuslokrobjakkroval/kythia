@@ -53,7 +53,7 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const cooldown = checkCooldown(updatedPet.lastUse, kythia.addons.pet.useCooldown || 14400);
+        const cooldown = checkCooldown(updatedPet.lastUse, kythia.addons.pet.useCooldown || 14400, interaction);
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setDescription(

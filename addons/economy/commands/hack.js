@@ -39,7 +39,7 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const cooldown = checkCooldown(user.lastHack, kythia.addons.economy.hackCooldown || 7200);
+        const cooldown = checkCooldown(user.lastHack, kythia.addons.economy.hackCooldown || 7200, interaction);
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setColor('Yellow')
