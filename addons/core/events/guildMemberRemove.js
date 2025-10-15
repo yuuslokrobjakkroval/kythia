@@ -7,15 +7,15 @@
  */
 
 const ServerSetting = require('../database/models/ServerSetting');
-const { resolvePlaceholders } = require('@coreHelpers/stats');
+const { resolvePlaceholders, safeResolvePlaceholder } = require('@coreHelpers/stats');
 const { generateBanner } = require('../helpers/canvas');
-const { embedFooter } = require('@src/utils/discord');
+const { embedFooter } = require('@utils/discord');
 const User = require('../database/models/User');
 const { EmbedBuilder } = require('discord.js');
 
 module.exports = async (bot, member) => {
     // Optional: Track leaving user if necessary
-    let user = await User.getCache( { userId: member.user.id  });
+    let user = await User.getCache({ userId: member.user.id });
     if (!user) {
         user = await User.create({ userId: member.user.id, guildId: member.guild.id });
     }
@@ -88,21 +88,6 @@ module.exports = async (bot, member) => {
         }
     } else {
         goodbyeText = `${member.user.username} has left the server.`;
-    }
-
-    async function safeResolvePlaceholder(member, text, statsData, fallback = '') {
-        if (typeof text !== 'string' || !text.trim()) return fallback;
-        try {
-            let result = await resolvePlaceholders(text, statsData, member.guild.preferredLocale);
-            if (typeof result === 'string') {
-                result = result.replace(/\\n/g, '\n');
-            }
-            if (result == null) return fallback;
-            return result;
-        } catch (err) {
-            console.error('Error in resolvePlaceholders for banner text:', err);
-            return fallback;
-        }
     }
 
     // Goodbye banner

@@ -229,6 +229,25 @@ router.get('/dashboard/:guildId/settings/channels', isAuthorized, checkServerAcc
     });
 });
 
+router.get('/dashboard/:guildId/settings/booster', isAuthorized, checkServerAccess, (req, res) => {
+    const guild = req.guild;
+    const channels = {
+        text: guild.channels.cache.filter((c) => c.type === 0).toJSON(),
+    };
+
+    renderDash(res, 'settings/booster', {
+        guild: guild,
+        guildId: guild.id,
+        user: req.user,
+        settings: req.settings,
+        channels: channels,
+        page: 'settings/booster',
+        title: 'Booster Settings',
+        currentPage: '/dashboard/settings/booster',
+        query: req.query,
+    });
+});
+
 router.get('/dashboard/:guildId/settings/features', isAuthorized, checkServerAccess, (req, res) => {
     renderDash(res, 'settings/features', {
         guild: req.guild,
@@ -597,6 +616,22 @@ router.post('/dashboard/:guildId/settings/channels', isAuthorized, checkServerAc
     }
 });
 
+router.post('/dashboard/:guildId/settings/booster', isAuthorized, checkServerAccess, async (req, res) => {
+    try {
+        const settings = req.settings;
+        const body = req.body;
+
+        if (body.boostLogChannelId) settings.boostLogChannelId = body.boostLogChannelId;
+        if (body.boostLogMessage !== undefined) settings.boostLogMessage = body.boostLogMessage;
+
+        await settings.saveAndUpdateCache('guildId');
+        res.redirect(`/dashboard/${req.guild.id}/settings/booster?success=true`);
+    } catch (error) {
+        console.error('Error saving booster settings:', error);
+        res.redirect(`/dashboard/${req.guild.id}/settings/booster?error=true`);
+    }
+});
+
 router.post('/dashboard/:guildId/settings/features', isAuthorized, checkServerAccess, async (req, res) => {
     try {
         const settings = req.settings;
@@ -617,6 +652,7 @@ router.post('/dashboard/:guildId/settings/features', isAuthorized, checkServerAc
             'streakOn',
             'invitesOn',
             'rolePrefixOn',
+            'boostLogOn',
         ];
 
         for (const key of featureKeys) {

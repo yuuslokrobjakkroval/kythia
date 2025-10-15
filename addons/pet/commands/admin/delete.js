@@ -6,16 +6,16 @@
  * @version 0.9.9-beta-rc.3
  */
 const { EmbedBuilder } = require('discord.js');
-const { embedFooter } = require('@src/utils/discord');
+const { embedFooter } = require('@utils/discord');
 const Pet = require('../../database/models/Pet');
 const { t } = require('@utils/translator');
 
 module.exports = {
     data: (subcommand) =>
         subcommand
-    .setName('delete')
-    .setDescription('Delete a pet from the system')
-    .addStringOption((option) => option.setName('name').setDescription('Name of the pet to delete').setRequired(true)),
+            .setName('delete')
+            .setDescription('Delete a pet from the system')
+            .addStringOption((option) => option.setName('name').setDescription('Name of the pet to delete').setRequired(true)),
     subcommand: true,
     teamOnly: true,
     async execute(interaction) {
@@ -33,8 +33,10 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         } else {
             const embed = new EmbedBuilder()
-                .setDescription(`## ${await t(interaction, 'pet_admin_delete_delete_notfound_title')}\n${await t(interaction, 'pet_admin_delete_delete_notfound')}`)
-                .setColor("Red")
+                .setDescription(
+                    `## ${await t(interaction, 'pet_admin_delete_delete_notfound_title')}\n${await t(interaction, 'pet_admin_delete_delete_notfound')}`
+                )
+                .setColor('Red')
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }

@@ -83,6 +83,7 @@ const featureMap = {
     streak: ['streakOn', 'Streak'],
     invites: ['invitesOn', 'Invites'],
     'role-prefix': ['rolePrefixOn', 'Role Prefix'],
+    'boost-log': ['boostLogOn', 'Boost Log'],
 };
 
 const toggleableFeatures = Object.keys(featureMap);
@@ -458,6 +459,29 @@ const command = new SlashCommandBuilder()
                     .setName('invite')
                     .setDescription('📢 Set invite log channel')
                     .addChannelOption((opt) => opt.setName('channel').setDescription('Channel').setRequired(true))
+            )
+    )
+    // BOOSTER
+    .addSubcommandGroup((group) =>
+        group
+            .setName('booster')
+            .setDescription('🚀 Booster log settings')
+            .addSubcommand((sub) =>
+                sub
+                    .setName('channel')
+                    .setDescription('🚀 Set boost log channel')
+                    .addChannelOption((opt) => opt.setName('channel').setDescription('Channel for boost logs').setRequired(true))
+            )
+            .addSubcommand((sub) =>
+                sub
+                    .setName('message')
+                    .setDescription('🚀 Set boost log message')
+                    .addStringOption((opt) =>
+                        opt
+                            .setName('message')
+                            .setDescription('Custom message for boost logs (use placeholders like {username}, {displayName})')
+                            .setRequired(true)
+                    )
             )
     )
     // STREAK EXTRA
@@ -1640,6 +1664,23 @@ module.exports = {
                     await serverSetting.saveAndUpdateCache('guildId');
                     embed.setDescription(await t(interaction, 'core_setting_setting_invite_channel_set', { channel: `<#${channel.id}>` }));
                     return interaction.editReply({ embeds: [embed] });
+                }
+            }
+            case 'booster': {
+                switch (sub) {
+                    case 'channel': {
+                        serverSetting.boostLogChannelId = channel.id;
+                        await serverSetting.saveAndUpdateCache('guildId');
+                        embed.setDescription(`✅ Boost log channel has been set to <#${channel.id}>`);
+                        return interaction.editReply({ embeds: [embed] });
+                    }
+                    case 'message': {
+                        const message = interaction.options.getString('message');
+                        serverSetting.boostLogMessage = message;
+                        await serverSetting.saveAndUpdateCache('guildId');
+                        embed.setDescription(`✅ Boost log message has been updated!\n\n**Preview:**\n${message}`);
+                        return interaction.editReply({ embeds: [embed] });
+                    }
                 }
             }
             case 'ai': {

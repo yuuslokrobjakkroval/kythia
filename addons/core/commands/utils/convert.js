@@ -7,7 +7,7 @@
  */
 
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { embedFooter } = require('@src/utils/discord');
+const { embedFooter } = require('@utils/discord');
 const { t } = require('@utils/translator');
 const { DateTime } = require('luxon');
 const fetch = require('node-fetch');
@@ -134,7 +134,7 @@ function convertVolume(value, from, to) {
 
 // --- Currency conversion (API) ---
 async function convertCurrency(amount, from, to) {
-    const accessKey = (kythia?.addons?.core?.exchangerateApi);
+    const accessKey = kythia?.addons?.core?.exchangerateApi;
     const url = `https://api.exchangerate.host/convert?access_key=${encodeURIComponent(accessKey)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&amount=${amount}`;
     let res, data;
     try {
@@ -147,7 +147,7 @@ async function convertCurrency(amount, from, to) {
     } catch (err) {
         // Log error in case there is a bug
         // eslint-disable-next-line no-console
-        console.error("Currency API error:", err);
+        console.error('Currency API error:', err);
         return null;
     }
 }
@@ -438,7 +438,7 @@ module.exports = {
                 if (result == null) {
                     const embed = new EmbedBuilder()
                         .setDescription('## ' + (await t(interaction, 'core_utils_convert_currency_failed')))
-                        .setColor("Red");
+                        .setColor('Red');
                     return interaction.editReply({ embeds: [embed] });
                 }
                 const embed = new EmbedBuilder()
@@ -459,10 +459,8 @@ module.exports = {
             } catch (e) {
                 // Optional: log the error
                 // eslint-disable-next-line no-console
-                console.error("Currency convert error:", e);
-                const embed = new EmbedBuilder()
-                    .setDescription(await t(interaction, 'core_utils_convert_currency_error'))
-                    .setColor("Red");
+                console.error('Currency convert error:', e);
+                const embed = new EmbedBuilder().setDescription(await t(interaction, 'core_utils_convert_currency_error')).setColor('Red');
                 return interaction.editReply({ embeds: [embed] });
             }
         } else if (sub === 'timezone') {
@@ -473,7 +471,7 @@ module.exports = {
             if (!converted) {
                 const embed = new EmbedBuilder()
                     .setDescription('## ' + (await t(interaction, 'core_utils_convert_timezone_failed')))
-                    .setColor("Red");
+                    .setColor('Red');
                 return interaction.editReply({ embeds: [embed] });
             }
             const embed = new EmbedBuilder()
@@ -498,7 +496,7 @@ module.exports = {
             if (result == null) {
                 const embed = new EmbedBuilder()
                     .setDescription('## ' + (await t(interaction, 'core_utils_convert_length_failed')))
-                    .setColor("Red");
+                    .setColor('Red');
                 return interaction.editReply({ embeds: [embed] });
             }
             const embed = new EmbedBuilder()
@@ -524,7 +522,7 @@ module.exports = {
             if (result == null) {
                 const embed = new EmbedBuilder()
                     .setDescription('## ' + (await t(interaction, 'core_utils_convert_mass_failed')))
-                    .setColor("Red");
+                    .setColor('Red');
                 return interaction.editReply({ embeds: [embed] });
             }
             const embed = new EmbedBuilder()
@@ -550,7 +548,7 @@ module.exports = {
             if (result == null) {
                 const embed = new EmbedBuilder()
                     .setDescription('## ' + (await t(interaction, 'core_utils_convert_temperature_failed')))
-                    .setColor("Red");
+                    .setColor('Red');
                 return interaction.editReply({ embeds: [embed] });
             }
             const embed = new EmbedBuilder()
@@ -576,7 +574,7 @@ module.exports = {
             if (result == null) {
                 const embed = new EmbedBuilder()
                     .setDescription('## ' + (await t(interaction, 'core_utils_convert_data_failed')))
-                    .setColor("Red");
+                    .setColor('Red');
                 return interaction.editReply({ embeds: [embed] });
             }
             const embed = new EmbedBuilder()
@@ -600,7 +598,7 @@ module.exports = {
             const to = interaction.options.getString('to');
             const result = convertArea(value, from, to);
             if (result == null) {
-                const embed = new EmbedBuilder().setDescription('## Area conversion failed. Please check your units.').setColor("Red");
+                const embed = new EmbedBuilder().setDescription('## Area conversion failed. Please check your units.').setColor('Red');
                 return interaction.editReply({ embeds: [embed] });
             }
             const embed = new EmbedBuilder()
@@ -614,7 +612,7 @@ module.exports = {
             const to = interaction.options.getString('to');
             const result = convertVolume(value, from, to);
             if (result == null) {
-                const embed = new EmbedBuilder().setDescription('## Volume conversion failed. Please check your units.').setColor("Red");
+                const embed = new EmbedBuilder().setDescription('## Volume conversion failed. Please check your units.').setColor('Red');
                 return interaction.editReply({ embeds: [embed] });
             }
             const embed = new EmbedBuilder()
@@ -625,7 +623,7 @@ module.exports = {
         } else {
             const embed = new EmbedBuilder()
                 .setDescription('## ' + (await t(interaction, 'core_utils_convert_unknown_subcommand')))
-                .setColor("Red");
+                .setColor('Red');
             return interaction.editReply({ embeds: [embed] });
         }
     },

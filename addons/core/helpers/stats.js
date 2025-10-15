@@ -333,4 +333,19 @@ async function updateStats(client, activeSettings) {
     logger.info('Finished processing all channel updates.');
 }
 
-module.exports = { updateStats, resolvePlaceholders };
+async function safeResolvePlaceholder(member, text, statsData, fallback = '') {
+    if (typeof text !== 'string' || !text.trim()) return fallback;
+    try {
+        let result = await resolvePlaceholders(text, statsData, member.guild.preferredLocale);
+        if (typeof result === 'string') {
+            result = result.replace(/\\n/g, '\n');
+        }
+        if (result == null) return fallback;
+        return result;
+    } catch (err) {
+        console.error('Error in resolvePlaceholders for banner text:', err);
+        return fallback;
+    }
+}
+
+module.exports = { updateStats, resolvePlaceholders, safeResolvePlaceholder };

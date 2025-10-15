@@ -12,7 +12,7 @@ const User = require('@coreModels/User');
 const axios = require('axios');
 const { EmbedBuilder } = require('discord.js');
 const { t } = require('@utils/translator');
-const { embedFooter } = require('@src/utils/discord');
+const { embedFooter } = require('@utils/discord');
 
 function drawRoundedRect(ctx, x, y, width, height, radius, fillStyle) {
     ctx.save();

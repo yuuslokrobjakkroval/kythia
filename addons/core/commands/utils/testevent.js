@@ -45,24 +45,36 @@ module.exports = {
                 .setDescription('The event to trigger')
                 .setRequired(true)
                 .addChoices(...ALL_EVENTS.map((ev) => ({ name: ev, value: ev })))
+        )
+        .addStringOption((option) =>
+            option
+                .setName('type')
+                .setDescription('The specific scenario to test for the event (e.g., boost)')
+                .setRequired(false)
+                .addChoices(
+                    { name: 'boost', value: 'boost' },
+                    { name: 'unboost', value: 'unboost' },
+                    { name: 'nickname', value: 'nickname' }
+                )
         ),
     ownerOnly: true,
     async execute(interaction) {
         await interaction.deferReply({ ephemeral: true });
 
         const eventName = interaction.options.getString('event');
+        const type = interaction.options.getString('type') || 'default';
         const { client, user } = interaction;
 
-        logger.info(`[TEST COMMAND] Attempting to trigger '${eventName}' for ${user.tag}`);
+        logger.info(`[TEST COMMAND] Attempting to trigger '${eventName}' (type: ${type}) for ${user.tag}`);
 
         try {
             // 1. Minta "Tim Dapur" untuk siapkan argumennya
-            const args = await createMockEventArgs(eventName, interaction);
+            const args = await createMockEventArgs(eventName, interaction, type);
 
             // 2. "Koki Utama" tinggal berteriak
             client.emit(eventName, ...args);
 
-            await interaction.editReply({ content: `✅ Event \`${eventName}\` emitted successfully!` });
+            await interaction.editReply({ content: `✅ Event \`${eventName}\` (type: \`${type}\`) emitted successfully!` });
         } catch (err) {
             logger.error(`[TEST COMMAND] Error during event simulation '${eventName}':`, err);
             await interaction.editReply({ content: `❌ Failed to emit event \`${eventName}\`: ${err.message}` });

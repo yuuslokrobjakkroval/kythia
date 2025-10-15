@@ -9,7 +9,7 @@
 const { SlashCommandBuilder, MessageFlags, EmbedBuilder } = require('discord.js');
 const crypto = require('crypto');
 const { t } = require('@utils/translator');
-const { embedFooter } = require('@src/utils/discord');
+const { embedFooter } = require('@utils/discord');
 
 const SUPPORTED_ALGOS = [
     { name: 'MD5', value: 'md5' },

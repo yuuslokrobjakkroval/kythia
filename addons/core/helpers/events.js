@@ -545,9 +545,10 @@ function kythiaInteraction(message, commandName, rawArgsString) {
  * Creates mock event arguments for testing with client.emit().
  * @param {string} eventName - The name of the event to mock.
  * @param {import('discord.js').Interaction} interaction - The interaction to source base data from.
+ * @param {string} type - The specific scenario type (e.g., 'boost', 'unboost', 'default').
  * @returns {Promise<Array<any>>} An array of arguments for the event.
  */
-async function createMockEventArgs(eventName, interaction) {
+async function createMockEventArgs(eventName, interaction, type = 'default') {
     const { member, guild, channel, user, client } = interaction;
 
     switch (eventName) {
@@ -567,11 +568,54 @@ async function createMockEventArgs(eventName, interaction) {
             return [member];
 
         case 'guildMemberUpdate': {
-            // Buat 'oldMember' palsu dengan mengubah satu properti (misal: nickname)
-            // .toJSON() kadang tidak menyertakan semua properti, jadi kita clone manual
+            // Clone member untuk oldMember
             const oldMember = Object.assign(Object.create(Object.getPrototypeOf(member)), member);
-            oldMember.nickname = 'OldNickname_123';
-            return [oldMember, member];
+            const newMember = member;
+
+            switch (type) {
+                case 'boost':
+                    logger.info('[TEST EVENT] Simulating a BOOST event...');
+                    // Skenario: Dulu belum nge-boost, sekarang nge-boost
+                    oldMember.premiumSinceTimestamp = null;
+                    Object.defineProperty(oldMember, 'premiumSince', {
+                        get: () => null,
+                        configurable: true,
+                    });
+
+                    // Pastikan newMember punya premiumSinceTimestamp
+                    if (!newMember.premiumSinceTimestamp) {
+                        newMember.premiumSinceTimestamp = Date.now();
+                        Object.defineProperty(newMember, 'premiumSince', {
+                            get: () => new Date(newMember.premiumSinceTimestamp),
+                            configurable: true,
+                        });
+                    }
+                    return [oldMember, newMember];
+
+                case 'unboost':
+                    logger.info('[TEST EVENT] Simulating an UNBOOST event...');
+                    // Skenario: Dulu nge-boost, sekarang udah enggak
+                    oldMember.premiumSinceTimestamp = Date.now() - 1000 * 60 * 60 * 24 * 7; // 7 hari yang lalu
+                    Object.defineProperty(oldMember, 'premiumSince', {
+                        get: () => new Date(oldMember.premiumSinceTimestamp),
+                        configurable: true,
+                    });
+
+                    // Set newMember jadi tidak boost
+                    newMember.premiumSinceTimestamp = null;
+                    Object.defineProperty(newMember, 'premiumSince', {
+                        get: () => null,
+                        configurable: true,
+                    });
+                    return [oldMember, newMember];
+
+                case 'nickname':
+                default:
+                    logger.info('[TEST EVENT] Simulating a default member update (nickname)...');
+                    // Skenario default: perubahan nickname
+                    oldMember.nickname = oldMember.nickname ? null : 'OldNickname_123';
+                    return [oldMember, newMember];
+            }
         }
 
         case 'guildCreate':

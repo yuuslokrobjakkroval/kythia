@@ -52,7 +52,9 @@ class ServerSetting extends KythiaModel {
                 invitesOn: { type: DataTypes.BOOLEAN, defaultValue: false },
 
                 rolePrefixOn: { type: DataTypes.BOOLEAN, defaultValue: false },
-
+                
+                boostLogOn: { type: DataTypes.BOOLEAN, defaultValue: false },
+                
                 // LEVELING
                 levelingChannelId: { type: DataTypes.STRING },
                 levelingCooldown: { type: DataTypes.INTEGER, defaultValue: 300 },
@@ -171,8 +173,9 @@ class ServerSetting extends KythiaModel {
 
                 announcementChannelId: { type: DataTypes.STRING, allowNull: true },
                 inviteChannelId: { type: DataTypes.STRING, allowNull: true },
-
-                // addonSettings: { type: DataTypes.JSON, defaultValue: {} },
+                
+                boostLogChannelId: { type: DataTypes.STRING, allowNull: true },
+                boostLogMessage: { type: DataTypes.TEXT, allowNull: true },
             },
             {
                 sequelize,

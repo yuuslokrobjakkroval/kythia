@@ -154,6 +154,12 @@
                         <div>Channels</div>
                     </a>
                 </li>
+                <li class="menu-item <%= currentPage == '/dashboard/settings/booster' ? 'active' : '' %>">
+                    <a href="/dashboard/<%= guildId %>/settings/booster" class="menu-link <%= currentPage == '/dashboard/settings/booster' ? 'active' : '' %>">
+                        <i class="fa fa-rocket me-2"></i>
+                        <div>Booster</div>
+                    </a>
+                </li>
             </ul>
         </li>
         <% } %>

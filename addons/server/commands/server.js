@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const { loadTemplates, buildEmbeds } = require('../helpers/template');
 const { t } = require('@utils/translator');
-const { embedFooter } = require('@src/utils/discord');
+const { embedFooter } = require('@utils/discord');
 
 // Path ke folder template
 const TEMPLATE_DIR = path.join(__dirname, '../template');
@@ -828,7 +828,9 @@ module.exports = {
 
                         const embed = new EmbedBuilder()
                             .setColor('Green')
-                            .setDescription(`## ${await t(interaction, 'server_server_restore_success', { name: backup.metadata.guildName })}`);
+                            .setDescription(
+                                `## ${await t(interaction, 'server_server_restore_success', { name: backup.metadata.guildName })}`
+                            );
                         return interaction.editReply({ embeds: [embed] });
                     } catch (err) {
                         console.error(err);

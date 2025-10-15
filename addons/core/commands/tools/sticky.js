@@ -8,7 +8,7 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, InteractionContextType } = require('discord.js');
 const { t } = require('@utils/translator');
 const StickyMessage = require('@coreModels/StickyMessage');
-const { embedFooter } = require('@src/utils/discord');
+const { embedFooter } = require('@utils/discord');
 
 module.exports = {
     data: new SlashCommandBuilder()
