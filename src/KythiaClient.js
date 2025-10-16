@@ -44,7 +44,7 @@ module.exports = function kythiaClient() {
             },
             users: {
                 interval: 3600,
-                filter: (user) => user && !user.bot,
+                filter: () => (user) => user && !user.bot,
             },
         },
     });
