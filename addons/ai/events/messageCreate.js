@@ -24,6 +24,22 @@ const GEMINI_MODEL = kythia.addons.ai.model;
 const CONTEXT_MESSAGES_TO_FETCH = kythia.addons.ai.getMessageHistoryLength;
 const conversationCache = new Map();
 
+/**
+ * Filter AI response for unwanted tags like @everyone/@here
+ * @param {string} responseText
+ * @returns {object} { allowed: boolean, reason?: string }
+ */
+function filterAiResponse(responseText) {
+    if (/@everyone|@here/i.test(responseText)) {
+        return {
+            allowed: false,
+            reason: 'ai_events_messageCreate_filter_everyone_here',
+        };
+    }
+
+    return { allowed: true };
+}
+
 const factClassifiers = [
     { type: 'birthday', regex: /(lahir|birthday|ulang tahun|born|kelahiran|tanggal lahir|dob)/i },
     { type: 'name', regex: /(nama|name|panggil|nickname|alias|identitas|identity)/i },
@@ -265,6 +281,7 @@ function addToHistory(conversation, role, content) {
 /**
  * Send AI response, with ability to split message if there is [SPLIT].
  * VERSI FINAL: Memastikan pesan pertama selalu me-reply dengan benar.
+ * Menyisipkan filter middleware di sini agar apapun output AI di cek dulu sebelum dikirim.
  * @param {import('discord.js').Message} message - Objek pesan asli untuk dibalas.
  * @param {string} text - Teks lengkap dari AI.
  */
@@ -278,9 +295,20 @@ async function sendSplitMessage(message, text) {
         let chunk = part.trim();
         if (chunk.length === 0) continue;
 
+        const filterResult = filterAiResponse(chunk);
+        if (!filterResult.allowed) {
+            await message.reply(await t(message, filterResult.reason || 'ai_events_messageCreate_filter_blocked'));
+            return;
+        }
+
         if (chunk.length > CHUNK_SIZE) {
             const subChunks = chunk.match(new RegExp(`.{1,${CHUNK_SIZE}}`, 'gs')) || [];
             for (const subChunk of subChunks) {
+                const filterResultSub = filterAiResponse(subChunk);
+                if (!filterResultSub.allowed) {
+                    await message.reply(await t(message, filterResultSub.reason || 'ai_events_messageCreate_filter_blocked'));
+                    return;
+                }
                 if (!hasReplied) {
                     await message.reply({ content: subChunk });
                     hasReplied = true;
@@ -703,6 +731,12 @@ module.exports = async (bot, message) => {
                         });
 
                         const finalReply = followUpResponse.text.trim();
+
+                        const filterResult = filterAiResponse(finalReply);
+                        if (!filterResult.allowed) {
+                            await message.reply(await t(message, filterResult.reason || 'ai_events_messageCreate_filter_blocked'));
+                            return;
+                        }
                         await sendSplitMessage(message, finalReply);
                         addToHistory(userConv, 'model', finalReply);
                     } catch (err) {
@@ -712,6 +746,12 @@ module.exports = async (bot, message) => {
                     return;
                 } else {
                     const replyText = finalResponse.text.trim();
+
+                    const filterResult = filterAiResponse(replyText);
+                    if (!filterResult.allowed) {
+                        await message.reply(await t(message, filterResult.reason || 'ai_events_messageCreate_filter_blocked'));
+                        return;
+                    }
                     await sendSplitMessage(message, replyText);
                     addToHistory(userConv, 'model', replyText);
                 }

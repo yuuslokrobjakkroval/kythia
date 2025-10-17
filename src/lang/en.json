@@ -647,6 +647,7 @@
     "ai_translate_set": "❌ The AI configuration has not been set by the developer.",
     "ai_translate_success": "## 🌐 Translated\n### Language: `{lang}`\n### Input: ```{text}```\n### Translated: ```{translated}```",
     "ai_translate_error": "❌ An error occurred while translating the text. Please try again later! ><",
+    "ai_events_messageCreate_filter_everyone_here": "Sorry i cant do that",
     "ticket_buttons_ticketcreate_buttons_config_not_found": "❌ | Ticket configuration not found.",
     "ticket_buttons_ticketclose_buttons_not_found": "❌ | Ticket not found.",
     "music_music_voice_channel_required": "❌ You must be in a voice channel to use this command!",
