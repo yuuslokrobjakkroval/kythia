@@ -7,8 +7,6 @@
  */
 
 const { EmbedBuilder, WebhookClient } = require('discord.js');
-const ServerSetting = require('@coreModels/ServerSetting');
-const kythiaManager = require('@src/KythiaManager');
 const { t } = require('@utils/translator');
 
 function safeWebhookClient(url) {
@@ -19,9 +17,6 @@ function safeWebhookClient(url) {
 }
 
 module.exports = async (bot, guild) => {
-    // const kythiaManage = new kythiaManager(ServerSetting);
-    bot.container.kythiaManager.removeFromCache(guild.id);
-
     // Webhook URL that has been set up
     const webhookClient = safeWebhookClient(kythia.api.webhookGuildInviteLeave);
 

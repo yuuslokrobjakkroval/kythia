@@ -196,13 +196,13 @@ router.post('/api/topgg-webhook', async (req, res) => {
                                     components: [
                                         {
                                             type: 10,
-                                            content: `## 🩷 New Vote!\n<@${userId}> (${user.username})\njust voted for ${kythia.bot.name} on Top.gg! Thank you for your support!`,
+                                            content: `## 🌸 New Vote!\n<@${userId}> (${user.username})\njust gave their love and support to **${kythia.bot.name}** on Top.gg!\n\nYou're very cool >,<! thank youu very muchh, Dont forget **${kythia.bot.name}** tomorrow!\n-# psttt look at my dm!`,
                                         },
                                     ],
                                     accessory: {
                                         type: 11,
                                         media: {
-                                            url: client.user.displayAvatarURL(),
+                                            url: user.displayAvatarURL(),
                                         },
                                         description: `kythia's logo`,
                                     },
