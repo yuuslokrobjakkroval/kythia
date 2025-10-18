@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.9-beta-rc.4](https://github.com/kythia/kythia/compare/v0.9.9-beta-rc.3...v0.9.9-beta-rc.4) (2025-10-18)
+
+
+### 🔧 Changed
+
+* enhance caching and model interactions across various commands ([574636b](https://github.com/kythia/kythia/commit/574636b72dd0c40e4080e84051262b9a9f2232f7))
+* improve caching and command structure across various modules ([fb3d7e5](https://github.com/kythia/kythia/commit/fb3d7e5513c2ef3d10d15baf310484b765300d84))
+* improve Redis auto-reconnect logic and code consistency ([4f8f182](https://github.com/kythia/kythia/commit/4f8f1827511006fffdb658f94052612cae743520))
+* streamline model definitions and enhance touch method ([a2c3465](https://github.com/kythia/kythia/commit/a2c346589d692f495a39aaac0b85dbd4784a69fc))
+* streamline order processing and enhance model definitions ([244327c](https://github.com/kythia/kythia/commit/244327c625daf192e11ab86d1e3a049e091c49e6))
+* update economy commands to use BigInt for currency calculations ([5545223](https://github.com/kythia/kythia/commit/5545223abe770e51450aec016f57dcdbd9629c0a))
+* update version mark to all files to v0.9.9-beta-rc.3 ([6558870](https://github.com/kythia/kythia/commit/655887038ba36f2299b5588ba7c3a1f7048d3241))
+
+
+### 🔨 Fixed
+
+* add GuildMember partial to improve message handling and refine user filter logic ([59da428](https://github.com/kythia/kythia/commit/59da42847c220a51a39434441d851ddecaf5dcad))
+* correct user filter function syntax in KythiaClient (again) ([a779792](https://github.com/kythia/kythia/commit/a779792cefbefaa657b13c625f341e8656f81117))
+* enhance prefix matching in message handling to be case-insensitive ([db9c677](https://github.com/kythia/kythia/commit/db9c6774d302c54455240f860e697a5d69c3d501))
+* refine user filter logic in KythiaClient to handle potential null values for guild and voice properties ([236fbbc](https://github.com/kythia/kythia/commit/236fbbc7950f7034a6724c5b42702a20e28b6e10))
+* still trying to fix cache and database miss data cuz BigInt func ([e872164](https://github.com/kythia/kythia/commit/e8721640ae6e32dd622ef1da0fa341dff4eef99c))
+* update embed color in economy commands and refine user filter logic in KythiaClient ([b591a29](https://github.com/kythia/kythia/commit/b591a297af2c15db06ebc3d58d64f35ca1e4f4f8))
+
+
+### ✨ Added
+
+* add booster log settings and commands ([f534903](https://github.com/kythia/kythia/commit/f53490378094def9947ce1136ab20ca94bf0a935))
+* add owner bypass filter for AI response to allow privileged users ([db13983](https://github.com/kythia/kythia/commit/db139830b6d31578a0548c4d8132c90285712acb))
+* add ownerSkipCooldown setting and enhance Redis auto-reconnect logic ([e80ef95](https://github.com/kythia/kythia/commit/e80ef95b2920d9da8bf37fde1b4ec1180b3399d4))
+* enhance guild creation event with dynamic invite link generation and improved embed details ([a048457](https://github.com/kythia/kythia/commit/a048457b10bff688f2575fb160925549c9fef25d))
+* Enhance market command with realistic trading features ([4a25690](https://github.com/kythia/kythia/commit/4a256909b9bca12b79f2dbe0bbe8329d5f766a53))
+* global merriage system; ([52cf603](https://github.com/kythia/kythia/commit/52cf60304ef8c7ba33f64fcb61b8bf0ca476d1dc))
+* implement AI response filtering to prevent unwanted tags in messages ([8c6de02](https://github.com/kythia/kythia/commit/8c6de0263ab75b8c3fecb591398eb6ab1f5a18df))
+* implement server booster log feature toggle in settings; ([78d5d82](https://github.com/kythia/kythia/commit/78d5d82af18f7254806c15b3e145b7b37c9ad11b))
+
 ### [0.9.9-beta-rc.3](https://github.com/kythia/kythia/compare/v0.9.9-beta-rc.2...v0.9.9-beta-rc.3) (2025-10-13)
 
 
