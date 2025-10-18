@@ -1305,6 +1305,7 @@
     "music_helpers_musicManager_manager_ended": "⚠️ Music session has ended.",
     "music_helpers_musicManager_manager_track": "❌ An error occurred while adding the track.",
     "music_helpers_musicManager_manager_queue": "✅ **Added to queue:** [{title}]({url})",
+    "music_helpers_musicManager_manager_no_listener": "❌ There is no one listening in the voice channel. exiting now...",
     "music_helpers_handlers_music_configured": "❌ Spotify integration is not configured by the bot owner. Please contact the developer.",
     "music_helpers_handlers_music_failed": "❌ An error occurred while processing your music request.",
     "music_helpers_handlers_music_results": "❌ No results found for your query.",
