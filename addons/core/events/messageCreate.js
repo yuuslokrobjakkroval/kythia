@@ -34,9 +34,7 @@ module.exports = async (bot, message) => {
     const client = bot.client;
 
     const contentLower = message.content.toLowerCase();
-    const matchedPrefix = kythia.bot.prefixes.find((prefix) =>
-        contentLower.startsWith(prefix.toLowerCase())
-    );
+    const matchedPrefix = kythia.bot.prefixes.find((prefix) => contentLower.startsWith(prefix.toLowerCase()));
     if (matchedPrefix) {
         if (message.author?.bot) return;
 
@@ -48,7 +46,7 @@ module.exports = async (bot, message) => {
         let baseCommand =
             client.commands.get(commandName) ||
             [...client.commands.values()].find(
-                (cmd) => Array.isArray(cmd.aliases) && cmd.aliases.map(a => a.toLowerCase()).includes(commandName)
+                (cmd) => Array.isArray(cmd.aliases) && cmd.aliases.map((a) => a.toLowerCase()).includes(commandName)
             );
 
         if (!baseCommand) return;
@@ -63,7 +61,7 @@ module.exports = async (bot, message) => {
         let finalCommandKey = commandName;
         if (subcommandGroup) finalCommandKey = `${commandName} ${subcommandGroup} ${subcommand}`;
         else if (subcommand) finalCommandKey = `${commandName} ${subcommand}`;
-        
+
         // Try the key directly, or fall back to baseCommand
         let finalCommand =
             client.commands.get(finalCommandKey) ||
@@ -71,8 +69,8 @@ module.exports = async (bot, message) => {
             [...client.commands.values()].find(
                 (cmd) =>
                     Array.isArray(cmd.aliases) &&
-                    (cmd.aliases.map(a => a.toLowerCase()).includes(finalCommandKey) ||
-                     cmd.aliases.map(a => a.toLowerCase()).includes(commandName))
+                    (cmd.aliases.map((a) => a.toLowerCase()).includes(finalCommandKey) ||
+                        cmd.aliases.map((a) => a.toLowerCase()).includes(commandName))
             ) ||
             baseCommand;
 
@@ -190,7 +188,7 @@ module.exports = async (bot, message) => {
     }
 
     if (message.guild) {
-        if (!isOwner(message.author.id)) {
+        if (!isOwner(message.author.id) || message.member?.permissions.has(['Administrator', 'ManageGuild'])) {
             const isFlagged = await automodSystem(message, client);
             if (isFlagged) return true;
         }

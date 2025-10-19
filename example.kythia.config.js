@@ -361,6 +361,7 @@ function loadKythiaConfig() {
             fastTimeWindow: 40 * 1000, // 40 seconds
             duplicateTimeWindow: 15 * 60 * 1000, // 15 minutes
             cacheExpirationTime: 15 * 60 * 1000, // 15 minutes
+            shortMessageThreshold: 5,
             // automod punishment cooldown
             punishmentCooldown: 1 * 1000, // 1 second
 

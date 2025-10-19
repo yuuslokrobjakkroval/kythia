@@ -19,8 +19,8 @@ const FAST_TIME_WINDOW = kythia.settings.fastTimeWindow || 40 * 1000; // 40 seco
 const DUPLICATE_TIME_WINDOW = kythia.settings.duplicateTimeWindow || 15 * 60 * 1000; // 15 minutes
 const CACHE_EXPIRATION_TIME = kythia.settings.cacheExpirationTime || 15 * 60 * 1000; // 15 minutes
 const PUNISHMENT_COOLDOWN = kythia.settings.punishmentCooldown || 1 * 1000; // 1 second
+const SHORT_MESSAGE_THRESHOLD = kythia.settings.shortMessageThreshold || 5;
 
-// EXTREMELY DETAILED leet/obfuscation map for maximum strictness
 const leetMap = {
     a: [
         'a',
@@ -789,11 +789,9 @@ const leetMap = {
     ],
 };
 
-// Kita buat reverse map sekali saja saat bot startup untuk efisiensi.
 const reverseLeetMap = new Map();
 for (const [baseChar, variations] of Object.entries(leetMap)) {
     for (const variation of variations) {
-        // Objek Map lebih cepat untuk lookup daripada object biasa
         reverseLeetMap.set(variation, baseChar);
     }
 }
@@ -804,14 +802,12 @@ function normalizeText(text) {
     const lowerText = text.toLowerCase();
     let normalized = '';
 
-    // Iterasi per karakter untuk penggantian yang lebih akurat
     for (let i = 0; i < lowerText.length; i++) {
         const char = lowerText[i];
-        // Jika ada di reverse map, ganti dengan huruf aslinya. Jika tidak, biarkan.
+
         normalized += reverseLeetMap.get(char) || char;
     }
 
-    // Hapus semua karakter yang bukan huruf atau angka setelah dinormalisasi
     return normalized.replace(/[^a-z0-9]/g, '');
 }
 
@@ -848,7 +844,7 @@ async function automodSystem(message) {
 
     isFlagged = await checkLinks(message, setting);
     if (isFlagged) return true;
-};
+}
 
 async function checkSpam(message, setting) {
     if (!setting.antiSpamOn) return false;
@@ -858,21 +854,17 @@ async function checkSpam(message, setting) {
     let userData = userCache.get(key) || { fastMessages: [], duplicateMessages: [], violations: 0, isPunished: false, lastPunishment: 0 };
     userData.lastActivity = now;
 
-    // LOGIKA BARU: Reset violations HANYA setelah periode damai yang panjang (24 jam)
     if (userData.violations > 0 && now - userData.lastPunishment > DUPLICATE_TIME_WINDOW) {
         logger.info(`🛡️ Reseting violation for user ${message.author.id}.`);
         userData.violations = 0;
     }
 
-    // Cooldown singkat antar hukuman
     if (userData.isPunished && now - userData.lastPunishment < PUNISHMENT_COOLDOWN) return false;
 
-    // Reset status 'isPunished' setelah cooldown singkat selesai, TAPI JANGAN reset violations
     if (userData.isPunished) {
         userData.isPunished = false;
     }
 
-    // --- Sisa logikanya sama persis ---
     userData.fastMessages.push(message);
     userData.fastMessages = userData.fastMessages.filter((msg) => now - msg.createdTimestamp < FAST_TIME_WINDOW);
 
@@ -895,7 +887,7 @@ async function checkSpam(message, setting) {
         messagesToDelete = [...userData.fastMessages];
     }
 
-    if (!spamType && userData.fastMessages.filter((m) => m.content.length > 0 && m.content.length <= 5).length >= 2) {
+    if (!spamType && userData.fastMessages.filter((m) => m.content.length > 0 && m.content.length <= 5).length >= SHORT_MESSAGE_THRESHOLD) {
         spamType = 'short';
         messagesToDelete = [...userData.fastMessages.filter((m) => m.content.length > 0 && m.content.length <= 5)];
     }
@@ -925,8 +917,7 @@ async function checkSpam(message, setting) {
 
         sendLogsWarning(message, reason, message.content, setting);
 
-        // Hukuman sekarang akan meningkat dengan benar!
-        const timeoutDuration = Math.min(userData.violations * 180, 1800); // Max 30 menit
+        const timeoutDuration = Math.min(userData.violations * 180, 1800);
         if (message.guild.members.me.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
             message.member.timeout(timeoutDuration * 1000, reason).catch((err) => {
                 if (err.code !== 50013) {
@@ -951,7 +942,6 @@ async function checkSpam(message, setting) {
 async function checkBadwords(message, setting) {
     if (!setting.antiBadwordOn) return false;
 
-    // Ambil daftar badword, sama seperti sebelumnya
     const badwords = Array.isArray(setting.badwords)
         ? setting.badwords.map((w) => w.trim().toLowerCase()).filter(Boolean)
         : typeof setting.badwords === 'string' && setting.badwords.trim().length > 0
@@ -963,21 +953,12 @@ async function checkBadwords(message, setting) {
 
     if (badwords.length === 0) return false;
 
-    // --- BAGIAN YANG DIUBAH ---
-
-    // 1. Helper function untuk "escape" karakter spesial di regex
-    //    Ini penting biar kalau ada badword kayak 'c++' atau '$.$ T_T' nggak ngerusak regex.
     const escapeRegex = (str) => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 
-    // 2. Kita normalisasi dulu setiap badword, lalu escape.
     const normalizedBadwords = badwords.map((word) => escapeRegex(normalizeText(word)));
 
-    // 3. Buat satu regex besar yang mencari SALAH SATU dari badword itu sebagai KATA UTUH.
-    //    `\b` adalah "word boundary". Dia memastikan kata itu dikelilingi spasi, tanda baca, atau awal/akhir kalimat.
-    //    Jadi, `\basu\b` akan kena di "dasar asu" tapi TIDAK akan kena di "translate".
-    const badwordRegex = new RegExp(`\\b(${normalizedBadwords.join('|')})\\b`, 'i'); // 'i' untuk case-insensitive
+    const badwordRegex = new RegExp(`\\b(${normalizedBadwords.join('|')})\\b`, 'i');
 
-    // Gabungkan semua teks dari berbagai sumber, sama seperti sebelumnya
     const contentToCheck = [
         message.content,
         ...message.embeds.flatMap((e) => [e.title, e.description]),
@@ -988,14 +969,12 @@ async function checkBadwords(message, setting) {
 
     if (!contentToCheck) return false;
 
-    // Normalisasikan teks yang akan dicek
     const normalizedContent = normalizeText(contentToCheck);
 
-    // 4. Lakukan pengecekan menggunakan regex
     const match = normalizedContent.match(badwordRegex);
 
     if (match) {
-        const foundBadword = match[0]; // Kata yang kena filter
+        const foundBadword = match[0];
         const reason = await t(message, 'core_helpers_automod_system_automod_badword_detected', { word: foundBadword });
 
         sendLogsWarning(message, reason, foundBadword, setting);
@@ -1003,18 +982,15 @@ async function checkBadwords(message, setting) {
         if (canDeleteMessage(message)) {
             message.delete().catch(() => {});
         }
-        return true; // Ditemukan, hentikan proses
+        return true;
     }
 
-    // --- AKHIR BAGIAN YANG DIUBAH ---
-
-    return false; // Aman
+    return false;
 }
 
 async function checkMentions(message, setting) {
     if (!setting.antiMentionOn) return false;
 
-    // MAXIMUM STRICT: even 1 mention is considered spam, and also check for disguised mentions (e.g. <@!id>, <@id>, <@&id>, @everyone, @here, and unicode lookalikes)
     const mentionRegex = /<@!?[0-9]+>|<@&[0-9]+>|@everyone|@here|[\uFF20][eE][vV][eE][rR][yY][oO][nN][eE]|[\uFF20][hH][eE][rR][eE]/g;
     const mentionCount =
         message.mentions.users.size +
@@ -1038,15 +1014,12 @@ async function checkMentions(message, setting) {
     return false;
 }
 
-// FUNGSI BARU UNTUK MENGECEK NAMA
 async function checkUsername(message, setting) {
     const { author, member, guild } = message;
 
-    // Gunakan cache untuk memastikan kita tidak mengirim log berulang kali untuk user yang sama
     const lastCheckKey = `namecheck-${guild.id}-${author.id}`;
     const lastCheck = userCache.get(lastCheckKey);
     if (lastCheck && Date.now() - lastCheck < 24 * 60 * 60 * 1000) {
-        // Cooldown 1 hari
         return false;
     }
 
@@ -1078,15 +1051,8 @@ async function checkUsername(message, setting) {
 }
 
 async function checkLinks(message, setting) {
-    // MAXIMUM STRICT: Detect all links, invites, shorteners, obfuscated, and unicode domains
-    // Invite regex: allow for leet, homoglyph, zero-width, and separator obfuscation
-    // Domain regex: match any TLD, unicode, IDN, and allow for obfuscation
-    // Shortener regex: match all known and obfuscated shorteners
-
-    // Helper: Remove all zero-width, whitespace, and common obfuscation chars
     const sanitize = (text) => (text || '').replace(/[\s\\\u200B-\u200D\uFEFF\[\]\(\)\{\}\<\>\|`'"\.,;:!~_=\-]/g, '').toLowerCase();
 
-    // Invite: allow for obfuscation, e.g. d.i.s.c.o.r.d.g.g, d i s c o r d . g g, etc.
     const inviteCore = [
         'discordapp.com/invite',
         'discord.com/invite',
@@ -1102,7 +1068,7 @@ async function checkLinks(message, setting) {
         'discordplus.me',
         'joinmydiscord.com',
     ];
-    // Build a regex that allows for up to 2 non-alphanum between every char
+
     function obf(s) {
         return s
             .split('')
@@ -1111,12 +1077,9 @@ async function checkLinks(message, setting) {
     }
     const inviteRegex = new RegExp(inviteCore.map(obf).join('|') + '[^a-zA-Z0-9]{0,8}[a-z0-9-]{2,}', 'iu');
 
-    // Domain regex: match any domain, including unicode, with optional protocol, www, and path/query
-    // Allow for up to 2 non-alphanum between every char in the domain, and allow for IDN
     const domainRegex =
         /(?:(?:https?:\/\/)?(?:www\.)?)?((?:[a-z0-9\u00a1-\uffff][^a-zA-Z0-9]{0,2}){2,}\.(?:[a-z\u00a1-\uffff]{2,}))(?:\/[^\s]*)?/giu;
 
-    // Shortener regex: all known, with obfuscation
     const shorteners = [
         'bit.ly',
         'tinyurl.com',
@@ -1166,7 +1129,6 @@ async function checkLinks(message, setting) {
 
     const sanitizedContent = sanitize(message.content);
 
-    // Check in embed, attachment, and username/displayName, all sanitized
     let hasInviteInEmbed = false;
     if (message.embeds?.length) {
         for (const embed of message.embeds) {
@@ -1205,10 +1167,9 @@ async function checkLinks(message, setting) {
     if (setting.antiLinkOn && message.attachments?.size > 0) {
         for (const att of message.attachments.values()) {
             const url = att.url || '';
-            // Cek URL attachment, TAPI abaikan jika itu link CDN bawaan Discord
+
             const isDiscordCdn = url.startsWith('https://cdn.discordapp.com') || url.startsWith('https://media.discordapp.net');
 
-            // Hanya jalankan regex jika BUKAN link CDN Discord
             if (!isDiscordCdn && domainRegex.test(url)) {
                 hasLinkInAttachment = true;
                 break;
@@ -1216,15 +1177,9 @@ async function checkLinks(message, setting) {
         }
     }
 
-    // let hasInviteInUsername = inviteRegex.test(sanitize(message.author.username)) || inviteRegex.test(sanitize(message.member?.displayName || ""));
-    // let hasLinkInUsername = domainRegex.test(message.author.username) || domainRegex.test(message.member?.displayName || "");
     let hasShortener = shortenerRegex.test(sanitizedContent);
 
-    if (
-        setting.antiInviteOn &&
-        (inviteRegex.test(sanitizedContent) || hasInviteInEmbed || hasInviteInAttachment)
-        // || hasInviteInUsername
-    ) {
+    if (setting.antiInviteOn && (inviteRegex.test(sanitizedContent) || hasInviteInEmbed || hasInviteInAttachment)) {
         const reason = await t(message, 'core_helpers_automod_system_automod_invite_detected');
         await sendLogsWarning(message, reason, message.content, setting);
         if (canDeleteMessage(message)) {
@@ -1237,14 +1192,7 @@ async function checkLinks(message, setting) {
         return true;
     }
 
-    if (
-        setting.antiLinkOn &&
-        (domainRegex.test(message.content) ||
-            hasLinkInEmbed ||
-            hasLinkInAttachment ||
-            // hasLinkInUsername ||
-            hasShortener)
-    ) {
+    if (setting.antiLinkOn && (domainRegex.test(message.content) || hasLinkInEmbed || hasLinkInAttachment || hasShortener)) {
         const reason = await t(message, 'core_helpers_automod_system_automod_link_detected');
         await sendLogsWarning(message, reason, message.content, setting);
         if (canDeleteMessage(message)) {
@@ -1262,7 +1210,6 @@ async function checkLinks(message, setting) {
 function cleanupCaches() {
     const now = Date.now();
     for (const [key, value] of userCache.entries()) {
-        // Cek timestamp `lastActivity` atau `lastCheck`
         const lastActive = value.lastActivity || value.lastCheck;
         if (lastActive && now - lastActive > CACHE_EXPIRATION_TIME) {
             userCache.delete(key);
@@ -1271,7 +1218,6 @@ function cleanupCaches() {
     logger.info(`🧹 [CACHE CLEANUP] User cache cleaned. Current size: ${userCache.size}`);
 }
 
-// Jalankan pembersihan setiap satu jam
 setInterval(cleanupCaches, 60 * 60 * 1000);
 
 module.exports = {
