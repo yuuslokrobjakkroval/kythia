@@ -72,7 +72,7 @@ async function proposeMarriage(interaction) {
     const proposerId = proposer.id;
     const targetId = targetUser.id;
 
-    const existingMarriage = await Marriage.getCache({
+    const existingMarriages = await Marriage.getAllCache({
         where: {
             [Op.or]: [
                 { user1Id: proposerId, status: { [Op.in]: ['pending', 'married'] } },
@@ -81,7 +81,10 @@ async function proposeMarriage(interaction) {
                 { user2Id: targetId, status: { [Op.in]: ['pending', 'married'] } },
             ],
         },
+        limit: 1,
     });
+
+    const existingMarriage = existingMarriages && existingMarriages.length > 0 ? existingMarriages[0] : null;
 
     if (existingMarriage) {
         return interaction.reply({
@@ -178,14 +181,17 @@ async function proposeMarriage(interaction) {
 async function divorce(interaction) {
     const userId = interaction.user.id;
 
-    const marriage = await Marriage.getCache({
+    const marriages = await Marriage.getAllCache({
         where: {
             [Op.or]: [
                 { user1Id: userId, status: 'married' },
                 { user2Id: userId, status: 'married' },
             ],
         },
+        limit: 1,
     });
+
+    const marriage = marriages && marriages.length > 0 ? marriages[0] : null;
 
     if (!marriage) {
         const embed = new EmbedBuilder()
@@ -288,14 +294,17 @@ async function kiss(interaction) {
     const userId = interaction.user.id;
     const now = new Date();
 
-    const marriage = await Marriage.getCache({
+    const marriages = await Marriage.getAllCache({
         where: {
             [Op.or]: [
                 { user1Id: userId, status: 'married' },
                 { user2Id: userId, status: 'married' },
             ],
         },
+        limit: 1,
     });
+
+    const marriage = marriages && marriages.length > 0 ? marriages[0] : null;
 
     if (!marriage) {
         const embed = new EmbedBuilder()
@@ -342,14 +351,17 @@ async function kiss(interaction) {
 async function viewProfile(interaction) {
     const userId = interaction.user.id;
 
-    const marriage = await Marriage.getCache({
+    const marriages = await Marriage.getAllCache({
         where: {
             [Op.or]: [
                 { user1Id: userId, status: 'married' },
                 { user2Id: userId, status: 'married' },
             ],
         },
+        limit: 1,
     });
+
+    const marriage = marriages && marriages.length > 0 ? marriages[0] : null;
 
     if (!marriage) {
         const embed = new EmbedBuilder()

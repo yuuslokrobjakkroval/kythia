@@ -86,50 +86,50 @@ module.exports = {
             `### ${await t(interaction, 'core_utils_userinfo_field_roles')}\n` +
             (roles || (await t(interaction, 'core_utils_userinfo_value_no_roles')));
 
-        // Marriage Info
         let marriageBlock = null;
-        if (Marriage && Op) {
-            let marriage = null;
+        let marriage = null;
+        try {
+            const marriages = await Marriage.getAllCache({
+                where: {
+                    [Op.or]: [
+                        { user1Id: user.id, status: 'married' },
+                        { user2Id: user.id, status: 'married' },
+                    ],
+                },
+                limit: 1,
+            });
+
+            marriage = marriages && marriages.length > 0 ? marriages[0] : null;
+        } catch {}
+        if (marriage) {
+            const marriedAtDate = marriage.marriedAt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+            const marriedFor = marriage.marriedAt ? Math.floor((Date.now() - marriage.marriedAt) / (1000 * 60 * 60 * 24)) : null;
+
+            const partnerId = marriage.user1Id === user.id ? marriage.user2Id : marriage.user1Id;
+            let partner = null;
             try {
-                marriage = await Marriage.findOne({
-                    where: {
-                        [Op.or]: [
-                            { user1Id: user.id, status: 'married' },
-                            { user2Id: user.id, status: 'married' },
-                        ],
-                    },
-                });
+                partner = await interaction.client.users.fetch(partnerId);
             } catch {}
-            if (marriage) {
-                const marriedAtDate =  marriage.marriedAt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-                const marriedFor = marriage.marriedAt ? Math.floor((Date.now() - marriage.marriedAt) / (1000 * 60 * 60 * 24)) : null;
 
-                const partnerId = marriage.user1Id === user.id ? marriage.user2Id : marriage.user1Id;
-                let partner = null;
-                try {
-                    partner = await interaction.client.users.fetch(partnerId);
-                } catch {}
+            const partnerLabel = (await t(interaction, 'fun_marry_profile_partner_label', {}, null)) || 'Partner';
 
-                const partnerLabel = (await t(interaction, 'fun_marry_profile_partner_label', {}, null)) || 'Partner';
+            // Avatar
+            const partnerAvatar = partner?.displayAvatarURL ? partner.displayAvatarURL({ extension: 'png', size: 256 }) : defaultAvatar;
 
-                // Avatar
-                const partnerAvatar = partner?.displayAvatarURL ? partner.displayAvatarURL({ extension: 'png', size: 256 }) : defaultAvatar;
+            marriageBlock =
+                `${(await t(interaction, 'fun_marry_profile_title', {}, null)) || 'Marriage'}\n` +
+                `-# **${partnerLabel}**\n### ${partner?.username || 'Unknown'}\n\n` +
+                `${(await t(interaction, 'fun_marry_profile_married_since', {}, null)) || 'Married Since'}\n${marriedAtDate}\n` +
+                (marriedFor !== null
+                    ? `${(await t(interaction, 'fun_marry_profile_days_married', {}, null)) || 'Days Together'}\n${marriedFor} days\n`
+                    : '') +
+                `${(await t(interaction, 'fun_marry_profile_love_score', {}, null)) || 'Love Score'}\n${marriage.loveScore} ❤️`;
 
-                marriageBlock =
-                    `${(await t(interaction, 'fun_marry_profile_title', {}, null)) || 'Marriage'}\n` +
-                    `-# **${partnerLabel}**\n### ${partner?.username || 'Unknown'}\n\n` +
-                    `${(await t(interaction, 'fun_marry_profile_married_since', {}, null)) || 'Married Since'}\n${marriedAtDate}\n` +
-                    (marriedFor !== null
-                        ? `${(await t(interaction, 'fun_marry_profile_days_married', {}, null)) || 'Days Together'}\n${marriedFor} days\n`
-                        : '') +
-                    `${(await t(interaction, 'fun_marry_profile_love_score', {}, null)) || 'Love Score'}\n${marriage.loveScore} ❤️`;
-
-                marriageBlock = {
-                    content: marriageBlock,
-                    avatar: partnerAvatar,
-                    partnerName: partner?.username || 'Unknown',
-                };
-            }
+            marriageBlock = {
+                content: marriageBlock,
+                avatar: partnerAvatar,
+                partnerName: partner?.username || 'Unknown',
+            };
         }
 
         const footerText = `${await t(interaction, 'common_container_footer', { username: interaction.client.user.username })}`;
