@@ -9,7 +9,7 @@
 const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { EmbedBuilder } = require('discord.js');
 const { t } = require('@utils/translator');
-const AFK = require('@coreModels/UserAFK'); // Sesuaikan path ke model AFK
+const AFK = require('@coreModels/UserAFK');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -33,7 +33,6 @@ module.exports = {
                 return;
             }
 
-            // Buat entri AFK baru di database
             await AFK.create(
                 {
                     userId: interaction.user.id,

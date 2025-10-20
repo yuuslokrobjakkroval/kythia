@@ -1,0 +1,41 @@
+const { EmbedBuilder, MessageFlags } = require('discord.js');
+const fetch = require('node-fetch');
+const { embedFooter } = require('@utils/discord');
+const { t } = require('@utils/translator');
+
+module.exports = {
+    subcommand: true,
+    data: (subcommand) => subcommand.setName('unset').setDescription('Remove this server from the global chat network'),
+    async execute(interaction, container) {
+        const { logger } = container;
+        const apiUrl = kythia?.addons?.globalchat?.apiUrl;
+
+        await interaction.deferReply();
+
+        try {
+            const res = await fetch(`${apiUrl}/remove/${interaction.guildId}`, {
+                method: 'DELETE',
+            });
+            const resJson = await res.json();
+
+            if (resJson.status === 'ok') {
+                const embed = new EmbedBuilder()
+                    .setColor('Green')
+                    .setDescription(await t(interaction, 'globalchat_remove_success'))
+                    .setFooter(await embedFooter(interaction))
+                    .setTimestamp(new Date());
+                return interaction.editReply({ embeds: [embed] });
+            } else if (resJson.code === 'GUILD_NOT_FOUND') {
+                const embed = new EmbedBuilder().setColor('Orange').setDescription(await t(interaction, 'globalchat_remove_not_found'));
+                return interaction.editReply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            } else {
+                const embed = new EmbedBuilder().setColor('Red').setDescription(await t(interaction, 'globalchat_remove_failed'));
+                return interaction.editReply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            }
+        } catch (error) {
+            logger.error('Failed to remove guild from global chat via API:', error);
+            const embed = new EmbedBuilder().setColor('Red').setDescription(await t(interaction, 'globalchat_remove_error'));
+            return interaction.editReply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+        }
+    },
+};

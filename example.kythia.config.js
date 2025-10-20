@@ -214,6 +214,10 @@ function loadKythiaConfig() {
                 // giveaway check interval in second
                 checkInterval: 20,
             },
+            globalchat: {
+                enabled: true,
+                apiUrl: process.env.GLOBAL_CHAT_API_URL || 'http://localhost:2000'
+            },
             invite: {
                 active: true,
             },
