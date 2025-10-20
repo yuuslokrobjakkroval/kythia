@@ -23,7 +23,6 @@ module.exports = {
         try {
             const afkData = await AFK.getCache({
                 userId: interaction.user.id,
-                guildId: interaction.guild.id,
             });
 
             if (afkData) {
@@ -38,7 +37,6 @@ module.exports = {
             await AFK.create(
                 {
                     userId: interaction.user.id,
-                    guildId: interaction.guild.id,
                     reason: reason,
                     timestamp: new Date(),
                 },

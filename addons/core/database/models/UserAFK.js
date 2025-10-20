@@ -16,7 +16,6 @@ class UserAFK extends KythiaModel {
         super.init(
             {
                 userId: { type: DataTypes.STRING, allowNull: false },
-                guildId: { type: DataTypes.STRING, allowNull: false },
                 reason: { type: DataTypes.STRING, allowNull: false, defaultValue: 'No reason provided.' },
                 timestamp: { type: DataTypes.DATE, allowNull: false },
             },

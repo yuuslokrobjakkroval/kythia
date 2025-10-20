@@ -195,7 +195,6 @@ module.exports = async (bot, message) => {
 
         const afkData = await AFK.getCache({
             userId: message.author.id,
-            guildId: message.guild.id,
         });
 
         try {
@@ -251,7 +250,7 @@ module.exports = async (bot, message) => {
                 if (user.id === message.author.id) continue;
 
                 try {
-                    const mentionedAfkData = await AFK.getCache({ userId: user.id, guildId: message.guild.id });
+                    const mentionedAfkData = await AFK.getCache({ userId: user.id });
 
                     if (mentionedAfkData) {
                         const afkSince = moment(mentionedAfkData.timestamp).fromNow();
