@@ -77,26 +77,35 @@ async function handleGlobalChat(message, container) {
                 break;
             case 'skipped':
                 break;
-            case 'partial':
-                logger.warn(
-                    `⚠️ [GlobalChat] Partial delivery: ${result.data?.deliveryStats?.successful || 0}/${result.data?.deliveryStats?.total || 0}`
-                );
-                if (result.data?.failedGuilds?.length > 0) {
-                    const failedGuildsInfo = result.data.failedGuilds.map((g) => `${g.guildName || g.guildId} (${g.error})`).join(', ');
-                    logger.warn(`⚠️ [GlobalChat] Failed guilds: ${failedGuildsInfo}`);
-                }
-                break;
-            case 'failed':
-                logger.error(`❌ [GlobalChat] All deliveries failed for message ${safeMessage.id}`);
-                if (result.data?.failedGuilds?.length > 0) {
-                    const failedGuildsInfo = result.data.failedGuilds.map((g) => `${g.guildName || g.guildId} (${g.error})`).join(', ');
-                    logger.error(`❌ [GlobalChat] Failed guilds: ${failedGuildsInfo}`);
+            case 'partial': {
+                const stats = result.data?.deliveryStats || {};
+                logger.info(`Partially delivered: ${stats.successful || 0}/${stats.total || 0}`);
+                if (Array.isArray(result.data?.failedGuilds) && result.data.failedGuilds.length > 0) {
+                    const failedGuildNames = result.data.failedGuilds.map((g) => g.guildName || g.guildId).join(', ');
+                    logger.warn(`Failed guilds: ${failedGuildNames}`);
 
                     handleFailedGlobalChat(result.data.failedGuilds, container).catch((err) => {
-                        logger.error('❌ [GlobalChat] Error during background webhook fix process:', err);
+                        logger.error('[GlobalChat] Error during background webhook fix attempt:', err);
                     });
                 }
                 break;
+            }
+
+            case 'failed': {
+                logger.error(`All deliveries failed for message ${safeMessage.id}`);
+
+                if (Array.isArray(result.data?.failedGuilds) && result.data.failedGuilds.length > 0) {
+                    const failedNames = result.data.failedGuilds.map((g) => g.guildName || g.guildId).join(', ');
+                    logger.error(`Failed guilds: ${failedNames}`);
+
+                    handleFailedGlobalChat(result.data.failedGuilds, container).catch((err) => {
+                        logger.error('[GlobalChat] Error during background webhook fix attempt:', err);
+                    });
+                } else {
+                    logger.debug("[GlobalChat] Status was 'failed' but failedGuilds array was empty or missing.");
+                }
+                break;
+            }
             default:
                 logger.warn(`⚠️ [GlobalChat] Unknown API response status: ${result.status}`);
                 logger.info('🌏 [GlobalChat] Full response:', result);
