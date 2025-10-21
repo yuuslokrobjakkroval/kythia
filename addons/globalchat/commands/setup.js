@@ -1,3 +1,11 @@
+/**
+ * @namespace: addons/globalchat/commands/setup.js
+ * @type: Command
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.9-beta-rc.5
+ */
+
 const { SlashCommandBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder, InteractionContextType, MessageFlags } = require('discord.js');
 const fetch = require('node-fetch');
 const { embedFooter } = require('@utils/discord');

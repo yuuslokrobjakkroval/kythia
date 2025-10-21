@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/streak/events/messageCreate.js
+ * @namespace: addons/globalchat/events/messageCreate.js
  * @type: Event Handler
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
@@ -9,7 +9,5 @@
 const { handleGlobalChat } = require('../helpers/handleGlobalChat');
 
 module.exports = async (bot, message) => {
-    if (!kythia.addons.globalchat?.enabled) return;
-
     await handleGlobalChat(message, bot.container);
 };

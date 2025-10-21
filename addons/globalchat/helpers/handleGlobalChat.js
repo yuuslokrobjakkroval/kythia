@@ -1,4 +1,13 @@
+/**
+ * @namespace: addons/globalchat/helpers/handleGlobalChat.js
+ * @type: Helper Script
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.9-beta-rc.5
+ */
+
 const fetch = require('node-fetch');
+const { handleFailedGlobalChat } = require('./handleFailedGlobalChat');
 
 async function handleGlobalChat(message, container) {
     const { logger } = container;
@@ -82,6 +91,10 @@ async function handleGlobalChat(message, container) {
                 if (result.data?.failedGuilds?.length > 0) {
                     const failedGuildsInfo = result.data.failedGuilds.map((g) => `${g.guildName || g.guildId} (${g.error})`).join(', ');
                     logger.error(`❌ [GlobalChat] Failed guilds: ${failedGuildsInfo}`);
+
+                    handleFailedGlobalChat(result.data.failedGuilds, container).catch((err) => {
+                        logger.error('❌ [GlobalChat] Error during background webhook fix process:', err);
+                    });
                 }
                 break;
             default:
