@@ -31,7 +31,7 @@
     --ky-gray-700: #646e78;
     --ky-gray-800: #4e5965;
     --ky-gray-900: #384551;
-    --ky-primary: #ffb6d5;
+    --ky-primary: #E9BAC5;
     --ky-secondary: #8592a3;
     --ky-success: #71dd37;
     --ky-info: #03c3ec;
@@ -98,7 +98,7 @@
     --ky-tertiary-bg: #e9eaec;
     --ky-tertiary-bg-rgb: 233, 234, 236;
     --ky-heading-color: #384551;
-    --ky-link-color: #ffb6d5;
+    --ky-link-color: #E9BAC5;
     --ky-link-color-rgb: 255, 182, 213;
     --ky-link-decoration: none;
     --ky-link-hover-color: #e89bbd;
@@ -171,7 +171,7 @@
     --ky-light-border-subtle: #23234a;
     --ky-dark-border-subtle: #23234a;
     --ky-heading-color: #e0e0f0;
-    --ky-link-color: #ffb6d5;
+    --ky-link-color: #E9BAC5;
     --ky-link-hover-color: #e89bbd;
     --ky-link-color-rgb: 255, 182, 213;
     --ky-link-hover-color-rgb: 232, 155, 189;
@@ -9166,7 +9166,7 @@ a.invert-bg-dark:focus {
     --ky-box-shadow-lg: 0 0.25rem 0.75rem 0 rgba(34, 48, 62, 0.14);
     --ky-box-shadow-xl: 0 0.3125rem 1.375rem 0 rgba(34, 48, 62, 0.18);
     --ky-floating-component-shadow: 0 0.1875rem 0.5rem 0 rgba(34, 48, 62, 0.1);
-    --ky-custom-link-color: #ffb6d5;
+    --ky-custom-link-color: #E9BAC5;
     --ky-navbar-bg: var(--ky-paper-bg);
     --ky-navbar-box-shadow: 0 0 10px #e4e6e8;
     --ky-navbar-border-width: 1px;
@@ -9202,7 +9202,7 @@ a.invert-bg-dark:focus {
     --ky-gray-700: #b2b2c4;
     --ky-gray-800: #c3c4d3;
     --ky-gray-900: #d5d5e2;
-    --ky-primary: #ffb6d5;
+    --ky-primary: #E9BAC5;
     --ky-secondary: #8592a3;
     --ky-success: #71dd37;
     --ky-info: #03c3ec;

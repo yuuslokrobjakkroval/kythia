@@ -6,7 +6,7 @@
                     <img src="/assets/img/logo/logo.png" alt="kythia logo" width="40">
                 </span>
             </span>
-            <span class="app-brand-text demo menu-text fw-bold ms-2">Kythia</span>
+            <span class="app-brand-text demo menu-text fw-bold ms-2"> <img src="/assets/img/logo/logo-text.png" alt="kythia logo" width="120"></span>
         </a>
 
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link glass-effect">
@@ -32,25 +32,54 @@
                         guilds.forEach(function(server) { 
                 %>
                     <li class="menu-item<%= selectedServer && selectedServer.id === server.id ? ' active' : '' %>">
+                        <% 
+                            function getServerIconUrl(server) {
+                                if (server.icon) {
+                                    return `https://cdn.discordapp.com/icons/${server.id}/${server.icon}.png?size=32`;
+                                } else {
+                                    // Using the "fa-solid fa-server" as icon placeholder (font awesome) when missing
+                                    return null;
+                                }
+                            }
+                            var iconUrl = getServerIconUrl(server);
+
+                            function shortServerName(name) {
+                                if (!name) return '';
+                                return name.length > 12 ? name.substring(0, 12) + '…' : name;
+                            }
+                        %>
                         <% if (server.hasBot) { %>
                             <a href="/dashboard/<%= server.id %>" class="menu-link d-flex align-items-center">
-                                <img src="https://cdn.discordapp.com/icons/<%= server.id %>/<%= server.icon %>.png?size=32" 
-                                     alt="<%= server.name %>" 
-                                     class="rounded-circle me-2" 
-                                     width="24" height="24" 
-                                     style="object-fit:cover;">
-                                <span><%= server.name %></span>
+                                <% if (iconUrl) { %>
+                                    <img src="<%= iconUrl %>"
+                                         alt="<%= server.name %>"
+                                         class="rounded-circle me-2"
+                                         width="24" height="24"
+                                         style="object-fit:cover;">
+                                <% } else { %>
+                                    <span class="d-flex align-items-center justify-content-center rounded-circle bg-secondary text-white me-2"
+                                          style="width:24px; height:24px;">
+                                        <i class="fa-solid fa-server"></i>
+                                    </span>
+                                <% } %>
+                                <span><%= shortServerName(server.name) %></span>
                             </a>
                         <% } else { %>
                             <a href="https://discord.com/oauth2/authorize?client_id=<%= botClientId %>&scope=bot+applications.commands&permissions=<%= botPermissions %>&guild_id=<%= server.id %>&disable_guild_select=true" 
                                class="menu-link d-flex align-items-center text-warning" target="_blank" rel="noopener">
-                                <img src="https://cdn.discordapp.com/icons/<%= server.id %>/<%= server.icon %>.png?size=32" 
-                                     alt="<%= server.name %>" 
-                                     class="rounded-circle me-2" 
-                                     width="24" height="24" 
-                                     style="object-fit:cover;">
-                                <span><%= server.name %></span>
-                                <!-- <span class="badge bg-warning text-dark ms-2">Invite Bot</span> -->
+                                <% if (iconUrl) { %>
+                                    <img src="<%= iconUrl %>"
+                                         alt="<%= server.name %>"
+                                         class="rounded-circle me-2"
+                                         width="24" height="24"
+                                         style="object-fit:cover;">
+                                <% } else { %>
+                                    <span class="d-flex align-items-center justify-content-center rounded-circle bg-secondary text-white me-2"
+                                          style="width:24px; height:24px;">
+                                        <i class="fa-solid fa-server"></i>
+                                    </span>
+                                <% } %>
+                                <span><%= shortServerName(server.name) %></span>
                             </a>
                         <% } %>
                     </li>
