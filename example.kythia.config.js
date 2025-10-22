@@ -216,7 +216,8 @@ function loadKythiaConfig() {
             },
             globalchat: {
                 enabled: true,
-                apiUrl: process.env.GLOBAL_CHAT_API_URL || 'http://localhost:2000'
+                apiUrl: process.env.GLOBAL_CHAT_API_URL || 'http://localhost:2000',
+                healthCheckSchedule: '*/30 * * * *',
             },
             invite: {
                 active: true,
