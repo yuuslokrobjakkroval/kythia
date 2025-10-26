@@ -20,15 +20,15 @@ module.exports = {
 
         // All answers are now keys for translation
         const answerKeys = [
-            'fun_8ball_answer_yes',
-            'fun_8ball_answer_maybe_yes',
-            'fun_8ball_answer_no',
-            'fun_8ball_answer_maybe_no',
-            'fun_8ball_answer_idk',
-            'fun_8ball_answer_definitely_yes',
-            'fun_8ball_answer_definitely_no',
-            'fun_8ball_answer_secret',
-            'fun_8ball_answer_ask_later',
+            'fun.8ball.answer.yes',
+            'fun.8ball.answer.maybe.yes',
+            'fun.8ball.answer.no',
+            'fun.8ball.answer.maybe.no',
+            'fun.8ball.answer.idk',
+            'fun.8ball.answer.definitely.yes',
+            'fun.8ball.answer.definitely.no',
+            'fun.8ball.answer.secret',
+            'fun.8ball.answer.ask.later',
         ];
 
         const randomIndex = Math.floor(Math.random() * answerKeys.length);

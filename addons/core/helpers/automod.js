@@ -142,10 +142,10 @@ async function checkSpam(message, setting) {
 
     if (spamType) {
         let reasonKey = '';
-        if (spamType === 'duplicate') reasonKey = 'core_system_automod_spam_duplicate';
-        else if (spamType === 'fast') reasonKey = 'core_system_automod_spam_fast';
-        else if (spamType === 'short') reasonKey = 'core_system_automod_spam_short';
-        else reasonKey = 'core_system_automod_spam_generic';
+        if (spamType === 'duplicate') reasonKey = 'core.system.automod.spam.duplicate';
+        else if (spamType === 'fast') reasonKey = 'core.system.automod.spam.fast';
+        else if (spamType === 'short') reasonKey = 'core.system.automod.spam.short';
+        else reasonKey = 'core.system.automod.spam.generic';
 
         const reason = await t(message, reasonKey);
 

@@ -16,6 +16,7 @@ const {
     TextDisplayBuilder,
     SeparatorBuilder,
     SeparatorSpacingSize,
+    EmbedBuilder,
 } = require('discord.js');
 const UserAdventure = require('../database/models/UserAdventure');
 const { embedFooter } = require('@utils/discord');
@@ -38,7 +39,7 @@ async function generateShopContainer(interaction, user, category, page, pageItem
     
     const headerText = await t(interaction, 'adventure.shop.desc', {
         bot: interaction.client.user.username,
-        category: (await t(interaction, `adventure_shop_category_${category}`)),
+        category: (await t(interaction, `adventure.shop.category.${category}`)),
         gold: goldDisplay,
     });
 
@@ -94,7 +95,7 @@ async function generateShopContainer(interaction, user, category, page, pageItem
 async function generateShopComponentRows(interaction, page, totalPages, category, pageItems) {
     const categoryOptions = await Promise.all(
         Object.keys(shopData).map(async (cat) => ({
-            label: await t(interaction, `adventure_shop_category_${cat}`),
+            label: await t(interaction, `adventure.shop.category.${cat}`),
             value: `shop_category_${cat}`,
             default: category === cat,
         }))

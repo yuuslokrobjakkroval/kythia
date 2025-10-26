@@ -315,11 +315,6 @@ module.exports = {
                     const updatedComponents = await buildGameUI(gameInstance);
                     await interaction.editReply({
                         components: updatedComponents,
-                        // embeds: [
-                        //   new EmbedBuilder()
-                        //     .setColor(0x2ecc71)
-                        //     .setDescription(`${await t(i, 'fun.tictactoe.win.title')}\n${gameInstance.statusMessage}`)
-                        // ]
                     });
                     return;
                 }
@@ -330,11 +325,6 @@ module.exports = {
                     const updatedComponents = await buildGameUI(gameInstance);
                     await interaction.editReply({
                         components: updatedComponents,
-                        // embeds: [
-                        //   new EmbedBuilder()
-                        //     .setColor(0x95a5a6)
-                        //     .setDescription(`${await t(i, 'fun.tictactoe.draw.title')}\n${gameInstance.statusMessage}`)
-                        // ]
                     });
                     return;
                 }
@@ -351,11 +341,6 @@ module.exports = {
                         const updatedComponents = await buildGameUI(gameInstance);
                         await interaction.editReply({
                             components: updatedComponents,
-                            // embeds: [
-                            //   new EmbedBuilder()
-                            //     .setColor(0xe74c3c)
-                            //     .setDescription(`${await t(i, 'fun.tictactoe.lose.title')}\n${gameInstance.statusMessage}`)
-                            // ]
                         });
                         return;
                     }
@@ -366,11 +351,6 @@ module.exports = {
                         const updatedComponents = await buildGameUI(gameInstance);
                         await interaction.editReply({
                             components: updatedComponents,
-                            // embeds: [
-                            //   new EmbedBuilder()
-                            //     .setColor(0x95a5a6)
-                            //     .setDescription(`${await t(i, 'fun.tictactoe.draw.title')}\n${gameInstance.statusMessage}`)
-                            // ]
                         });
                         return;
                     }
@@ -394,13 +374,6 @@ module.exports = {
                 const finalComponents = await buildGameUI(gameInstance);
                 await interaction.editReply({
                     components: finalComponents,
-                    // embeds: gameInstance.statusMessage
-                    //   ? [
-                    //     new EmbedBuilder()
-                    //       .setColor(0x95a5a6)
-                    //       .setDescription(`${await t(interaction, 'fun.tictactoe.timeout.title')}\n${gameInstance.statusMessage}`)
-                    //   ]
-                    //   : []
                 });
             });
         };

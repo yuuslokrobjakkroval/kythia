@@ -84,7 +84,20 @@ module.exports = {
                     option.setName('level').setDescription('Volume level (1-1000)').setRequired(true).setMinValue(1).setMaxValue(1000)
                 )
         )
-        .addSubcommand((subcommand) => subcommand.setName('autoplay').setDescription('🔄 Enable or disable autoplay'))
+        .addSubcommand((subcommand) =>
+            subcommand
+                .setName('autoplay')
+                .setDescription('🔄 Enable or disable autoplay')
+                .addStringOption((option) =>
+                    option
+                        .setName('status')
+                        .setDescription('Enable or disable autoplay')
+                        .addChoices(
+                            { name: 'Enable', value: 'enable' },
+                            { name: 'Disable', value: 'disable' }
+                        )
+                )
+        )
         .addSubcommand((subcommand) => subcommand.setName('filter').setDescription('🎧 Apply audio filter (equalizer)'))
         .addSubcommand((subcommand) =>
             subcommand

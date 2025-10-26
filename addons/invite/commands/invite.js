@@ -85,7 +85,7 @@ module.exports = {
             await model.save();
             embed.setDescription(
                 `## ${await t(interaction, 'invite.invite.command.title')}\n` +
-                    (await t(interaction, delta >= 0 ? 'invite_command_add_success' : 'invite_command_remove_success', {
+                    (await t(interaction, delta >= 0 ? 'invite.command.add.success' : 'invite.command.remove.success', {
                         amount: Math.abs(delta),
                         user: `<@${target.id}>`,
                         total: model.invites,

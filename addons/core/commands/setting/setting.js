@@ -824,27 +824,13 @@ module.exports = {
             await serverSetting.saveAndUpdateCache();
 
             const isEnabled = status === 'enable';
-            const translationKey = isEnabled ? 'core_setting_setting_feature_enabled' : 'core_setting_setting_feature_disabled';
+            const translationKey = isEnabled ? 'core.setting.setting.feature.enabled' : 'core.setting.setting.feature.disabled';
 
             embed.setDescription(await t(interaction, translationKey, { feature: featureName }));
             return interaction.editReply({ embeds: [embed] });
         }
 
         switch (group) {
-            case 'stats': {
-                if (sub === 'category') {
-                    const cat = interaction.options.getChannel('category');
-                    if (!cat || cat.type !== ChannelType.GuildCategory) {
-                        return interaction.editReply({
-                            content: await t(interaction, 'core.setting.setting.stats.category.invalid'),
-                        });
-                    }
-                    serverSetting.serverStatsCategoryId = cat.id;
-                    await serverSetting.saveAndUpdateCache('guildId');
-                    embed.setDescription(await t(interaction, 'core.setting.setting.stats.category.set', { category: `<#${cat.id}>` }));
-                    return interaction.editReply({ embeds: [embed] });
-                }
-            }
             case 'automod': {
                 switch (sub) {
                     case 'whitelist': {
@@ -1199,6 +1185,18 @@ module.exports = {
                     '{member_join}',
                 ];
                 switch (sub) {
+                    case 'category': {
+                        const cat = interaction.options.getChannel('category');
+                        if (!cat || cat.type !== ChannelType.GuildCategory) {
+                            return interaction.editReply({
+                                content: await t(interaction, 'core.setting.setting.stats.category.invalid'),
+                            });
+                        }
+                        serverSetting.serverStatsCategoryId = cat.id;
+                        await serverSetting.saveAndUpdateCache('guildId');
+                        embed.setDescription(await t(interaction, 'core.setting.setting.stats.category.set', { category: `<#${cat.id}>` }));
+                        return interaction.editReply({ embeds: [embed] });
+                    }
                     case 'add': {
                         const format = interaction.options.getString('format');
                         let channel = interaction.options.getChannel('channel');
@@ -1504,7 +1502,7 @@ module.exports = {
             }
             case 'testimony': {
                 switch (sub) {
-                    case 'channel': {
+                    case 'testimony-channel': {
                         if (!channel || channel.type !== 0) {
                             embed.setDescription(await t(interaction, 'core.setting.setting.testimony.channel.invalid'));
                             return interaction.editReply({ embeds: [embed] });

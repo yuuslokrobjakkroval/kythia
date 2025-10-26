@@ -434,7 +434,6 @@ module.exports = {
             const to = interaction.options.getString('to');
             try {
                 const result = await convertCurrency(amount, from, to);
-                // Removed: console.log(result); -- it won't be reached if there is an error
                 if (result == null) {
                     const embed = new EmbedBuilder()
                         .setDescription('## ' + (await t(interaction, 'core.utils.convert.currency.failed')))

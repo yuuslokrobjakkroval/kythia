@@ -45,8 +45,8 @@ module.exports = {
                 .addTextDisplayComponents(
                     new TextDisplayBuilder().setContent(
                         i === 0
-                            ? await t(interaction, 'image.commands.list.title')
-                            : await t(interaction, 'image.commands.list.title.contd')
+                            ? await t(interaction, 'image.commands.list.title.text')
+                            : await t(interaction, 'image.commands.list.title.empty')
                     )
                 )
                 .addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));

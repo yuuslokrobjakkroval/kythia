@@ -54,7 +54,7 @@
             "vote": {
                 "locked": {
                     "text": "## 🩷 Vote Required\nThis command is only available to users who have voted in the last 12 hours.\n\nSupport Kythia with your vote to unlock this feature!",
-                    "button": "🩷 Vote {botName}"
+                    "button": "🩷 Vote {username}"
                 }
             }
         },
@@ -696,6 +696,7 @@
                         "invalid": "❌ The selected channel must be a category.",
                         "set": "✅ Server stats category set to {category}."
                     }
+                    
                 },
                 "embed": {
                     "title": {
@@ -1672,6 +1673,7 @@
                 },
                 "error": "Oops, I'm feeling dizzy right now. Please try again later! ><",
                 "filter": {
+                    "blocked": "Sorry, I can't do that.",
                     "everyone": {
                         "here": "Sorry i cant do that"
                     }
@@ -2136,22 +2138,6 @@
                 "footer": "🪙 Your gold: {gold}"
             },
             "item": {
-                "shield": {
-                    "label": "🛡️ Shield",
-                    "desc": "A sturdy shield gives +10 defense."
-                },
-                "sword": {
-                    "label": "⚔️ Sword",
-                    "desc": "A strong sword gives +10 strength."
-                },
-                "armor": {
-                    "label": "🥋 Armor",
-                    "desc": "Thick armor gives +15 defense."
-                },
-                "revival": {
-                    "label": "🍶 Revival",
-                    "desc": "Revival item automatically restores +100 HP."
-                },
                 "not": {
                     "found": "❌ The selected item could not be found."
                 }
@@ -4373,7 +4359,7 @@
                 "empty": "You have not uploaded any images yet.",
                 "title": {
                     "text": "## 📷 **Your Uploaded Images**\nHere are all the images you've uploaded:",
-                    "contd": "## 📷 **Your Uploaded Images (cont'd)**"
+                    "empty": "## 📷 **Your Uploaded Images (cont'd)**"
                 },
                 "item": "**Code:** `{code}`\n[View Image]({url})",
                 "footer": {

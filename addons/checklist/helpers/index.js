@@ -45,7 +45,7 @@ async function getChecklistAndItems({ guildId, userId, createIfNotExist = false 
 function getScopeMeta(userId, group, items = null) {
     const isPersonal = !!userId;
     return {
-        scopeKey: isPersonal ? 'checklist_scope_personal' : 'checklist_scope_server',
+        scopeKey: isPersonal ? 'checklist.scope.personal' : 'checklist.scope.server',
         color: isPersonal
             ? items && items.checked !== undefined
                 ? items.checked

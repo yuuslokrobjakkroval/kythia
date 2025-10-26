@@ -1316,7 +1316,7 @@ class Kythia {
                                     new ButtonBuilder()
                                         .setLabel(
                                             await t(interaction, 'common.error.vote.locked.button', {
-                                                botName: interaction.client.user.username,
+                                                username: interaction.client.user.username,
                                             })
                                         )
                                         .setStyle(ButtonStyle.Link)
@@ -1327,7 +1327,7 @@ class Kythia {
                                 new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true)
                             );
                             container.addTextDisplayComponents(
-                                new TextDisplayBuilder().setContent(await t(interaction, 'common.container.footer'))
+                                new TextDisplayBuilder().setContent(await t(interaction, 'common.container.footer', { username: interaction.client.user.username }))
                             );
                             return interaction.reply({
                                 components: [container],

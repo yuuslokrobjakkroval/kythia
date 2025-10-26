@@ -308,7 +308,7 @@ async function sendSplitMessage(message, text) {
 
         const filterResult = filterAiResponse(chunk, message.author?.id);
         if (!filterResult.allowed) {
-            await message.reply(await t(message, filterResult.reason || 'ai_events_messageCreate_filter_blocked'));
+            await message.reply(await t(message, 'ai.events.messageCreate.filter.blocked'));
             return;
         }
 
@@ -317,7 +317,7 @@ async function sendSplitMessage(message, text) {
             for (const subChunk of subChunks) {
                 const filterResultSub = filterAiResponse(subChunk, message.author?.id);
                 if (!filterResultSub.allowed) {
-                    await message.reply(await t(message, filterResultSub.reason || 'ai_events_messageCreate_filter_blocked'));
+                    await message.reply(await t(message, 'ai.events.messageCreate.filter.blocked'));
                     return;
                 }
                 if (!hasReplied) {
@@ -745,7 +745,7 @@ module.exports = async (bot, message) => {
 
                         const filterResult = filterAiResponse(finalReply, message.author?.id);
                         if (!filterResult.allowed) {
-                            await message.reply(await t(message, filterResult.reason || 'ai_events_messageCreate_filter_blocked'));
+                            await message.reply(await t(message, 'ai.events.messageCreate.filter.blocked'));
                             return;
                         }
                         await sendSplitMessage(message, finalReply);
@@ -760,7 +760,7 @@ module.exports = async (bot, message) => {
 
                     const filterResult = filterAiResponse(replyText, message.author?.id);
                     if (!filterResult.allowed) {
-                        await message.reply(await t(message, filterResult.reason || 'ai_events_messageCreate_filter_blocked'));
+                        await message.reply(await t(message, 'ai.events.messageCreate.filter.blocked'));
                         return;
                     }
                     await sendSplitMessage(message, replyText);
