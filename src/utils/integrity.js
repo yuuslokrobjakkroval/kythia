@@ -1,12 +1,11 @@
 /**
- * @file src/utils/integrity.js
- * @description Creates a consistent SHA256 hash from all files within a directory.
- * Excludes `addon.json` to avoid churn when metadata changes. File ordering is
- * normalized to be deterministic across platforms.
- *
+ * @namespace: src/utils/integrity.js
+ * @type: Module
  * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
  * @version 0.9.10-beta
  */
+
 const fs = require('fs').promises;
 const path = require('path');
 const crypto = require('crypto');

@@ -1,4 +1,12 @@
 /**
+ * @namespace: src/database/KythiaSeeder.js
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.10-beta
+ */
+
+/**
  * 🧩 Seed Runner Utility
  *
  * @file src/database/seed.js

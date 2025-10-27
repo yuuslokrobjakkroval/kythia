@@ -1,11 +1,11 @@
 /**
- * @file src/utils/fonts.js
- * @description Loads and registers all local fonts at startup for `canvas` usage.
- * Scans the core fonts directory and registers each `.ttf`/`.otf` font family name
- * based on the filename (without extension).
+ * @namespace: src/utils/fonts.js
+ * @type: Module
  * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
  * @version 0.9.10-beta
  */
+
 const { registerFont } = require('canvas');
 const path = require('path');
 const fs = require('fs');

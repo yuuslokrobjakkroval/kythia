@@ -5,7 +5,7 @@
  * @assistant chaa & graa
  * @version 0.9.10-beta
  */
-const { checkCooldown } = require('@utils/time');
+const { checkCooldown } = require('@coreHelpers/time');
 const { embedFooter } = require('@coreHelpers/discord');
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const KythiaUser = require('@coreModels/KythiaUser');

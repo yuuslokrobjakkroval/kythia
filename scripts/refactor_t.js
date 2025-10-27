@@ -1,4 +1,12 @@
 /**
+ * @namespace: scripts/refactor_t.js
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.10-beta
+ */
+
+/**
  * 🤖 Kythia Translation Namespace Corrector
  *
  * @file scripts/refactor_t.js

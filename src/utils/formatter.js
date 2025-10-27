@@ -1,10 +1,8 @@
 /**
- * @file src/utils/formatter.js
- * @description Text formatting helpers for stylized alphabets used in Discord messages.
- * Provides utilities to convert plain Latin characters into tiny and tiny-bold variants.
- * Note: Non-Latin characters are left unchanged.
- *
+ * @namespace: src/utils/formatter.js
+ * @type: Module
  * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
  * @version 0.9.10-beta
  */
 

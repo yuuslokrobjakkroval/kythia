@@ -22,7 +22,7 @@ const {
 } = require('discord.js');
 const StickyMessage = require('@coreModels/StickyMessage');
 const { automodSystem } = require('../helpers/automod');
-const { formatDuration } = require('@src/utils/time');
+const { formatDuration } = require('@coreHelpers/time');
 const convertColor = require('@src/utils/color');
 const { isOwner } = require('@coreHelpers/discord');
 const AFK = require('@coreModels/UserAFK');

@@ -1,4 +1,12 @@
 /**
+ * @namespace: addons/core/helpers/reload_config.js
+ * @type: Helper Script
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.10-beta
+ */
+
+/**
  * @file src/utils/reload_config.js
  * @description Reloads environment variables from `.env` and refreshes the global `kythia` config
  * by invoking the `loadKythiaConfig` function from `kythia.config.js`.

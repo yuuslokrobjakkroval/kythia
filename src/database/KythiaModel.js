@@ -1,4 +1,12 @@
 /**
+ * @namespace: src/database/KythiaModel.js
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.10-beta
+ */
+
+/**
  * 🚀 Caching Layer for Sequelize Models (Hybrid Redis + In-Memory Fallback Edition, Sniper Mode)
  *
  * @file src/database/KythiaModel.js

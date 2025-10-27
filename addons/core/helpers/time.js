@@ -1,10 +1,12 @@
 /**
- * @file src/utils/time.js
- * @description Time utilities: duration parsing, cooldown checks, and duration formatting.
- * Supports multiple language synonyms for units when parsing human strings.
- * © 2025 kenndeclouv — v0.9.8-beta
+ * @namespace: addons/core/helpers/time.js
+ * @type: Helper Script
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.10-beta
  */
-const { t } = require('@coreHelpers/translator');
+
+const { t } = require('./translator');
 
 /**
  * Parses a human-readable duration string into milliseconds.
@@ -14,7 +16,6 @@ const { t } = require('@coreHelpers/translator');
  */
 function parseDuration(duration) {
     if (!duration || typeof duration !== 'string') return 0;
-    // regex fix: angka + optional spasi + unit valid, no campur aduk
     const timeUnitRegex =
         /(\d+)\s*(detik|second|seconds|menit|min|mins|minute|minutes|jam|hour|hours|hari|day|days|pekan|minggu|week|weeks|s|m|h|j|d|w|p)\b/gi;
     let totalMilliseconds = 0;

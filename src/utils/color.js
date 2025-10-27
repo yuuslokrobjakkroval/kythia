@@ -1,20 +1,11 @@
 /**
- * @file src/utils/color.js
- * @description Color conversion utilities for hex, RGB, decimal, and Discord color names.
- *
- * Example usage:
- * convertColor(input, { from: 'hex', to: 'rgb' })       // -> { r, g, b }
- * convertColor(input, { from: 'rgb', to: 'hex' })       // -> '#RRGGBB'
- * convertColor(input, { from: 'hex', to: 'decimal' })   // -> 0xRRGGBB (number)
- * convertColor(input, { from: 'decimal', to: 'hex' })   // -> '#RRGGBB'
- * convertColor(input, { from: 'rgb', to: 'decimal' })   // -> 0xRRGGBB
- * convertColor(input, { from: 'decimal', to: 'rgb' })   // -> { r, g, b }
- * convertColor('Blurple', { from: 'discord', to: 'hex' }) // -> '#5865F2'
- * convertColor('Red', { from: 'discord', to: 'rgb' })   // -> { r: 237, g: 66, b: 69 }
- *
+ * @namespace: src/utils/color.js
+ * @type: Module
  * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
  * @version 0.9.10-beta
  */
+
 const discordColors = {
     Default: 0x000000,
     White: 0xffffff,

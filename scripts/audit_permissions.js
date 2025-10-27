@@ -1,4 +1,12 @@
 /**
+ * @namespace: scripts/audit_permissions.js
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.10-beta
+ */
+
+/**
  * 🕵️‍♂️ Kythia Permissions Auditor
  *
  * @file scripts/audit_permissions.js

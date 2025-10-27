@@ -7,7 +7,7 @@
  */
 
 const { embedFooter } = require('@coreHelpers/discord');
-const { checkCooldown } = require('@utils/time');
+const { checkCooldown } = require('@coreHelpers/time');
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const KythiaUser = require('@coreModels/KythiaUser');
 const Inventory = require('@coreModels/Inventory');

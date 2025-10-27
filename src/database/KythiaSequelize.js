@@ -1,4 +1,12 @@
 /**
+ * @namespace: src/database/KythiaSequelize.js
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.10-beta
+ */
+
+/**
  * 🧠 Sequelize Connection Factory
  *
  * @file src/database/KythiaSequelize.js

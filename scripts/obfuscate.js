@@ -1,4 +1,12 @@
 /**
+ * @namespace: scripts/obfuscate.js
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.10-beta
+ */
+
+/**
  * 🛡️ Kythia Obfuscation Script
  *
  * @file scripts/obfuscate.js

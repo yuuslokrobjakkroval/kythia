@@ -1,4 +1,12 @@
 /**
+ * @namespace: scripts/check_t.js
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.10-beta
+ */
+
+/**
  * @name: Translation Key Linter (Nested Aware)
  * @description: Scans the project for all used translation keys (dot notation)
  * and checks if they exist in the nested language files.

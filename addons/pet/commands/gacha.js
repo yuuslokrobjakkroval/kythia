@@ -8,7 +8,7 @@
 const { EmbedBuilder } = require('discord.js');
 const UserPet = require('../database/models/UserPet');
 const Pet = require('../database/models/Pet');
-const { checkCooldown } = require('@utils/time');
+const { checkCooldown } = require('@coreHelpers/time');
 const { t } = require('@coreHelpers/translator');
 const User = require('@coreModels/User');
 const { Op } = require('sequelize');

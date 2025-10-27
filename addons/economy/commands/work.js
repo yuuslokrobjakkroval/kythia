@@ -10,7 +10,7 @@ const banks = require('../helpers/banks');
 const KythiaUser = require('@coreModels/KythiaUser');
 const Inventory = require('@coreModels/Inventory');
 const { embedFooter } = require('@coreHelpers/discord');
-const { checkCooldown } = require('@utils/time');
+const { checkCooldown } = require('@coreHelpers/time');
 const { t } = require('@coreHelpers/translator');
 const jobs = require('../helpers/jobs');
 

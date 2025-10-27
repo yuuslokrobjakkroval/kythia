@@ -1,4 +1,12 @@
 /**
+ * @namespace: scripts/check_t_ast.js
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.10-beta
+ */
+
+/**
  * @file scripts/check_t_ast.js
  * @description AST-based Translation Key Linter.
  * Scans JS/TS files, finds t() calls (including some dynamic keys),

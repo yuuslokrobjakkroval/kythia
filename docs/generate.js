@@ -1,4 +1,12 @@
 /**
+ * @namespace: docs/generate.js
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.10-beta
+ */
+
+/**
  * 🚀 Kythia Docs Generator (Pro Edition)
  *
  * This script automatically generates detailed Markdown documentation for all bot commands

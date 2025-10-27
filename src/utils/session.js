@@ -1,11 +1,11 @@
 /**
- * @file src/utils/session.js
- * @description Cached session store wrapper that adds an in-memory layer on top of an
- * underlying `express-session` compatible store. Positive lookups are cached for `ttl`,
- * and negative lookups (misses) are cached for `negativeTtl` to reduce backend load.
- *
- * © 2025 kenndeclouv — v0.9.8-beta
+ * @namespace: src/utils/session.js
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.10-beta
  */
+
 const session = require('express-session');
 
 /**

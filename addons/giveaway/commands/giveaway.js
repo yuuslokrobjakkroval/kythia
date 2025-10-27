@@ -17,7 +17,7 @@ const {
 } = require('discord.js');
 const { announceWinners } = require('../helpers/giveawayManager');
 const Giveaway = require('../database/models/Giveaway');
-const { parseDuration } = require('@utils/time');
+const { parseDuration } = require('@coreHelpers/time');
 const { t } = require('@coreHelpers/translator');
 
 module.exports = {
