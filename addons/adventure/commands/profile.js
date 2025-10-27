@@ -8,8 +8,8 @@
 const { SlashCommandSubcommandBuilder, EmbedBuilder } = require('discord.js');
 const UserAdventure = require('../database/models/UserAdventure');
 const CharManager = require('../helpers/charManager');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     subcommand: true,

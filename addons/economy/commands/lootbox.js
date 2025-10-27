@@ -6,11 +6,11 @@
  * @version 0.9.9-beta-rc.5
  */
 const { checkCooldown } = require('@utils/time');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const KythiaUser = require('@coreModels/KythiaUser');
 const ServerSetting = require('@coreModels/ServerSetting');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const BankManager = require('../helpers/bankManager');
 
 module.exports = {

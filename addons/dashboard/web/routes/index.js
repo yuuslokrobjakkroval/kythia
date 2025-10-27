@@ -9,7 +9,7 @@
 const { loadVisitorCounts, trackVisitor } = require('../helpers/visitor');
 const { parseChangelog, getCommandsData } = require('../helpers');
 const router = require('express').Router();
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const path = require('path');
 const fs = require('fs');
 

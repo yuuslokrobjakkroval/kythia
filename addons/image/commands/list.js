@@ -10,7 +10,7 @@ const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacing
 
 const convertColor = require('@utils/color');
 const Image = require('../database/models/Image');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     subcommand: true,
@@ -53,9 +53,7 @@ module.exports = {
 
             for (const img of pageItems) {
                 container.addTextDisplayComponents(
-                    new TextDisplayBuilder().setContent(
-                        await t(interaction, 'image.commands.list.item', { code: img.code, url: img.url })
-                    )
+                    new TextDisplayBuilder().setContent(await t(interaction, 'image.commands.list.item', { code: img.code, url: img.url }))
                 );
                 container.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false));
             }
@@ -63,9 +61,7 @@ module.exports = {
             if (i + chunkSize >= items.length) {
                 container.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
                 container.addTextDisplayComponents(
-                    new TextDisplayBuilder().setContent(
-                        await t(interaction, 'image.commands.list.footer.help')
-                    )
+                    new TextDisplayBuilder().setContent(await t(interaction, 'image.commands.list.footer.help'))
                 );
             }
             container

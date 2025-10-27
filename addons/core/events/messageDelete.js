@@ -1,3 +1,11 @@
+/**
+ * @namespace: addons/core/events/messageDelete.js
+ * @type: Event Handler
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.9-beta-rc.5
+ */
+
 // addons/core/events/messageDelete.js
 
 const { AuditLogEvent, EmbedBuilder } = require('discord.js');

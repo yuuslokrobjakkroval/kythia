@@ -8,7 +8,7 @@
 
 const { getAndUseNextAvailableToken } = require('../helpers/gemini');
 const { GoogleGenAI } = require('@google/genai');
-const logger = require('@src/utils/logger');
+const logger = require('@coreHelpers/logger');
 const cron = require('node-cron');
 
 // Helper untuk mencari channel utama (logika tetap, hanya dipisah)

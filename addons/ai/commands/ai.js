@@ -7,7 +7,7 @@
  */
 
 const { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType, EmbedBuilder } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     data: new SlashCommandBuilder()

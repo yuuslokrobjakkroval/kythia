@@ -12,7 +12,7 @@ const parseDiscordMarkdown = require('../helpers/parser');
 const KythiaVoter = require('@coreModels/KythiaVoter');
 const KythiaUser = require('@coreModels/KythiaUser');
 const convertColor = require('@src/utils/color');
-const logger = require('@src/utils/logger');
+const logger = require('@coreHelpers/logger');
 const client = require('@src/KythiaClient');
 
 router.get('/api/guilds/:guildId/channels', async (req, res) => {

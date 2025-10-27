@@ -19,7 +19,7 @@
  */
 const sequelize = require('./KythiaSequelize');
 const KythiaModel = require('./KythiaModel');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const readline = require('readline');
 const crypto = require('crypto');
 const path = require('path');

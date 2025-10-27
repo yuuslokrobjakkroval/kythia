@@ -6,8 +6,8 @@
  * @version 0.9.9-beta-rc.5
  */
 const { SlashCommandBuilder, EmbedBuilder, ApplicationCommandType, ContextMenuCommandBuilder } = require('discord.js');
-const { t } = require('@utils/translator');
-const { embedFooter } = require('@utils/discord');
+const { t } = require('@coreHelpers/translator');
+const { embedFooter } = require('@coreHelpers/discord');
 
 module.exports = {
     // COMMAND 1: Slash Command Builder

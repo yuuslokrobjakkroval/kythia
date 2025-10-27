@@ -10,7 +10,7 @@ const { Mutex } = require('async-mutex');
 const fs = require('fs').promises;
 const path = require('path');
 const { GoogleGenAI } = require('@google/genai');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 
 const GEMINI_API_KEYS = (kythia.addons.ai.geminiApiKeys || '')
     .split(',')

@@ -4,8 +4,7 @@
  * Supports multiple language synonyms for units when parsing human strings.
  * © 2025 kenndeclouv — v0.9.8-beta
  */
-const { t } = require('@utils/translator');
-const { isOwner } = require('@utils/discord'); // Use the local isOwner, which may proxy or match @discord.js needs
+const { t } = require('@coreHelpers/translator');
 
 /**
  * Parses a human-readable duration string into milliseconds.
@@ -77,13 +76,6 @@ function parseDuration(duration) {
  * @returns {{remaining:boolean,time?:string}} Remaining flag and friendly remaining time if active.
  */
 function checkCooldown(lastTime, cooldownInSeconds, interaction) {
-    if (
-        typeof interaction !== 'undefined' &&
-        kythia.settings.ownerSkipCooldown &&
-        isOwner(interaction.user.id)
-    ) {
-        return { remaining: false };
-    }
     const now = Date.now();
     if (lastTime && now - lastTime < cooldownInSeconds * 1000) {
         const timeLeftInSeconds = cooldownInSeconds - Math.floor((now - lastTime) / 1000);

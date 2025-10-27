@@ -10,7 +10,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const Image = require('../database/models/Image');
 const { EmbedBuilder, MessageFlags } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     subcommand: true,

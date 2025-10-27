@@ -11,7 +11,7 @@ const MarketOrder = require('../database/models/MarketOrder');
 const MarketPortfolio = require('../database/models/MarketPortfolio');
 const MarketTransaction = require('../database/models/MarketTransaction');
 const { getMarketData } = require('./market');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const cron = require('node-cron');
 
 async function processOrders() {

@@ -1,4 +1,12 @@
 /**
+ * @namespace: addons/core/helpers/translator.js
+ * @type: Helper Script
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.9-beta-rc.5
+ */
+
+/**
  * @file src/utils/translator.js
  * @description Lightweight i18n helper to load language files and translate keys with
  * optional variables and fallback logic.
@@ -6,7 +14,7 @@
  */
 const ServerSetting = require('@coreModels/ServerSetting');
 const { Collection } = require('discord.js');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const path = require('path');
 const fs = require('fs');
 
@@ -28,7 +36,7 @@ function getLocales() {
  * Loads all JSON language files from `src/lang` into memory.
  */
 function loadLocales() {
-    const langDir = path.join(__dirname, '..', 'lang');
+    const langDir = path.join(process.cwd(), 'src', 'lang');
 
     try {
         if (!fs.existsSync(langDir)) {

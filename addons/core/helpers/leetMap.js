@@ -1,3 +1,11 @@
+/**
+ * @namespace: addons/core/helpers/leetMap.js
+ * @type: Helper Script
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.9-beta-rc.5
+ */
+
 const leetMap = {
     a: [
         'a',

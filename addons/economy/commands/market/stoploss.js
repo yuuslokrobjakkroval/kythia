@@ -10,8 +10,8 @@ const KythiaUser = require('@coreModels/KythiaUser');
 const MarketPortfolio = require('../../database/models/MarketPortfolio');
 const MarketOrder = require('../../database/models/MarketOrder');
 const { ASSET_IDS } = require('../../helpers/market');
-const { t } = require('@utils/translator');
-const { embedFooter } = require('@utils/discord');
+const { t } = require('@coreHelpers/translator');
+const { embedFooter } = require('@coreHelpers/discord');
 
 module.exports = {
     subcommand: true,

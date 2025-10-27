@@ -8,7 +8,7 @@
 
 const { SlashCommandBuilder } = require('discord.js');
 const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 // In-memory storage for donate info per guild (replace with DB in production)
 const donateData = new Map();
@@ -67,7 +67,9 @@ module.exports = {
             });
 
             await interaction.reply({
-                content: await t(interaction, 'core.utils..donate.utils.donate.set.success', { defaultValue: 'Donation info updated successfully!' }),
+                content: await t(interaction, 'core.utils..donate.utils.donate.set.success', {
+                    defaultValue: 'Donation info updated successfully!',
+                }),
                 ephemeral: true,
             });
             return;

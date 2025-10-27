@@ -17,7 +17,7 @@ const {
     InteractionContextType,
 } = require('discord.js');
 const ServerSetting = require('@coreModels/ServerSetting');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 
 // Helper function for delay
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

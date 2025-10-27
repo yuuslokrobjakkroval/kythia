@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/events/guildStickerCreate.js
+ * @namespace: addons/core/events/stickerCreate.js
  * @type: Event Handler
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

@@ -12,7 +12,7 @@
  * `Collection` and keeping them synchronized after updates.
  */
 
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 
 class KythiaManager {
     constructor(serverSettingModel) {

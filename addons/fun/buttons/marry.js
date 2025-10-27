@@ -6,8 +6,8 @@
  * @version 0.9.9-beta-rc.5
  */
 
-const { t } = require('@utils/translator');
-const { embedFooter } = require('@utils/discord');
+const { t } = require('@coreHelpers/translator');
+const { embedFooter } = require('@coreHelpers/discord');
 const Marriage = require('../database/models/Marriage');
 const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder } = require('discord.js');
 const convertColor = require('@utils/color');

@@ -8,7 +8,7 @@
 
 const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { EmbedBuilder } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const AFK = require('@coreModels/UserAFK');
 
 module.exports = {

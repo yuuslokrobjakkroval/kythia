@@ -7,8 +7,8 @@
  */
 
 const { ChannelType } = require('discord.js');
-const { t } = require('@utils/translator');
-const logger = require('@utils/logger');
+const { t } = require('@coreHelpers/translator');
+const logger = require('@coreHelpers/logger');
 
 // Cache untuk terjemahan agar tidak dipanggil berulang kali
 const timeLocaleCache = {};

@@ -8,7 +8,7 @@
 
 const { updateGiveawayMessage } = require('../helpers/giveawayManager');
 const Giveaway = require('../database/models/Giveaway');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     // Tambahkan 'container' untuk konsistensi
@@ -25,7 +25,9 @@ module.exports = {
         // Cek role requirement
         if (giveaway.roleId) {
             if (!interaction.member.roles.cache.has(giveaway.roleId)) {
-                return interaction.editReply({ content: await t(interaction, 'giveaway.buttons.giveawayjoin.error.role.required', { role: giveaway.roleId }) });
+                return interaction.editReply({
+                    content: await t(interaction, 'giveaway.buttons.giveawayjoin.error.role.required', { role: giveaway.roleId }),
+                });
             }
         }
 

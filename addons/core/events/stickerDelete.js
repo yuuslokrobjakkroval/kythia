@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/events/guildStickerDelete.js
+ * @namespace: addons/core/events/stickerDelete.js
  * @type: Event Handler
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

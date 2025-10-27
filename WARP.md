@@ -172,7 +172,7 @@ Defined in `package.json` under `_moduleAliases`:
 @srcDatabase -> src/database/
 ```
 
-Use these in imports: `require('@utils/logger')` instead of relative paths.
+Use these in imports: `require('@coreHelpers/logger')` instead of relative paths.
 
 ## Development Workflow
 
@@ -246,7 +246,7 @@ Cache is automatically invalidated on updates/deletes via Sequelize hooks.
 
 - Bot checks both user permissions and bot permissions before executing commands
 - Permissions defined using `PermissionFlagsBits` from Discord.js
-- Owner-only commands: Check with `isOwner(userId)` from `@utils/discord`
+- Owner-only commands: Check with `isOwner(userId)` from `@coreHelpers/discord`
 
 ### Logging
 

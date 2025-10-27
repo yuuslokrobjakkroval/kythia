@@ -6,8 +6,8 @@
  * @version 0.9.9-beta-rc.5
  */
 
-const { t } = require('@utils/translator');
-const logger = require('@utils/logger');
+const { t } = require('@coreHelpers/translator');
+const logger = require('@coreHelpers/logger');
 
 /**
  * Set role prefix to member nicknames, with translation for logs.

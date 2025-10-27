@@ -6,8 +6,8 @@
  * @version 0.9.9-beta-rc.5
  */
 const { SlashCommandBuilder, EmbedBuilder, InteractionContextType, PermissionFlagsBits } = require('discord.js');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     data: new SlashCommandBuilder()

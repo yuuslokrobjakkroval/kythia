@@ -20,14 +20,14 @@
 const { REST, Routes, Collection } = require('discord.js');
 const ServerSetting = require('@coreModels/ServerSetting');
 const KythiaModel = require('./database/KythiaModel');
-const { loadLocales } = require('@utils/translator');
+const { loadLocales } = require('@coreHelpers/translator');
 const KythiaORM = require('./database/KythiaORM');
 const KythiaManager = require('./KythiaManager');
 const { loadFonts } = require('./utils/fonts');
 const KythiaClient = require('./KythiaClient');
 const User = require('@coreModels/User');
-const { t } = require('@utils/translator');
-const logger = require('@utils/logger');
+const { t } = require('@coreHelpers/translator');
+const logger = require('@coreHelpers/logger');
 const Sentry = require('@sentry/node');
 const figlet = require('figlet');
 

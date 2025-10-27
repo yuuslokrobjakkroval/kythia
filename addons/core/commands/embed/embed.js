@@ -8,8 +8,8 @@
 const { SlashCommandBuilder, ChannelType } = require('discord.js');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits, InteractionContextType } = require('discord.js');
 const Embed = require('@coreModels/Embed'); // Sesuaikan path
-const { t } = require('@utils/translator');
-const logger = require('@src/utils/logger');
+const { t } = require('@coreHelpers/translator');
+const logger = require('@coreHelpers/logger');
 
 module.exports = {
     data: new SlashCommandBuilder()

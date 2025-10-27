@@ -18,7 +18,7 @@ const {
 const { announceWinners } = require('../helpers/giveawayManager');
 const Giveaway = require('../database/models/Giveaway');
 const { parseDuration } = require('@utils/time');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     data: new SlashCommandBuilder()

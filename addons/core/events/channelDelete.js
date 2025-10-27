@@ -8,7 +8,7 @@
 
 const { AuditLogEvent, EmbedBuilder } = require('discord.js');
 const ServerSetting = require('@coreModels/ServerSetting');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 /**
  * Handle anti-nuke system for channel deletion spam.
@@ -74,9 +74,7 @@ module.exports = async (bot, channel) => {
         });
 
         // Try to match by .target?.id first (like in update), fallback to name if not found
-        let entry = audit.entries.find(
-            (e) => e.target?.id === channel.id && e.createdTimestamp > Date.now() - 5000
-        );
+        let entry = audit.entries.find((e) => e.target?.id === channel.id && e.createdTimestamp > Date.now() - 5000);
 
         if (!entry) {
             entry = audit.entries.find(
@@ -111,7 +109,7 @@ module.exports = async (bot, channel) => {
             [ChannelType.GroupDM]: 'Group DM',
         };
         function humanChannelType(type) {
-            return channelTypeNames[type] || (typeof type === "number" ? `Unknown (${type})` : "Unknown");
+            return channelTypeNames[type] || (typeof type === 'number' ? `Unknown (${type})` : 'Unknown');
         }
 
         // Use the typical color utility if available, else fallback

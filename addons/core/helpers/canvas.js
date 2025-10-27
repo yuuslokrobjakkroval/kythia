@@ -7,12 +7,12 @@
  */
 
 const { createCanvas, loadImage, registerFont } = require('canvas');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const axios = require('axios');
 const path = require('path');
 const os = require('os');
 const fs = require('fs').promises;
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 
 async function _loadImageHelper(source) {
     if (!source) return null;

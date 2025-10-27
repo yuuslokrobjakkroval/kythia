@@ -17,7 +17,7 @@
  */
 require('module-alias/register');
 const Kythia = require('./src/Kythia');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 
 (async () => {
     logger.info('🔧 Starting command deployment process...');

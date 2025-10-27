@@ -7,7 +7,7 @@
  */
 
 const { generateLyricsWithTranscript, formatDuration } = require('.');
-const { embedFooter, checkIsPremium, isOwner } = require('@utils/discord');
+const { embedFooter, checkIsPremium, isOwner } = require('@coreHelpers/discord');
 // const nanoid = require('nanoid');
 const {
     EmbedBuilder,
@@ -26,9 +26,9 @@ const PlaylistTrack = require('../database/models/PlaylistTrack');
 const Playlist = require('../database/models/Playlist');
 const Favorite = require('../database/models/Favorite');
 const convertColor = require('@utils/color');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const { customFilter } = require('poru');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const cheerio = require('cheerio');
 const play = require('play-dl');
 const axios = require('axios');
@@ -983,15 +983,16 @@ async function handleLyrics(interaction, player) {
             const list = await response.json();
             // Find best match: try to match both artist and title, fallback to the first record
             if (Array.isArray(list) && list.length > 0) {
-                foundRecord = list.find(record => {
-                    // Very basic match
-                    return (
-                        record.trackName &&
-                        record.artistName &&
-                        record.trackName.toLowerCase().includes(titleForSearch.toLowerCase()) &&
-                        record.artistName.toLowerCase().includes(artist.toLowerCase())
-                    );
-                }) || list[0];
+                foundRecord =
+                    list.find((record) => {
+                        // Very basic match
+                        return (
+                            record.trackName &&
+                            record.artistName &&
+                            record.trackName.toLowerCase().includes(titleForSearch.toLowerCase()) &&
+                            record.artistName.toLowerCase().includes(artist.toLowerCase())
+                        );
+                    }) || list[0];
 
                 if (foundRecord && (foundRecord.plainLyrics || foundRecord.syncedLyrics)) {
                     lyrics = foundRecord.plainLyrics || foundRecord.syncedLyrics;
@@ -1042,7 +1043,8 @@ async function handleLyrics(interaction, player) {
     }
 
     // Determine what to show as title/artist for returned lyric record
-    let embedArtist = artist, embedTitle = titleForSearch;
+    let embedArtist = artist,
+        embedTitle = titleForSearch;
     if (foundRecord) {
         embedArtist = foundRecord.artistName || embedArtist;
         embedTitle = foundRecord.trackName || embedTitle;
@@ -1698,7 +1700,9 @@ async function _handlePlaylistShare(interaction) {
         .setColor(kythia.bot.color)
         .setDescription(
             `${await t(interaction, 'music.helpers.handlers.playlist.share.title', { name: playlist.name })}\n${await t(
-                interaction, 'music.helpers.handlers.playlist.share.desc')}\n\n**${await t(interaction, 'music.helpers.handlers.playlist.share.code.label')}**: \`${shareCode}\``
+                interaction,
+                'music.helpers.handlers.playlist.share.desc'
+            )}\n\n**${await t(interaction, 'music.helpers.handlers.playlist.share.code.label')}**: \`${shareCode}\``
         );
 
     await interaction.editReply({ embeds: [embed] });
@@ -1729,7 +1733,9 @@ async function _handlePlaylistImport(interaction) {
                 .setColor('Red')
                 .setDescription(
                     `${await t(interaction, 'music.helpers.handlers.playlist.import.invalid.title')}\n${await t(
-                        interaction, 'music.helpers.handlers.playlist.import.invalid.desc')}`
+                        interaction,
+                        'music.helpers.handlers.playlist.import.invalid.desc'
+                    )}`
                 );
             return interaction.editReply({ embeds: [embed] });
         }
@@ -1917,11 +1923,11 @@ async function _importFromSpotify(interaction, url) {
         const playlistCount = await Playlist.countWithCache({ userId: userId });
         const isPremium = await checkIsPremium(userId);
         if (!isOwner(userId) && playlistCount >= kythia.addons.music.playlistLimit && !isPremium) {
-            const embed = new EmbedBuilder()
-                .setColor('Red')
-                .setDescription(
-                    await t(interaction, 'music.helpers.handlers.music.playlist.save.limit.desc', { count: kythia.addons.music.playlistLimit })
-                );
+            const embed = new EmbedBuilder().setColor('Red').setDescription(
+                await t(interaction, 'music.helpers.handlers.music.playlist.save.limit.desc', {
+                    count: kythia.addons.music.playlistLimit,
+                })
+            );
             return interaction.editReply({ embeds: [embed] });
         }
 

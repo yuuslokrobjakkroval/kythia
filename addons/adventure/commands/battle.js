@@ -10,8 +10,8 @@ const UserAdventure = require('../database/models/UserAdventure');
 const InventoryAdventure = require('../database/models/InventoryAdventure');
 const CharManager = require('../helpers/charManager');
 const { getRandomMonster } = require('../helpers/monster');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     subcommand: true,

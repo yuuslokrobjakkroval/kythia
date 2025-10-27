@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/events/messageBulkDelete.js
+ * @namespace: addons/core/events/messageDeleteBulk.js
  * @type: Event Handler
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

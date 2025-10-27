@@ -9,8 +9,8 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const KythiaUser = require('@coreModels/KythiaUser');
 const MarketOrder = require('../../database/models/MarketOrder');
 const MarketPortfolio = require('../../database/models/MarketPortfolio');
-const { t } = require('@utils/translator');
-const { embedFooter } = require('@utils/discord');
+const { t } = require('@coreHelpers/translator');
+const { embedFooter } = require('@coreHelpers/discord');
 
 module.exports = {
     subcommand: true,

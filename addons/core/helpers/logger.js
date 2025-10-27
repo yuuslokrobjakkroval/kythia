@@ -1,4 +1,12 @@
 /**
+ * @namespace: addons/core/helpers/logger.js
+ * @type: Helper Script
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.9-beta-rc.5
+ */
+
+/**
  * @file src/utils/logger.js
  * @description Colorized and enhanced logger for the Discord bot.
  * Prints readable, color-coded logs to the console and writes structured logs
@@ -18,7 +26,7 @@ const path = require('path');
 const fs = require('fs');
 const clc = require('cli-color');
 const logDir = 'logs';
-const kythia = require('../../kythia.config');
+const kythia = require('../../../kythia.config');
 
 if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir);

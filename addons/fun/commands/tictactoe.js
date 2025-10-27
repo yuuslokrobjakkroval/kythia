@@ -20,7 +20,7 @@ const {
     EmbedBuilder,
 } = require('discord.js');
 const convertColor = require('@utils/color');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 // ===============================
 // Tic Tac Toe Game State & Logic

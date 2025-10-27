@@ -17,7 +17,7 @@ const {
     SeparatorBuilder,
     SeparatorSpacingSize,
 } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const convertColor = require('@utils/color');
 
 /**
@@ -233,7 +233,9 @@ async function buildPingEmbed(interaction, container) {
 }
 
 module.exports = {
-    data: new SlashCommandBuilder().setName('ping').setDescription("🔍 Checks the bot's, Discord API's, database and cache/redis connection speed."),
+    data: new SlashCommandBuilder()
+        .setName('ping')
+        .setDescription("🔍 Checks the bot's, Discord API's, database and cache/redis connection speed."),
     aliases: ['p', 'pong'],
     async execute(interaction, container) {
         const { embedContainer, botLatency, apiLatency } = await buildPingEmbed(interaction, container);

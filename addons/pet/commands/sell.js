@@ -8,8 +8,8 @@
 const { EmbedBuilder } = require('discord.js');
 const UserPet = require('../database/models/UserPet');
 const Pet = require('../database/models/Pet');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 const User = require('@coreModels/User');
 
 module.exports = {
@@ -24,7 +24,7 @@ module.exports = {
         if (!userPet) {
             const embed = new EmbedBuilder()
                 .setDescription(`## ${await t(interaction, 'pet.sell.no.pet.title')}\n${await t(interaction, 'pet.sell.no.pet.desc')}`)
-                .setColor("Red")
+                .setColor('Red')
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }

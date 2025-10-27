@@ -8,8 +8,8 @@
 
 const { SlashCommandBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder, InteractionContextType, MessageFlags } = require('discord.js');
 const fetch = require('node-fetch');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 const GlobalChat = require('../database/models/GlobalChat');
 
 module.exports = {
@@ -54,13 +54,11 @@ module.exports = {
 
         let localDbChat = await GlobalChat.getCache({ guildId: interaction.guild.id });
         if (alreadySetup || localDbChat) {
-            const embed = new EmbedBuilder()
-                .setColor('Red')
-                .setDescription(
-                    await t(interaction, 'globalchat.setup.already.set', {
-                        channel: `<#${existingChannelId || localDbChat?.globalChannelId}>`,
-                    })
-                );
+            const embed = new EmbedBuilder().setColor('Red').setDescription(
+                await t(interaction, 'globalchat.setup.already.set', {
+                    channel: `<#${existingChannelId || localDbChat?.globalChannelId}>`,
+                })
+            );
             return interaction.editReply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         }
 

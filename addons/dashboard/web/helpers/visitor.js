@@ -7,7 +7,7 @@
  */
 
 const Visitor = require('@addons/dashboard/database/models/Visitor');
-const logger = require('@src/utils/logger');
+const logger = require('@coreHelpers/logger');
 const crypto = require('crypto');
 
 /**

@@ -6,9 +6,9 @@
  * @version 0.9.9-beta-rc.5
  */
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, InteractionContextType } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const StickyMessage = require('@coreModels/StickyMessage');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 
 module.exports = {
     data: new SlashCommandBuilder()

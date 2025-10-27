@@ -7,7 +7,7 @@
  */
 
 const { EmbedBuilder, WebhookClient } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 function safeWebhookClient(url) {
     if (typeof url === 'string' && url.trim().length > 0) {

@@ -8,7 +8,7 @@
 
 // addons/core/helpers/events.js
 const { ApplicationCommandOptionType } = require('discord.js');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 /**
  * Membuat objek interaction palsu dari sebuah Message.
  * VERSI PALING SEMPURNA: State management reply/defer/followUp/edit/delete, argumen, dan error handling sangat teliti.

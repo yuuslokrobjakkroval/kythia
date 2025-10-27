@@ -8,9 +8,9 @@
 const { SlashCommandBuilder, EmbedBuilder, ChannelType, PermissionFlagsBits, InteractionContextType } = require('discord.js');
 const { updateStats } = require('../../helpers/stats');
 const ServerSetting = require('@coreModels/ServerSetting');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
-const logger = require('@utils/logger');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
+const logger = require('@coreHelpers/logger');
 
 const fs = require('fs');
 const path = require('path');

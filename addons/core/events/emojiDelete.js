@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/events/guildEmojiDelete.js
+ * @namespace: addons/core/events/emojiDelete.js
  * @type: Event Handler
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

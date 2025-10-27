@@ -9,8 +9,8 @@
 const ServerSetting = require('../database/models/ServerSetting');
 const { updateStats } = require('../helpers/stats');
 const { ActivityType } = require('discord.js');
-const { t } = require('@utils/translator');
-const logger = require('@utils/logger');
+const { t } = require('@coreHelpers/translator');
+const logger = require('@coreHelpers/logger');
 const Sentry = require('@sentry/node');
 
 function setBotPresence(client) {
@@ -26,11 +26,13 @@ function setBotPresence(client) {
             activityType = ActivityType.Playing;
         }
         client.user.setPresence({
-            activities: [{
-                name: kythia.bot.activity,
-                type: activityType,
-                url: kythia.bot.streakUrl || null
-            }],
+            activities: [
+                {
+                    name: kythia.bot.activity,
+                    type: activityType,
+                    url: kythia.bot.streakUrl || null,
+                },
+            ],
             status: kythia.bot.status || 'online',
         });
         logger.info('✅ Bot presence has been set.');

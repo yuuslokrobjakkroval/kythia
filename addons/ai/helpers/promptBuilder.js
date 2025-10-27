@@ -5,7 +5,7 @@
  * @assistant chaa & graa
  * @version 0.9.9-beta-rc.5
  */
-const { isOwner } = require('@utils/discord');
+const { isOwner } = require('@coreHelpers/discord');
 
 const personaPrompt = kythia.addons.ai.personaPrompt;
 

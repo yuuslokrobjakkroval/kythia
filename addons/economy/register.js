@@ -8,7 +8,7 @@
 
 // addons/dashboard/register.js
 
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const { initializeOrderProcessing } = require('./helpers/orderProcessor');
 module.exports = {
     async initialize(bot) {

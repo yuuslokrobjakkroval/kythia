@@ -8,8 +8,8 @@
 const { EmbedBuilder } = require('discord.js');
 const UserPet = require('../../database/models/UserPet');
 const Pet = require('../../database/models/Pet');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     data: (subcommand) =>
@@ -51,7 +51,9 @@ module.exports = {
 
         await Pet.create({ name, icon, rarity, bonusType, bonusValue });
         const embed = new EmbedBuilder()
-            .setDescription(`## ${await t(interaction, 'pet.admin.add.add.success.title')}\n${await t(interaction, 'pet.admin.add.add.success.desc', { name })}`)
+            .setDescription(
+                `## ${await t(interaction, 'pet.admin.add.add.success.title')}\n${await t(interaction, 'pet.admin.add.add.success.desc', { name })}`
+            )
             .setColor(kythia.bot.color)
             .setFooter(await embedFooter(interaction));
         return interaction.editReply({ embeds: [embed] });

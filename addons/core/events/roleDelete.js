@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/events/guildRoleDelete.js
+ * @namespace: addons/core/events/roleDelete.js
  * @type: Event Handler
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

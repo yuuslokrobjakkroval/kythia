@@ -6,7 +6,7 @@
  * @version 0.9.9-beta-rc.5
  */
 
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const { reloadConfig } = require('@utils/reload_config');
 
 async function reloadLavalinkNodes(client) {

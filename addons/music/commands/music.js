@@ -32,8 +32,8 @@ const {
     handleDownload,
 } = require('../helpers/handlers');
 const { formatDuration, hasControlPermission } = require('../helpers');
-const { t } = require('@utils/translator');
-const logger = require('@utils/logger');
+const { t } = require('@coreHelpers/translator');
+const logger = require('@coreHelpers/logger');
 const { guildStates } = require('../helpers/musicManager');
 
 module.exports = {
@@ -92,10 +92,7 @@ module.exports = {
                     option
                         .setName('status')
                         .setDescription('Enable or disable autoplay')
-                        .addChoices(
-                            { name: 'Enable', value: 'enable' },
-                            { name: 'Disable', value: 'disable' }
-                        )
+                        .addChoices({ name: 'Enable', value: 'enable' }, { name: 'Disable', value: 'disable' })
                 )
         )
         .addSubcommand((subcommand) => subcommand.setName('filter').setDescription('🎧 Apply audio filter (equalizer)'))

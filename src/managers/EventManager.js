@@ -11,7 +11,7 @@
  * Manages event registration, execution order, and error handling for all events.
  */
 
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 
 class EventManager {
     /**

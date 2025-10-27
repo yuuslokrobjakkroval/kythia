@@ -1,4 +1,12 @@
 /**
+ * @namespace: addons/core/helpers/discord.js
+ * @type: Helper Script
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.9-beta-rc.5
+ */
+
+/**
  * @file src/utils/discord.js
  * @description Discord-related helpers for permissions, embeds, and premium checks.
  * Provides utilities to check team membership/premium, build consistent embed footers,
@@ -9,10 +17,10 @@
  * @copyright © 2025 kenndeclouv
  * @version 0.9.9-beta-rc.5
  */
-const ServerSetting = require('@coreModels/ServerSetting');
+
 const KythiaUser = require('@coreModels/KythiaUser');
 const KythiaTeam = require('@coreModels/KythiaTeam');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const logger = require('./logger');
 const axios = require('axios');
 

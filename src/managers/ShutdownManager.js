@@ -12,7 +12,7 @@
  */
 
 const exitHook = require('async-exit-hook');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 
 class ShutdownManager {
     /**

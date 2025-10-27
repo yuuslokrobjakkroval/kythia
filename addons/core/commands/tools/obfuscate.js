@@ -8,7 +8,7 @@
 
 const { SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
 const JavaScriptObfuscator = require('javascript-obfuscator');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const axios = require('axios');
 
 module.exports = {

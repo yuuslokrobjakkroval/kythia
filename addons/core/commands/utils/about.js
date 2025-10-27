@@ -18,7 +18,7 @@ const {
     MediaGalleryItemBuilder,
     MediaGalleryBuilder,
 } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const convertColor = require('@utils/color');
 
 module.exports = {

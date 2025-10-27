@@ -17,8 +17,8 @@ const {
 const fs = require('fs');
 const path = require('path');
 const { loadTemplates, buildEmbeds } = require('../helpers/template');
-const { t } = require('@utils/translator');
-const { embedFooter } = require('@utils/discord');
+const { t } = require('@coreHelpers/translator');
+const { embedFooter } = require('@coreHelpers/discord');
 
 // Path ke folder template
 const TEMPLATE_DIR = path.join(__dirname, '../template');

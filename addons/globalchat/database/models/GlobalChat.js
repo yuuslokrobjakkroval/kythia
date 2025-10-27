@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/GlobalChat/database/models/GlobalChat.js
+ * @namespace: addons/globalchat/database/models/GlobalChat.js
  * @type: Database Model
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

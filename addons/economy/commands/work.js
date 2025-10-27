@@ -9,9 +9,9 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const BankManager = require('../helpers/bankManager');
 const KythiaUser = require('@coreModels/KythiaUser');
 const Inventory = require('@coreModels/Inventory');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 const { checkCooldown } = require('@utils/time');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const jobs = require('../helpers/jobs');
 
 module.exports = {

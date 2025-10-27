@@ -7,9 +7,9 @@
  */
 const { EmbedBuilder, version, MessageFlags } = require('discord.js');
 const { SlashCommandBuilder } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const { formatDuration } = require('@utils/time');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');

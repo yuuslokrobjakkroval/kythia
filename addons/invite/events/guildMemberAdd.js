@@ -10,7 +10,7 @@ const InviteModel = require('../database/models/Invite');
 const { getGuildInviteCache, refreshGuildInvites } = require('../helpers');
 const ServerSetting = require('@coreModels/ServerSetting');
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 const FAKE_ACCOUNT_AGE_DAYS = 7;
 

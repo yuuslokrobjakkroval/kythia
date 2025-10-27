@@ -13,11 +13,7 @@
  */
 
 const { SlashCommandBuilder, SlashCommandSubcommandBuilder, SlashCommandSubcommandGroupBuilder, Collection } = require('discord.js');
-const { isTeam, isOwner } = require('../utils/discord');
-const ServerSetting = require('@coreModels/ServerSetting');
-const KythiaVoter = require('@coreModels/KythiaVoter');
-const { loadLocales } = require('@utils/translator');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const path = require('path');
 const fs = require('fs');
 
@@ -514,7 +510,7 @@ class AddonManager {
                     const commandName = commandBuilder.name;
 
                     try {
-                        const { getLocales } = require('@utils/translator');
+                        const { getLocales } = require('@coreHelpers/translator');
                         const allLocales = getLocales();
 
                         let nameLocalizations = {};
@@ -597,7 +593,7 @@ class AddonManager {
                         if (commandModule.subcommand) continue;
 
                         try {
-                            const { getLocales } = require('@utils/translator');
+                            const { getLocales } = require('@coreHelpers/translator');
                             const allLocales = getLocales();
 
                             let nameLocalizations = {};

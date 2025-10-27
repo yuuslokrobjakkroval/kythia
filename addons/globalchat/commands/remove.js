@@ -8,8 +8,8 @@
 
 const { EmbedBuilder, MessageFlags } = require('discord.js');
 const fetch = require('node-fetch');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 const GlobalChat = require('../database/models/GlobalChat.js');
 
 module.exports = {

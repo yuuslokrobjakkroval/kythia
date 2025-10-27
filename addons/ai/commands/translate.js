@@ -15,10 +15,10 @@ const {
     Message,
 } = require('discord.js');
 const { getAndUseNextAvailableToken } = require('../helpers/gemini');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 const { GoogleGenAI } = require('@google/genai');
-const { t } = require('@utils/translator');
-const logger = require('@src/utils/logger');
+const { t } = require('@coreHelpers/translator');
+const logger = require('@coreHelpers/logger');
 
 module.exports = {
     slashCommand: new SlashCommandBuilder()

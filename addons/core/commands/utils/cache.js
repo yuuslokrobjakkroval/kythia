@@ -8,7 +8,7 @@
 
 const { SlashCommandBuilder, EmbedBuilder, InteractionContextType } = require('discord.js');
 const KythiaModel = require('@src/database/KythiaModel');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 
 module.exports = {
     data: new SlashCommandBuilder().setName('cache').setDescription('Shows cache statistics.').setContexts(InteractionContextType.BotDM),

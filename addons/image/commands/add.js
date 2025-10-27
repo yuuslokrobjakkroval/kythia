@@ -10,10 +10,10 @@ const fs = require('fs').promises;
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const Image = require('../database/models/Image');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const { EmbedBuilder, MessageFlags } = require('discord.js');
-const { t } = require('@utils/translator');
-const { embedFooter } = require('@utils/discord');
+const { t } = require('@coreHelpers/translator');
+const { embedFooter } = require('@coreHelpers/discord');
 
 module.exports = {
     subcommand: true,

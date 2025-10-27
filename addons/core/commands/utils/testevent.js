@@ -7,7 +7,7 @@
  */
 const { createMockEventArgs } = require('@coreHelpers/events');
 const { SlashCommandBuilder } = require('discord.js');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 
 const ALL_EVENTS = [
     'messageCreate',

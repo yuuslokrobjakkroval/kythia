@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/events/guildRoleCreate.js
+ * @namespace: addons/core/events/roleCreate.js
  * @type: Event Handler
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

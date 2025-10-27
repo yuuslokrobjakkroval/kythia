@@ -8,8 +8,8 @@
 const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const User = require('@coreModels/User');
 const { calculateLevelAndXp, levelUpXp } = require('../helpers');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     subcommand: true,

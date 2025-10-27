@@ -8,8 +8,8 @@
 
 const { Events, EmbedBuilder, WebhookClient, PermissionsBitField } = require('discord.js');
 const ServerSetting = require('@coreModels/ServerSetting');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 
 function safeWebhookClient(url) {
     if (typeof url === 'string' && url.trim().length > 0) {

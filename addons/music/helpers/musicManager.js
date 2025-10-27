@@ -27,8 +27,8 @@ const {
 const { Poru } = require('poru');
 const { createProgressBar, hasControlPermission } = require('.');
 const convertColor = require('@utils/color');
-const logger = require('@utils/logger');
-const { t } = require('@utils/translator');
+const logger = require('@coreHelpers/logger');
+const { t } = require('@coreHelpers/translator');
 const { Spotify } = require('poru-spotify');
 const {
     handleLyrics,
@@ -42,7 +42,7 @@ const {
     handleFilter,
     handleFavorite,
 } = require('./handlers');
-const { setVoiceChannelStatus } = require('@src/utils/discord');
+const { setVoiceChannelStatus } = require('@coreHelpers/discord');
 
 const guildStates = new Map();
 

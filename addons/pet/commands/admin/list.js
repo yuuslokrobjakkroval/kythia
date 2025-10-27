@@ -7,8 +7,8 @@
  */
 const { EmbedBuilder } = require('discord.js');
 const Pet = require('../../database/models/Pet');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     data: (subcommand) => subcommand.setName('list').setDescription('Show all pets in the system'),

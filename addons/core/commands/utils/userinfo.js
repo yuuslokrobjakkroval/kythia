@@ -19,9 +19,9 @@ const {
     MessageFlags,
 } = require('discord.js');
 const Marriage = require('@addons/fun/database/models/Marriage');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 const convertColor = require('@utils/color');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const { Op } = require('sequelize');
 
 module.exports = {

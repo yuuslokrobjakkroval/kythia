@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/events/guildEmojiUpdate.js
+ * @namespace: addons/core/events/emojiUpdate.js
  * @type: Event Handler
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

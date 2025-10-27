@@ -9,7 +9,7 @@
 const ServerSetting = require('../database/models/ServerSetting');
 const { resolvePlaceholders, safeResolvePlaceholder } = require('@coreHelpers/stats');
 const { generateBanner } = require('../helpers/canvas');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 const User = require('../database/models/User');
 const { EmbedBuilder } = require('discord.js');
 const { rolePrefix } = require('../helpers');

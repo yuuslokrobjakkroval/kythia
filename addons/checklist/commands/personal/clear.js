@@ -8,7 +8,7 @@
 
 const { getChecklistAndItems, getScopeMeta, safeReply } = require('../../helpers');
 const { EmbedBuilder } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     subcommand: true,

@@ -19,9 +19,9 @@ const {
 } = require('discord.js');
 const KythiaUser = require('@coreModels/KythiaUser');
 const Inventory = require('@coreModels/Inventory');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 const shopData = require('../helpers/items');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 const allItems = Object.values(shopData).flat();
 

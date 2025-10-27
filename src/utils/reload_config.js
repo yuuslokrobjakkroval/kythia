@@ -10,7 +10,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 // Import our configuration loader from kythia.config.js
 const { loadKythiaConfig } = require('../../kythia.config.js');
-const logger = require('./logger.js');
+const logger = require('@coreHelpers/logger');
 
 const envPath = path.resolve(process.cwd(), '.env');
 

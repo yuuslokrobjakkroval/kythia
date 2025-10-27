@@ -9,7 +9,7 @@
 // addons/giveaway/helpers/giveawayManager.js
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const User = require('@coreModels/User');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const KythiaUser = require('@addons/core/database/models/KythiaUser');
 
 /**

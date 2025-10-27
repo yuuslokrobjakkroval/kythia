@@ -10,7 +10,7 @@ const { ApplicationCommandOptionType, ApplicationCommandType, PermissionsBitFiel
 const ServerSetting = require('@coreModels/ServerSetting');
 const KythiaVoter = require('@coreModels/KythiaVoter');
 const { marked } = require('marked');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const path = require('path');
 const fs = require('fs');
 const { ensureArray } = require('./settings');
@@ -179,11 +179,13 @@ async function getCommandsData(client) {
         const slashData = command.slashCommand || command.data;
         if (
             slashData &&
-            typeof slashData.name === "string" &&
+            typeof slashData.name === 'string' &&
             // Exclude generic "data" command
-            slashData.name.toLowerCase() !== "data" &&
+            slashData.name.toLowerCase() !== 'data' &&
             // Must have a real description (not undefined/empty/boilerplate)
-            (slashData.description && slashData.description.trim() && !/^no description( provided)?\.?$/i.test(slashData.description.trim()))
+            slashData.description &&
+            slashData.description.trim() &&
+            !/^no description( provided)?\.?$/i.test(slashData.description.trim())
         ) {
             const commandJSON = typeof slashData.toJSON === 'function' ? slashData.toJSON() : slashData;
 
@@ -272,8 +274,8 @@ async function getCommandsData(client) {
         // Context commands must have a valid name and should not be data
         if (
             command.contextMenuCommand &&
-            typeof command.contextMenuCommand.name === "string" &&
-            command.contextMenuCommand.name.toLowerCase() !== "data"
+            typeof command.contextMenuCommand.name === 'string' &&
+            command.contextMenuCommand.name.toLowerCase() !== 'data'
         ) {
             const commandJSON =
                 typeof command.contextMenuCommand.toJSON === 'function' ? command.contextMenuCommand.toJSON() : command.contextMenuCommand;
@@ -286,11 +288,11 @@ async function getCommandsData(client) {
 
                 let description;
 
-                if (typeof command.contextMenuDescription === "string" && command.contextMenuDescription.trim()) {
+                if (typeof command.contextMenuDescription === 'string' && command.contextMenuDescription.trim()) {
                     description = command.contextMenuDescription.trim();
                 } else if (
                     command.slashCommand &&
-                    typeof command.slashCommand.description === "string" &&
+                    typeof command.slashCommand.description === 'string' &&
                     command.slashCommand.description &&
                     command.slashCommand.description.trim() &&
                     !/^no description( provided)?\.?$/i.test(command.slashCommand.description.trim())

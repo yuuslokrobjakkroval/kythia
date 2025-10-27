@@ -7,7 +7,7 @@
  */
 
 const { cleanupUserCache } = require('./helpers/index.js');
-const logger = require('@src/utils/logger.js');
+const logger = require('@coreHelpers/logger.js');
 const path = require('path');
 const { userCache } = require('./helpers/automod.js');
 

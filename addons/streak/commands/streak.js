@@ -10,7 +10,7 @@ const { getOrCreateStreak, updateNickname, getTodayDateString, getYesterdayDateS
 const { SlashCommandBuilder, EmbedBuilder, InteractionContextType } = require('discord.js');
 const ServerSetting = require('@coreModels/ServerSetting');
 const Streak = require('../database/models/Streak');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const { Op } = require('sequelize');
 
 module.exports = {

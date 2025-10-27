@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/events/guildStickerUpdate.js
+ * @namespace: addons/core/events/stickerUpdate.js
  * @type: Event Handler
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

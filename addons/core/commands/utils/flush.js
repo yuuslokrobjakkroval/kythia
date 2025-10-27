@@ -8,13 +8,10 @@
 
 const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const Redis = require('ioredis');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('flush')
-        .setDescription('💥 Flush Redis Cache')
-        .setContexts(InteractionContextType.BotDM),
+    data: new SlashCommandBuilder().setName('flush').setDescription('💥 Flush Redis Cache').setContexts(InteractionContextType.BotDM),
     ownerOnly: true,
 
     async execute(interaction) {

@@ -6,10 +6,10 @@
  * @version 0.9.9-beta-rc.5
  */
 const { YoutubeTranscript } = require('youtube-transcript');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const { generateContent } = require('@addons/ai/helpers/gemini');
 const { PermissionFlagsBits } = require('discord.js');
-const { isOwner } = require('@utils/discord');
+const { isOwner } = require('@coreHelpers/discord');
 
 /**
  * ⏱️ Formats a duration in milliseconds to a human-readable string (hh:mm:ss or mm:ss).

@@ -7,7 +7,7 @@
  */
 
 const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 // Path ini mungkin perlu disesuaikan ya
 const { reloadLavalinkNodes } = require('../helpers/reloadNode');
 

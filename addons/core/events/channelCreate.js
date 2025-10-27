@@ -8,7 +8,7 @@
 
 const { AuditLogEvent, EmbedBuilder, ChannelType } = require('discord.js');
 const ServerSetting = require('@coreModels/ServerSetting');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 async function handleAntiNuke(bot, channel, entry) {
     if (!entry || !entry.executor || entry.executor.bot) return;
@@ -62,11 +62,7 @@ async function handleAntiNuke(bot, channel, entry) {
 }
 
 module.exports = async (bot, channel) => {
-    if (
-        !channel.guild ||
-        ![ChannelType.GuildText, ChannelType.GuildVoice, ChannelType.GuildCategory].includes(channel.type)
-    )
-        return;
+    if (!channel.guild || ![ChannelType.GuildText, ChannelType.GuildVoice, ChannelType.GuildCategory].includes(channel.type)) return;
 
     try {
         const audit = await channel.guild.fetchAuditLogs({
@@ -74,9 +70,7 @@ module.exports = async (bot, channel) => {
             limit: 1,
         });
 
-        const entry = audit.entries.find(
-            (e) => e.target?.id === channel.id && e.createdTimestamp > Date.now() - 5000
-        );
+        const entry = audit.entries.find((e) => e.target?.id === channel.id && e.createdTimestamp > Date.now() - 5000);
 
         await handleAntiNuke(bot, channel, entry);
 
@@ -88,7 +82,7 @@ module.exports = async (bot, channel) => {
         if (!logChannel || !logChannel.isTextBased() || !entry) return;
 
         const embed = new EmbedBuilder()
-            .setColor("Blurple")
+            .setColor('Blurple')
             .setAuthor({
                 name: entry.executor?.tag || 'Unknown',
                 iconURL: entry.executor?.displayAvatarURL?.(),
@@ -96,13 +90,17 @@ module.exports = async (bot, channel) => {
             .setDescription(`📢 **Channel Created** by <@${entry.executor?.id || 'Unknown'}>`)
             .addFields(
                 { name: 'Channel', value: `<#${channel.id}> (${channel.name})`, inline: true },
-                { name: 'Type', value: channel.type === ChannelType.GuildText
-                    ? 'Text Channel'
-                    : channel.type === ChannelType.GuildVoice
-                        ? 'Voice Channel'
-                        : channel.type === ChannelType.GuildCategory
-                            ? 'Category'
-                            : `Unknown (${channel.type})`, inline: true
+                {
+                    name: 'Type',
+                    value:
+                        channel.type === ChannelType.GuildText
+                            ? 'Text Channel'
+                            : channel.type === ChannelType.GuildVoice
+                              ? 'Voice Channel'
+                              : channel.type === ChannelType.GuildCategory
+                                ? 'Category'
+                                : `Unknown (${channel.type})`,
+                    inline: true,
                 }
             )
             .setFooter({ text: `User ID: ${entry.executor?.id || 'Unknown'}` })

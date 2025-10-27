@@ -1,11 +1,11 @@
 /**
  * 💥 Flush Redis Cache
- * 
+ *
  * @file src/database/KythiaFlush.js
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
  * @version 0.9.9-beta-rc.5
- * 
+ *
  * @description
  * A simple utility script to connect to Redis and run FLUSHALL.
  * Perfect for clearing the cache during development after making
@@ -17,7 +17,7 @@ require('../../kythia.config.js');
 require('module-alias/register');
 
 const Redis = require('ioredis');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 
 // Ensure Redis configuration exists in the global config
 if (!kythia.db.redis) {

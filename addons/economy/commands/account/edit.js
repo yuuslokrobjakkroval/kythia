@@ -7,9 +7,9 @@
  */
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const BankManager = require('@addons/economy/helpers/bankManager');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 const KythiaUser = require('@coreModels/KythiaUser');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     subcommand: true,
@@ -55,9 +55,7 @@ module.exports = {
 
             const embed = new EmbedBuilder()
                 .setColor(kythia.bot.color)
-                .setDescription(
-                    await t(interaction, 'economy.account.edit.account.edit.success.desc', { bankType: bankDisplay })
-                )
+                .setDescription(await t(interaction, 'economy.account.edit.account.edit.success.desc', { bankType: bankDisplay }))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });

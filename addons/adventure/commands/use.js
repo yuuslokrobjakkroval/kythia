@@ -10,7 +10,7 @@ const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBui
 const UserAdventure = require('../database/models/UserAdventure');
 const InventoryAdventure = require('../database/models/InventoryAdventure');
 const { getItem } = require('../helpers/items');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     subcommand: true,

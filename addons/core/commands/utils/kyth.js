@@ -8,7 +8,7 @@
 
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const KythiaTeam = require('@coreModels/KythiaTeam');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 
 module.exports = {
     data: new SlashCommandBuilder()

@@ -24,12 +24,12 @@ const {
 } = require('discord.js');
 const ServerSetting = require('@coreModels/ServerSetting');
 const KythiaModel = require('./database/KythiaModel');
-const { loadLocales } = require('@utils/translator');
+const { loadLocales } = require('@coreHelpers/translator');
 const KythiaORM = require('./database/KythiaORM');
 const KythiaManager = require('./KythiaManager');
 const { loadFonts } = require('./utils/fonts');
 const KythiaClient = require('./KythiaClient');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const Sentry = require('@sentry/node');
 const figlet = require('figlet');
 const path = require('path');
@@ -434,7 +434,7 @@ class Kythia {
                                     const commandName = commandBuilder.name;
 
                                     try {
-                                        const { getLocales } = require('@utils/translator');
+                                        const { getLocales } = require('@coreHelpers/translator');
                                         const allLocales = getLocales();
 
                                         let nameLocalizations = {};
@@ -655,7 +655,7 @@ class Kythia {
                                         if (commandModule.subcommand) continue;
 
                                         try {
-                                            const { getLocales } = require('@utils/translator');
+                                            const { getLocales } = require('@coreHelpers/translator');
                                             const allLocales = getLocales();
 
                                             let nameLocalizations = {};

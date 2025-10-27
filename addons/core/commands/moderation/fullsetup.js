@@ -6,7 +6,7 @@
  * @version 0.9.9-beta-rc.5
  */
 
-const logger = require('@src/utils/logger');
+const logger = require('@coreHelpers/logger');
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags, InteractionContextType } = require('discord.js');
 
 module.exports = {
@@ -154,7 +154,7 @@ module.exports = {
                 triggerMetadata: {
                     regexPatterns: [
                         // Example: message with 30 or more uppercase letters or numbers (no lower case): up to 200 chars
-                        '^[A-Z0-9\\s!@#$%^&*()_+\\-=\\[\\]{}|;\':",.<>/?`~]{30,}$'
+                        '^[A-Z0-9\\s!@#$%^&*()_+\\-=\\[\\]{}|;\':",.<>/?`~]{30,}$',
                     ],
                     allowList: [],
                 },
@@ -166,7 +166,9 @@ module.exports = {
             const successEmbed = new EmbedBuilder()
                 .setColor('Green')
                 .setTitle(`✅ Successfully Installed ${totalRules} AutoMod Rule(s)!`)
-                .setDescription(`**${totalRules} AutoMod rules** have been successfully re-installed. Your server is now clean and protected!`)
+                .setDescription(
+                    `**${totalRules} AutoMod rules** have been successfully re-installed. Your server is now clean and protected!`
+                )
                 .addFields({ name: 'Installed Rules', value: createdRules.map((r) => `• ${r}`).join('\n') })
                 .setFooter({ text: 'Kythia AutoMod System' });
 

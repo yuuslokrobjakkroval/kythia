@@ -6,10 +6,10 @@
  * @version 0.9.9-beta-rc.5
  */
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 const { checkCooldown } = require('@utils/time');
 const KythiaUser = require('@coreModels/KythiaUser');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const BankManager = require('../helpers/bankManager');
 
 module.exports = {

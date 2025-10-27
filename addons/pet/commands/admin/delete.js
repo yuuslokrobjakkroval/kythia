@@ -6,9 +6,9 @@
  * @version 0.9.9-beta-rc.5
  */
 const { EmbedBuilder } = require('discord.js');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 const Pet = require('../../database/models/Pet');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     data: (subcommand) =>

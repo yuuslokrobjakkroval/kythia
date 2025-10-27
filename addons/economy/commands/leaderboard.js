@@ -16,7 +16,7 @@ const {
     MessageFlags,
 } = require('discord.js');
 const KythiaUser = require('@coreModels/KythiaUser');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const convertColor = require('@utils/color');
 
 const USERS_PER_PAGE = 10;

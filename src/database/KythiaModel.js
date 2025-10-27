@@ -21,7 +21,7 @@
  */
 
 const jsonStringify = require('json-stable-stringify');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const { Model } = require('sequelize');
 const Redis = require('ioredis');
 

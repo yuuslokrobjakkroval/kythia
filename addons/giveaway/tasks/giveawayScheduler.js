@@ -10,7 +10,7 @@
 const { Op } = require('sequelize');
 const Giveaway = require('../database/models/Giveaway');
 const { announceWinners } = require('../helpers/giveawayManager');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 
 const CHECK_INTERVAL = kythia.addons.giveaway.checkInterval * 1000;
 

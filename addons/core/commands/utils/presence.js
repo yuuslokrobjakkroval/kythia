@@ -6,7 +6,7 @@
  * @version 0.9.9-beta-rc.5
  */
 const { SlashCommandBuilder, ActivityType, InteractionContextType } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 const STATUS_OPTIONS = [
     { name: 'Online', value: 'online' },

@@ -7,7 +7,7 @@
  * @version 0.9.9-beta-rc.5
  */
 const { registerFont } = require('canvas');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const path = require('path');
 const fs = require('fs');
 

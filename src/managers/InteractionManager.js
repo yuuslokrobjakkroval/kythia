@@ -25,12 +25,12 @@ const {
     TextDisplayBuilder,
     SeparatorSpacingSize,
 } = require('discord.js');
-const { isTeam, isOwner } = require('../utils/discord');
+const { isTeam, isOwner } = require('@coreHelpers/discord');
 const ServerSetting = require('@coreModels/ServerSetting');
 const KythiaVoter = require('@coreModels/KythiaVoter');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const convertColor = require('../utils/color');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const Sentry = require('@sentry/node');
 
 class InteractionManager {

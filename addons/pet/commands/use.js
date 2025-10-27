@@ -9,9 +9,9 @@ const { EmbedBuilder } = require('discord.js');
 const ServerSetting = require('@coreModels/ServerSetting');
 const UserPet = require('../database/models/UserPet');
 const Pet = require('../database/models/Pet');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 const { checkCooldown } = require('@utils/time');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const KythiaUser = require('@coreModels/KythiaUser');
 const { updatePetStatus } = require('../helpers/status');
 

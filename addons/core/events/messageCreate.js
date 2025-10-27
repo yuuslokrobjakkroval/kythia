@@ -24,10 +24,10 @@ const StickyMessage = require('@coreModels/StickyMessage');
 const { automodSystem } = require('../helpers/automod');
 const { formatDuration } = require('@src/utils/time');
 const convertColor = require('@src/utils/color');
-const { isOwner } = require('@utils/discord');
+const { isOwner } = require('@coreHelpers/discord');
 const AFK = require('@coreModels/UserAFK');
-const { t } = require('@utils/translator');
-const logger = require('@utils/logger');
+const { t } = require('@coreHelpers/translator');
+const logger = require('@coreHelpers/logger');
 const moment = require('moment');
 
 module.exports = async (bot, message) => {

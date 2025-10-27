@@ -8,7 +8,7 @@
 
 const ModLog = require('@coreModels/ModLog');
 const convertColor = require('@src/utils/color');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 async function sendLogsWarning(message, reason, originalContent = null, setting, userId = message.author.id) {
     // Send warning message in channel

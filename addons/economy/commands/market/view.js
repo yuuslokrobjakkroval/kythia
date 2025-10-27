@@ -10,8 +10,8 @@ const { getMarketData, ASSET_IDS, getChartBuffer } = require('../../helpers/mark
 const { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } = require('discord.js');
 const KythiaUser = require('@coreModels/KythiaUser');
 const MarketOrder = require('../../database/models/MarketOrder');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 
 function formatMarketTable(rows) {
     return ['```', 'SYMBOL   |    PRICE (USD)  |  24H CHANGE', '----------------------------------------', ...rows, '```'].join('\n');

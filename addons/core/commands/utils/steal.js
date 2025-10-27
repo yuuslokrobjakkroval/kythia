@@ -7,7 +7,7 @@
  */
 
 const { SlashCommandBuilder, ContextMenuCommandBuilder, ApplicationCommandType, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 function parseCustomEmoji(str) {
     // <a:name:id> or <name:id>
@@ -139,7 +139,9 @@ module.exports = {
                         name: sticker.name || `stolen_sticker_${sticker.id}`,
                         tags: sticker.tags || 'stolen',
                     });
-                    return interaction.editReply({ content: await t(interaction, 'core.utils.steal.sticker.success', { name: created.name }) });
+                    return interaction.editReply({
+                        content: await t(interaction, 'core.utils.steal.sticker.success', { name: created.name }),
+                    });
                 } catch (e) {
                     // Fallback: send sticker file for manual upload
                     return interaction.editReply({

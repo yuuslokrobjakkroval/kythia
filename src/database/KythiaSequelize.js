@@ -10,7 +10,7 @@
  * Main Sequelize connection factory for the application
  */
 const { Sequelize } = require('sequelize');
-const logger = require('@utils/logger');
+const logger = require('@coreHelpers/logger');
 const clc = require('cli-color');
 
 /**

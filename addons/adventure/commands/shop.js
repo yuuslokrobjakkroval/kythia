@@ -19,9 +19,9 @@ const {
     EmbedBuilder,
 } = require('discord.js');
 const UserAdventure = require('../database/models/UserAdventure');
-const { embedFooter } = require('@utils/discord');
+const { embedFooter } = require('@coreHelpers/discord');
 const itemsDataFile = require('../helpers/items'); // This brings the full items.js object & methods
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 // Use items from @items.js for shop data
 const shopData = itemsDataFile.items;
@@ -36,10 +36,10 @@ async function generateShopContainer(interaction, user, category, page, pageItem
     if (user && typeof user.gold !== 'undefined' && user.gold !== null) {
         goldDisplay = safeLocaleString(user.gold, '0');
     }
-    
+
     const headerText = await t(interaction, 'adventure.shop.desc', {
         bot: interaction.client.user.username,
-        category: (await t(interaction, `adventure.shop.category.${category}`)),
+        category: await t(interaction, `adventure.shop.category.${category}`),
         gold: goldDisplay,
     });
 
@@ -102,7 +102,7 @@ async function generateShopComponentRows(interaction, page, totalPages, category
     );
 
     const rows = [];
-    
+
     // Category selector
     const categoryRow = new ActionRowBuilder().addComponents(
         new StringSelectMenuBuilder()
@@ -162,17 +162,15 @@ async function generateShopComponentRows(interaction, page, totalPages, category
 
 function getItemsInCategory(category, page = 1, itemsPerPage = 5) {
     // Get items from the canonical items.js data
-    const items = category === 'all' 
-        ? allItems.filter(item => item.buyable)
-        : (shopData[category] || []).filter(item => item.buyable);
-    
+    const items = category === 'all' ? allItems.filter((item) => item.buyable) : (shopData[category] || []).filter((item) => item.buyable);
+
     const startIdx = (page - 1) * itemsPerPage;
     const endIdx = startIdx + itemsPerPage;
-    
+
     return {
         items: items.slice(startIdx, endIdx),
         totalItems: items.length,
-        totalPages: Math.ceil(items.length / itemsPerPage)
+        totalPages: Math.ceil(items.length / itemsPerPage),
     };
 }
 
@@ -185,18 +183,18 @@ module.exports = {
             .setDescription('🛒 Buy items from the adventure shop!')
             .setDescriptionLocalizations({
                 id: '🛒 Beli item petualangan di toko',
-                fr: '🛒 Achète des objets d\'aventure à la boutique !',
+                fr: "🛒 Achète des objets d'aventure à la boutique !",
                 ja: '🛒 冒険アイテムをショップで買おう！',
             })
-            .addStringOption(option =>
+            .addStringOption((option) =>
                 option
                     .setName('category')
                     .setDescription('The category of items to show')
                     .addChoices(
                         { name: 'All', value: 'all' },
-                        ...Object.keys(shopData).map(cat => ({
+                        ...Object.keys(shopData).map((cat) => ({
                             name: cat.charAt(0).toUpperCase() + cat.slice(1),
-                            value: cat
+                            value: cat,
                         }))
                     )
                     .setRequired(false)
@@ -216,10 +214,10 @@ module.exports = {
 
         const category = interaction.options.getString('category') || 'equipment';
         const { items: pageItems, totalPages } = getItemsInCategory(category, 1, 5);
-        
+
         const { container } = await generateShopContainer(interaction, user, category, 1, pageItems);
         const components = await generateShopComponentRows(interaction, 1, totalPages, category, pageItems);
-        
+
         const replyMessage = await interaction.editReply({
             ...container.toJSON(),
             components,
@@ -227,7 +225,7 @@ module.exports = {
 
         const filter = (i) => i.user.id === interaction.user.id;
         const collector = replyMessage.createMessageComponentCollector({ filter, time: 300000 });
-        
+
         collector.on('collect', async (i) => {
             try {
                 if (i.isStringSelectMenu()) {
@@ -236,15 +234,15 @@ module.exports = {
                         const { items: newPageItems, totalPages: newTotalPages } = getItemsInCategory(newCategory, 1, 5);
                         const { container: newContainer } = await generateShopContainer(interaction, user, newCategory, 1, newPageItems);
                         const newComponents = await generateShopComponentRows(interaction, 1, newTotalPages, newCategory, newPageItems);
-                        
+
                         await i.update({
                             ...newContainer.toJSON(),
                             components: newComponents,
                         });
                     } else if (i.customId === 'adventure_shop_select_item') {
                         const itemId = i.values[0];
-                        const item = allItems.find(i => i.id === itemId);
-                        
+                        const item = allItems.find((i) => i.id === itemId);
+
                         if (!item) {
                             await i.reply({
                                 content: await t(interaction, 'adventure.shop.item.not.found'),
@@ -252,7 +250,7 @@ module.exports = {
                             });
                             return;
                         }
-                        
+
                         if (user.gold < item.price) {
                             await i.reply({
                                 content: await t(interaction, 'adventure.shop.not.enough.gold', { price: item.price, gold: user.gold }),
@@ -260,47 +258,73 @@ module.exports = {
                             });
                             return;
                         }
-                        
+
                         // Deduct gold and add item to inventory
                         user.gold -= item.price;
                         await user.save();
-                        
+
                         // Here you would add the item to the user's inventory
                         // await Inventory.addItem(interaction.user.id, item.id, 1);
-                        
+
                         await i.reply({
-                            content: await t(interaction, 'adventure.shop.purchase.success', { 
+                            content: await t(interaction, 'adventure.shop.purchase.success', {
                                 item: await t(interaction, item.nameKey),
-                                price: item.price 
+                                price: item.price,
                             }),
                             ephemeral: true,
                         });
-                        
+
                         // Update the shop to reflect the new gold amount
-                        const currentCategory = i.message.components[0].components[0].options.find(opt => opt.default)?.value || 'equipment';
+                        const currentCategory =
+                            i.message.components[0].components[0].options.find((opt) => opt.default)?.value || 'equipment';
                         const { items: updatedPageItems, totalPages: updatedTotalPages } = getItemsInCategory(currentCategory, 1, 5);
-                        const { container: updatedContainer } = await generateShopContainer(interaction, user, currentCategory, 1, updatedPageItems);
-                        const updatedComponents = await generateShopComponentRows(interaction, 1, updatedTotalPages, currentCategory, updatedPageItems);
-                        
+                        const { container: updatedContainer } = await generateShopContainer(
+                            interaction,
+                            user,
+                            currentCategory,
+                            1,
+                            updatedPageItems
+                        );
+                        const updatedComponents = await generateShopComponentRows(
+                            interaction,
+                            1,
+                            updatedTotalPages,
+                            currentCategory,
+                            updatedPageItems
+                        );
+
                         await i.message.edit({
                             ...updatedContainer.toJSON(),
                             components: updatedComponents,
                         });
                     }
                 } else if (i.isButton()) {
-                    const currentCategory = i.message.components[0].components[0].options.find(opt => opt.default)?.value || 'equipment';
+                    const currentCategory = i.message.components[0].components[0].options.find((opt) => opt.default)?.value || 'equipment';
                     let currentPage = 1;
-                    
+
                     if (i.customId === 'adventure_shop_page_prev') {
                         currentPage = parseInt(i.message.components[1].components[0].label) - 1 || 1;
                     } else if (i.customId === 'adventure_shop_page_next') {
-                        currentPage = parseInt(i.message.components[1].components[1]?.label || i.message.components[1].components[0].label) + 1 || 2;
+                        currentPage =
+                            parseInt(i.message.components[1].components[1]?.label || i.message.components[1].components[0].label) + 1 || 2;
                     }
-                    
+
                     const { items: newPageItems, totalPages: newTotalPages } = getItemsInCategory(currentCategory, currentPage, 5);
-                    const { container: newContainer } = await generateShopContainer(interaction, user, currentCategory, currentPage, newPageItems);
-                    const newComponents = await generateShopComponentRows(interaction, currentPage, newTotalPages, currentCategory, newPageItems);
-                    
+                    const { container: newContainer } = await generateShopContainer(
+                        interaction,
+                        user,
+                        currentCategory,
+                        currentPage,
+                        newPageItems
+                    );
+                    const newComponents = await generateShopComponentRows(
+                        interaction,
+                        currentPage,
+                        newTotalPages,
+                        currentCategory,
+                        newPageItems
+                    );
+
                     await i.update({
                         ...newContainer.toJSON(),
                         components: newComponents,
@@ -315,11 +339,11 @@ module.exports = {
                 }
             }
         });
-        
+
         collector.on('end', () => {
-            const disabledComponents = replyMessage.components.map(row => {
+            const disabledComponents = replyMessage.components.map((row) => {
                 const newRow = ActionRowBuilder.from(row);
-                newRow.components = newRow.components.map(component => {
+                newRow.components = newRow.components.map((component) => {
                     if (component instanceof ButtonBuilder) {
                         return ButtonBuilder.from(component).setDisabled(true);
                     } else if (component instanceof StringSelectMenuBuilder) {
@@ -329,7 +353,7 @@ module.exports = {
                 });
                 return newRow;
             });
-            
+
             replyMessage.edit({ components: disabledComponents }).catch(console.error);
         });
     },

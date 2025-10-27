@@ -7,8 +7,8 @@
  */
 const { EmbedBuilder } = require('discord.js');
 const UserAdventure = require('../database/models/UserAdventure');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@src/utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     subcommand: true,

@@ -8,8 +8,8 @@
 const { SlashCommandBuilder, EmbedBuilder, InteractionContextType, PermissionFlagsBits } = require('discord.js');
 const KythiaUser = require('@coreModels/KythiaUser');
 const { Op } = require('sequelize');
-const { embedFooter } = require('@utils/discord');
-const { t } = require('@utils/translator');
+const { embedFooter } = require('@coreHelpers/discord');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -116,7 +116,7 @@ module.exports = {
                     premiumExpiresAt: { [Op.gt]: now },
                 },
                 order: [['premiumExpiresAt', 'ASC']],
-                cacheTags: ['KythiaUser:premium:list']
+                cacheTags: ['KythiaUser:premium:list'],
             });
 
             if (!list.length) {

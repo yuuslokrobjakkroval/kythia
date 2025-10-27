@@ -9,8 +9,8 @@
 const { Collection, PermissionsBitField } = require('discord.js');
 const ServerSetting = require('@coreModels/ServerSetting');
 const { sendLogsWarning } = require('./system');
-const { t } = require('@utils/translator');
-const logger = require('@utils/logger');
+const { t } = require('@coreHelpers/translator');
+const logger = require('@coreHelpers/logger');
 const leetMap = require('./leetMap');
 
 const userCache = new Collection();

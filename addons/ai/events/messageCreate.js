@@ -12,12 +12,12 @@ const { kythiaInteraction } = require('@coreHelpers/events');
 const { safeCommands } = require('../helpers/commandSchema');
 const ServerSetting = require('@coreModels/ServerSetting');
 const { ChannelType } = require('discord.js');
-const { t } = require('@utils/translator');
-const logger = require('@utils/logger');
+const { t } = require('@coreHelpers/translator');
+const logger = require('@coreHelpers/logger');
 const fs = require('fs').promises;
 const path = require('path');
 const { getAndUseNextAvailableToken } = require('../helpers/gemini');
-const { isOwner } = require('@utils/discord');
+const { isOwner } = require('@coreHelpers/discord');
 
 const UserFact = require('../database/models/UserFact');
 
@@ -35,11 +35,7 @@ const conversationCache = new Map();
  */
 function filterAiResponse(responseText, userId) {
     // Owner bypass filter logic
-    if (
-        typeof userId !== "undefined" &&
-        kythia?.addons?.ai?.ownerBypassFilter &&
-        isOwner(userId)
-    ) {
+    if (typeof userId !== 'undefined' && kythia?.addons?.ai?.ownerBypassFilter && isOwner(userId)) {
         return { allowed: true };
     }
     if (/@everyone|@here/i.test(responseText)) {

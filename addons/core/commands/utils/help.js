@@ -23,7 +23,7 @@ const {
 } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 const convertColor = require('@utils/color');
 
 const EXCLUDED_ADDONS = [];
@@ -31,7 +31,7 @@ const EXCLUDED_CORE_CATEGORIES = [];
 const CATEGORIES_PER_PAGE = 25;
 
 module.exports = {
-    aliases: ["h"],
+    aliases: ['h'],
     data: new SlashCommandBuilder().setName('help').setDescription('💡 Displays a list of bot commands with complete details.'),
 
     async execute(interaction) {
@@ -103,9 +103,10 @@ module.exports = {
 
                 // Optionally: If context menu command, also count (as getCommandsData does)
                 if (command.contextMenuCommand) {
-                    const cmJSON = typeof command.contextMenuCommand.toJSON === 'function'
-                        ? command.contextMenuCommand.toJSON()
-                        : command.contextMenuCommand;
+                    const cmJSON =
+                        typeof command.contextMenuCommand.toJSON === 'function'
+                            ? command.contextMenuCommand.toJSON()
+                            : command.contextMenuCommand;
                     const contextKey = `context-${cmJSON.name}`;
                     if (!processedCommands.has(contextKey)) {
                         processedCommands.add(contextKey);

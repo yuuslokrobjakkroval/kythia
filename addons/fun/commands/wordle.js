@@ -17,7 +17,7 @@ const {
     TextInputBuilder,
     TextInputStyle,
 } = require('discord.js');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 // ... (WORD_LIST, EMOJI, dan fungsi checkGuess & renderGuessRow tetap sama persis)
 const WORD_LIST = kythia.addons.fun.wordle.words;

@@ -7,7 +7,7 @@
  */
 
 const Embed = require('@coreModels/Embed');
-const { t } = require('@utils/translator');
+const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     execute: async (interaction) => {
