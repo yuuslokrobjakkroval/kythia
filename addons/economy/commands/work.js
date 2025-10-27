@@ -6,7 +6,7 @@
  * @version 0.9.10-beta
  */
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const BankManager = require('../helpers/bankManager');
+const banks = require('../helpers/banks');
 const KythiaUser = require('@coreModels/KythiaUser');
 const Inventory = require('@coreModels/Inventory');
 const { embedFooter } = require('@coreHelpers/discord');
@@ -93,7 +93,7 @@ module.exports = {
         const baseEarning = Math.floor(Math.random() * (job.basePay[1] - job.basePay[0] + 1)) + job.basePay[0];
         const careerBonus = Math.floor(baseEarning * (user.careerLevel || 0) * 0.05);
 
-        const userBank = BankManager.getBank(user.bankType);
+        const userBank = banks.getBank(user.bankType);
         const incomeBonusPercent = userBank.incomeBonusPercent;
         const bankBonus = Math.floor(baseEarning * (incomeBonusPercent / 100));
 

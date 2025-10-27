@@ -6,7 +6,7 @@
  * @version 0.9.10-beta
  */
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const BankManager = require('@addons/economy/helpers/bankManager');
+const banks = require('@addons/economy/helpers/banks');
 const { embedFooter } = require('@coreHelpers/discord');
 const KythiaUser = require('@coreModels/KythiaUser');
 const { t } = require('@coreHelpers/translator');
@@ -23,7 +23,7 @@ module.exports = {
                     .setDescription('Each bank offers unique benefits for your playstyle!')
                     .setRequired(true)
                     .addChoices(
-                        ...BankManager.getAllBanks().map((bank) => ({
+                        ...banks.getAllBanks().map((bank) => ({
                             name: `${bank.emoji} ${bank.name}`,
                             value: bank.id,
                         }))
@@ -34,7 +34,7 @@ module.exports = {
         try {
             const bankType = interaction.options.getString('bank');
             const userId = interaction.user.id;
-            const userBank = BankManager.getBank(bankType);
+            const userBank = banks.getBank(bankType);
             const bankDisplay = `${userBank.emoji} ${userBank.name}`;
 
             // Check if user has an account

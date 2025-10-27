@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/adventure/helpers/charManager.js
+ * @namespace: addons/adventure/helpers/characters.js
  * @type: Helper Script
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
@@ -68,14 +68,11 @@ const CHARACTERS = {
     },
 };
 
-class CharManager {
-    static getChar(charId) {
+module.exports = {
+    getChar(charId) {
         return CHARACTERS[charId] || CHARACTERS['aurora_monk'];
-    }
-
-    static getAllCharacters() {
+    },
+    getAllCharacters() {
         return Object.values(CHARACTERS);
-    }
-}
-
-module.exports = CharManager;
+    },
+};

@@ -9,7 +9,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const KythiaUser = require('@coreModels/KythiaUser');
 const { embedFooter } = require('@coreHelpers/discord');
 const { t } = require('@coreHelpers/translator');
-const BankManager = require('../../helpers/bankManager');
+const banks = require('../../helpers/banks');
 module.exports = {
     subcommand: true,
     data: (subcommand) =>
@@ -22,7 +22,7 @@ module.exports = {
                     .setDescription('Each bank offers unique benefits for your playstyle!')
                     .setRequired(true)
                     .addChoices(
-                        ...BankManager.getAllBanks().map((bank) => ({
+                        ...banks.getAllBanks().map((bank) => ({
                             name: `${bank.emoji} ${bank.name}`,
                             value: bank.id,
                         }))
@@ -32,7 +32,7 @@ module.exports = {
         await interaction.deferReply();
         const bankType = interaction.options.getString('bank');
         const userId = interaction.user.id;
-        const userBank = BankManager.getBank(bankType);
+        const userBank = banks.getBank(bankType);
         const bankDisplay = `${userBank.emoji} ${userBank.name}`;
         const existingUser = await KythiaUser.getCache({ userId: userId });
         if (existingUser) {

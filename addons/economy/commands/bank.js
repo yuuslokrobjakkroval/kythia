@@ -5,11 +5,11 @@
  * @assistant chaa & graa
  * @version 0.9.10-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { embedFooter } = require('@coreHelpers/discord');
 const KythiaUser = require('@coreModels/KythiaUser');
 const { t } = require('@coreHelpers/translator');
-const BankManager = require('../helpers/bankManager');
+const banks = require('../helpers/banks');
 
 module.exports = {
     subcommand: true,
@@ -28,7 +28,7 @@ module.exports = {
         }
 
         const userBankType = user.bankType || 'solara_mutual';
-        const bank = BankManager.getBank(userBankType);
+        const bank = banks.getBank(userBankType);
 
         const stats = [
             {
@@ -64,7 +64,7 @@ module.exports = {
             },
         ];
 
-        const defaultBank = BankManager.getBank('solara_mutual');
+        const defaultBank = banks.getBank('solara_mutual');
 
         const pros = [];
         const cons = [];

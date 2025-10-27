@@ -6,17 +6,19 @@
  * @version 0.9.10-beta
  */
 
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
-const UserAdventure = require('../database/models/UserAdventure');
-const InventoryAdventure = require('../database/models/InventoryAdventure');
+const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
 const { getItem } = require('../helpers/items');
-const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     subcommand: true,
     data: (subcommand) => subcommand.setName('use').setDescription('Use an item from your inventory'),
 
-    async execute(interaction) {
+    async execute(interaction, container) {
+        // Dependency
+        const t = container.t;
+        const { UserAdventure, InventoryAdventure } = container.sequelize.models;
+        const embedFooter = container.helpers.discord.embedFooter;
+
         const user = await UserAdventure.getCache({ userId: interaction.user.id });
 
         if (!user) {

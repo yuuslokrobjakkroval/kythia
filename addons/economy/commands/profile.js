@@ -9,7 +9,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const KythiaUser = require('@coreModels/KythiaUser');
 const { embedFooter } = require('@coreHelpers/discord');
 const { t } = require('@coreHelpers/translator');
-const BankManager = require('../helpers/bankManager');
+const banks = require('../helpers/banks');
 
 module.exports = {
     subcommand: true,
@@ -40,7 +40,7 @@ module.exports = {
         let bank = userData.kythiaBank || 0;
         let coin = userData.kythiaCoin || 0;
         let bankType = userData.bankType ? userData.bankType.toUpperCase() : '-';
-        let userBank = BankManager.getBank(bankType);
+        let userBank = banks.getBank(bankType);
         const bankDisplay = `(${userBank.emoji} ${userBank.name})`;
         // Build embed using t for all text
         const embed = new EmbedBuilder()

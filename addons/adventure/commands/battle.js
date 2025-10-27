@@ -5,13 +5,9 @@
  * @assistant chaa & graa
  * @version 0.9.10-beta
  */
-const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, PermissionFlagsBits } = require('discord.js');
-const UserAdventure = require('../database/models/UserAdventure');
-const InventoryAdventure = require('../database/models/InventoryAdventure');
-const CharManager = require('../helpers/charManager');
+const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const { getRandomMonster } = require('../helpers/monster');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
+const characters = require('../helpers/characters');
 
 module.exports = {
     subcommand: true,
@@ -25,8 +21,13 @@ module.exports = {
                 fr: '⚔️ Combats un monstre dans le donjon !',
                 ja: '⚔️ ダンジョンでモンスターと戦おう！',
             }),
-    // permissions: PermissionFlagsBits.ManageGuild,
     async execute(interaction, container) {
+        // Dependency
+        const t = container.t;
+        const { UserAdventure, InventoryAdventure } = container.sequelize.models;
+        const embedFooter = container.helpers.discord.embedFooter;
+        const kythiaConfig = container.kythiaConfig;
+
         await interaction.deferReply();
         const user = await UserAdventure.getCache({ userId: interaction.user.id });
         const userId = interaction.user.id;
@@ -38,14 +39,12 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        // Progress bar generator
         const generateHpBar = (currentHp, maxHp, barLength = 20) => {
             const hpPercent = Math.max(0, Math.min(1, currentHp / maxHp));
             const filledLength = Math.round(barLength * hpPercent);
             return `[${'█'.repeat(filledLength)}${'░'.repeat(barLength - filledLength)}] ${currentHp} HP`;
         };
 
-        // Function to handle a single round of battle and return the result
         const handleBattleRound = async (interaction, user, items) => {
             const sword = items.find((item) => item?.itemName === '⚔️ Sword');
             const shield = items.find((item) => item?.itemName === '🛡️ Shield');
@@ -55,8 +54,7 @@ module.exports = {
             let userStrength = user.strength + (sword ? 10 : 0);
             let userDefense = user.defense + (shield ? 10 : 0) + (armor ? 15 : 0);
 
-            // Apply character passive bonuses per turn (xp/gold modifiers on outcomes below)
-            const char = user.characterId ? CharManager.getChar(user.characterId) : null;
+            const char = user.characterId ? characters.getChar(user.characterId) : null;
 
             const playerDamage = Math.max(1, userStrength + Math.floor(Math.random() * 4));
             let monsterRaw = user.monsterStrength - userDefense;
@@ -70,7 +68,6 @@ module.exports = {
 
             const embed = new EmbedBuilder().setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }));
 
-            // Buttons for battle actions
             const battleButtons = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setCustomId('adventure_continue')
@@ -83,7 +80,6 @@ module.exports = {
                     .setEmoji('🔮')
             );
 
-            // Check if player has any usable items
             const usableItems = await InventoryAdventure.findAll({
                 where: {
                     userId: interaction.user.id,
@@ -92,12 +88,10 @@ module.exports = {
                 raw: true,
             });
 
-            // Disable Use Item button if no usable items
             if (usableItems.length === 0) {
                 battleButtons.components[1].setDisabled(true);
             }
 
-            // Continue Button (defined here so available for returns)
             const continueButton = new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
                     .setCustomId('adventure_continue')
@@ -105,7 +99,6 @@ module.exports = {
                     .setStyle(ButtonStyle.Primary)
             );
 
-            // Kalau user kalah
             if (user.hp <= 0) {
                 if (revival) {
                     user.hp = user.maxHp;
@@ -120,7 +113,7 @@ module.exports = {
                                         hp: user.hp,
                                     })
                                 )
-                                .setColor(kythia.bot.color)
+                                .setColor(kythiaConfig.bot.color)
                                 .setFooter(await embedFooter(interaction)),
                         ],
                         components: [continueButton],
@@ -128,7 +121,6 @@ module.exports = {
                     };
                 }
 
-                // Kalah tanpa revival: reset HP, hapus monster
                 user.hp = user.maxHp;
                 user.monsterName = null;
                 user.monsterHp = 0;
@@ -152,7 +144,6 @@ module.exports = {
                 };
             }
 
-            // Kalau monster mati
             if (user.monsterHp <= 0) {
                 let goldEarned = user.monsterGoldDrop;
                 let xpEarned = user.monsterXpDrop;
@@ -165,27 +156,23 @@ module.exports = {
                 user.xp += xpEarned;
                 user.gold += goldEarned;
 
-                // Reset monster
                 user.monsterName = null;
                 user.monsterHp = 0;
                 user.monsterStrength = 0;
                 user.monsterGoldDrop = 0;
                 user.monsterXpDrop = 0;
 
-                // XP required for next level (sederhanakan, misal: 100 * level)
                 const XP_REQUIRED = 100 * user.level;
                 let levelUp = false;
-                // For tracking previous maxHp to report/display etc if needed
+
                 while (user.xp >= XP_REQUIRED) {
                     user.xp -= XP_REQUIRED;
                     user.level++;
                     user.strength += 5;
                     user.defense += 3;
 
-                    // Before leveling up, increase maxHp by 10%
                     user.maxHp = Math.ceil(user.maxHp * 1.1);
 
-                    // Set new current HP to new max
                     user.hp = user.maxHp;
                     levelUp = true;
                 }
@@ -203,7 +190,7 @@ module.exports = {
                                         maxHp: user.maxHp,
                                     })
                                 )
-                                .setColor(kythia.bot.color)
+                                .setColor(kythiaConfig.bot.color)
                                 .setFooter(await embedFooter(interaction)),
                         ],
                         components: [continueButton],
@@ -221,7 +208,7 @@ module.exports = {
                                     xp: xpEarned,
                                 })
                             )
-                            .setColor(kythia.bot.color)
+                            .setColor(kythiaConfig.bot.color)
                             .setFooter(await embedFooter(interaction)),
                     ],
                     components: [continueButton],
@@ -229,7 +216,6 @@ module.exports = {
                 };
             }
 
-            // Battle masih lanjut
             return {
                 embeds: [
                     embed
@@ -241,7 +227,7 @@ module.exports = {
                                 monsterDamage,
                             })
                         )
-                        .setColor(kythia.bot.color)
+                        .setColor(kythiaConfig.bot.color)
                         .addFields(
                             {
                                 name: await t(interaction, 'adventure.battle.hp.you'),
@@ -261,7 +247,6 @@ module.exports = {
             };
         };
 
-        // Jika monster belum ada, buat monster baru
         if (!user.monsterName) {
             const monster = getRandomMonster(user.level);
             user.monsterName = monster.name;
@@ -279,36 +264,33 @@ module.exports = {
             { userId: userId, itemName: '🍶 Revival' },
         ]);
 
-        // First round
         const result = await handleBattleRound(interaction, user, items);
 
-        // Send the initial reply and set up the collector
         const reply = await interaction.editReply({
             embeds: result.embeds,
             components: result.components,
             fetchReply: true,
         });
 
-        // If the battle ended (user lost or monster died), don't set up a collector
         if (result.end) return;
 
-        // Set up a collector for the continue button
         const filter = (i) => i.customId === 'adventure_continue' && i.user.id === interaction.user.id;
         const collector = reply.createMessageComponentCollector({ filter, time: 60_000 });
 
         collector.on('collect', async (i) => {
             await i.deferUpdate();
 
-            // Re-fetch user and items for up-to-date stats
-            const freshUser = await UserAdventure.getCache({ userId });
-            const freshItems = await InventoryAdventure.getCache([
-                { userId: userId, itemName: '⚔️ Sword' },
-                { userId: userId, itemName: '🛡️ Shield' },
-                { userId: userId, itemName: '🥋 Armor' },
-                { userId: userId, itemName: '🍶 Revival' },
-            ]);
+            const nextResult = await handleBattleRound(i, user, items);
 
-            const nextResult = await handleBattleRound(i, freshUser, freshItems);
+            if (
+                nextResult.embeds[0].description &&
+                nextResult.embeds[0].description.includes(await t(interaction, 'adventure.battle.revive'))
+            ) {
+                const revivalIndex = items.findIndex((item) => item?.itemName === '🍶 Revival');
+                if (revivalIndex > -1) {
+                    items.splice(revivalIndex, 1);
+                }
+            }
 
             await interaction.editReply({
                 embeds: nextResult.embeds,
@@ -320,7 +302,6 @@ module.exports = {
 
         collector.on('end', async (_, reason) => {
             if (reason !== 'battle_end') {
-                // Disable the button if time runs out
                 const disabledRow = new ActionRowBuilder().addComponents(
                     new ButtonBuilder()
                         .setCustomId('adventure_continue')

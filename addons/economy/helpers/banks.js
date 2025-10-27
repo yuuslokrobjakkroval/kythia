@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/economy/helpers/bankManager.js
+ * @namespace: addons/economy/helpers/banks.js
  * @type: Helper Script
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
@@ -83,13 +83,11 @@ const BANKS = {
     },
 };
 
-class BankManager {
-    static getBank(bankId) {
+module.exports = {
+    getBank(bankId) {
         return BANKS[bankId] || BANKS['solara_mutual'];
-    }
-    static getAllBanks() {
+    },
+    getAllBanks() {
         return Object.values(BANKS);
-    }
-}
-
-module.exports = BankManager;
+    },
+};

@@ -87,11 +87,8 @@ function getItem(itemName) {
     const categories = ['equipment', 'consumables'];
     for (const cat of categories) {
         for (const item of items[cat]) {
-            // Try to match with both [emoji + space + localized name] and simple localized name
-            // For now, match on emoji for inventory since that's stored
             const localizedName = item.emoji + ' ' + getLocalizedItemName(item);
             if (itemName === localizedName || itemName === getLocalizedItemName(item)) {
-                // Enhance with resolved description
                 return {
                     ...item,
                     name: localizedName,
@@ -108,10 +105,7 @@ function getItem(itemName) {
  * Replace this with translation lookup as needed.
  */
 function getLocalizedItemName(item) {
-    // This is a stub. If using i18n, replace with translation util.
-    // For now just use id/title case as fallback
     if (item.nameKey) {
-        // Assume no i18n, fallback to id
         return item.emoji + ' ' + item.id.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
     }
     return item.emoji + ' ' + item.id;
@@ -122,7 +116,6 @@ function getLocalizedItemName(item) {
  * Replace this with translation lookup as needed.
  */
 function getLocalizedItemDesc(item) {
-    // This is a stub. If using i18n, replace with translation util.
     if (item.descKey) {
         return 'No description.';
     }

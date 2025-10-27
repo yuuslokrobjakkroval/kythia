@@ -11,7 +11,7 @@ const KythiaUser = require('@coreModels/KythiaUser');
 const Inventory = require('@coreModels/Inventory');
 const { checkCooldown } = require('@utils/time');
 const { t } = require('@coreHelpers/translator');
-const BankManager = require('../helpers/bankManager');
+const banks = require('../helpers/banks');
 
 module.exports = {
     subcommand: true,
@@ -70,7 +70,7 @@ module.exports = {
             poison = await Inventory.getCache({ userId: target.userId, itemName: '🧪 Poison' });
         }
 
-        const userBank = BankManager.getBank(user.bankType);
+        const userBank = banks.getBank(user.bankType);
         let success = false;
         if (guard) {
             success = false;

@@ -17,13 +17,12 @@ const {
     SeparatorBuilder,
     SeparatorSpacingSize,
     EmbedBuilder,
+    MessageFlags,
 } = require('discord.js');
-const UserAdventure = require('../database/models/UserAdventure');
-const { embedFooter } = require('@coreHelpers/discord');
-const itemsDataFile = require('../helpers/items'); // This brings the full items.js object & methods
-const { t } = require('@coreHelpers/translator');
 
-// Use items from @items.js for shop data
+const itemsDataFile = require('../helpers/items');
+const convertColor = require('../../../src/utils/color');
+
 const shopData = itemsDataFile.items;
 const allItems = Object.values(shopData).flat();
 
@@ -32,6 +31,10 @@ function safeLocaleString(value, fallback = '0') {
 }
 
 async function generateShopContainer(interaction, user, category, page, pageItems, componentsBelow = []) {
+    const container = interaction.client.container;
+    const t = container.t;
+    const kythiaConfig = container.kythiaConfig;
+
     let goldDisplay = '0';
     if (user && typeof user.gold !== 'undefined' && user.gold !== null) {
         goldDisplay = safeLocaleString(user.gold, '0');
@@ -70,8 +73,8 @@ async function generateShopContainer(interaction, user, category, page, pageItem
 
     const footerText = await t(interaction, 'adventure.shop.footer', { page, totalPages });
 
-    const container = new ContainerBuilder()
-        .setAccentColor(kythia.bot?.color ? parseInt(kythia.bot.color.replace('#', ''), 16) : undefined)
+    const shopContainer = new ContainerBuilder()
+        .setAccentColor(convertColor(kythiaConfig.bot.color, { from: 'hex', to: 'decimal' }))
         .addTextDisplayComponents(new TextDisplayBuilder().setContent(headerText))
         .addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true))
         .addTextDisplayComponents(...itemBlocks)
@@ -79,13 +82,13 @@ async function generateShopContainer(interaction, user, category, page, pageItem
         .addTextDisplayComponents(new TextDisplayBuilder().setContent(footerText || ''));
 
     if (componentsBelow && componentsBelow.length) {
-        container
+        shopContainer
             .addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true))
             .addActionRowComponents(...componentsBelow);
     }
 
     return {
-        container,
+        shopContainer,
         pageItems,
         page,
         totalPages,
@@ -93,6 +96,8 @@ async function generateShopContainer(interaction, user, category, page, pageItem
 }
 
 async function generateShopComponentRows(interaction, page, totalPages, category, pageItems) {
+    const t = interaction.client.container.t;
+
     const categoryOptions = await Promise.all(
         Object.keys(shopData).map(async (cat) => ({
             label: await t(interaction, `adventure.shop.category.${cat}`),
@@ -103,7 +108,6 @@ async function generateShopComponentRows(interaction, page, totalPages, category
 
     const rows = [];
 
-    // Category selector
     const categoryRow = new ActionRowBuilder().addComponents(
         new StringSelectMenuBuilder()
             .setCustomId('adventure_shop_category')
@@ -112,7 +116,6 @@ async function generateShopComponentRows(interaction, page, totalPages, category
     );
     rows.push(categoryRow);
 
-    // Navigation buttons
     const navButtons = [];
     if (page > 1) {
         navButtons.push(
@@ -136,7 +139,6 @@ async function generateShopComponentRows(interaction, page, totalPages, category
         rows.push(new ActionRowBuilder().addComponents(navButtons));
     }
 
-    // Item selection
     if (pageItems.length > 0) {
         const itemOptions = await Promise.all(
             pageItems.map(async (item) => ({
@@ -161,7 +163,6 @@ async function generateShopComponentRows(interaction, page, totalPages, category
 }
 
 function getItemsInCategory(category, page = 1, itemsPerPage = 5) {
-    // Get items from the canonical items.js data
     const items = category === 'all' ? allItems.filter((item) => item.buyable) : (shopData[category] || []).filter((item) => item.buyable);
 
     const startIdx = (page - 1) * itemsPerPage;
@@ -200,7 +201,12 @@ module.exports = {
                     .setRequired(false)
             ),
 
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const t = container.t;
+        const { UserAdventure } = container.sequelize.models;
+        const embedFooter = container.helpers.discord.embedFooter;
+        const kythiaConfig = container.kythiaConfig;
+
         await interaction.deferReply();
         const user = await UserAdventure.getCache({ userId: interaction.user.id });
 
@@ -213,60 +219,63 @@ module.exports = {
         }
 
         const category = interaction.options.getString('category') || 'equipment';
-        const { items: pageItems, totalPages } = getItemsInCategory(category, 1, 5);
+        let currentPage = 1;
+        const { items: pageItems, totalPages } = getItemsInCategory(category, currentPage, 5);
 
-        const { container } = await generateShopContainer(interaction, user, category, 1, pageItems);
-        const components = await generateShopComponentRows(interaction, 1, totalPages, category, pageItems);
+        // --- PERBAIKAN UTAMA DI SINI ---
+        const components = await generateShopComponentRows(interaction, currentPage, totalPages, category, pageItems);
+        const { shopContainer } = await generateShopContainer(interaction, user, category, currentPage, pageItems, components);
 
         const replyMessage = await interaction.editReply({
-            ...container.toJSON(),
-            components,
+            components: [shopContainer],
+            flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
+            fetchReply: true,
         });
+        // --- SELESAI PERBAIKAN AWAL ---
 
         const filter = (i) => i.user.id === interaction.user.id;
         const collector = replyMessage.createMessageComponentCollector({ filter, time: 300000 });
 
         collector.on('collect', async (i) => {
             try {
+                await i.deferUpdate();
+
+                let currentCategory = category;
+                let userForUpdate = await UserAdventure.getCache({ userId: interaction.user.id });
+
                 if (i.isStringSelectMenu()) {
                     if (i.customId === 'adventure_shop_category') {
-                        const newCategory = i.values[0].replace('shop_category_', '');
-                        const { items: newPageItems, totalPages: newTotalPages } = getItemsInCategory(newCategory, 1, 5);
-                        const { container: newContainer } = await generateShopContainer(interaction, user, newCategory, 1, newPageItems);
-                        const newComponents = await generateShopComponentRows(interaction, 1, newTotalPages, newCategory, newPageItems);
-
-                        await i.update({
-                            ...newContainer.toJSON(),
-                            components: newComponents,
-                        });
+                        currentCategory = i.values[0].replace('shop_category_', '');
+                        currentPage = 1;
                     } else if (i.customId === 'adventure_shop_select_item') {
                         const itemId = i.values[0];
-                        const item = allItems.find((i) => i.id === itemId);
+                        const item = allItems.find((it) => it.id === itemId);
 
                         if (!item) {
-                            await i.reply({
+                            return i.followUp({
                                 content: await t(interaction, 'adventure.shop.item.not.found'),
                                 ephemeral: true,
                             });
-                            return;
                         }
 
-                        if (user.gold < item.price) {
-                            await i.reply({
-                                content: await t(interaction, 'adventure.shop.not.enough.gold', { price: item.price, gold: user.gold }),
+                        if (userForUpdate.gold < item.price) {
+                            return i.followUp({
+                                content: await t(interaction, 'adventure.shop.not.enough.gold', {
+                                    price: item.price,
+                                    gold: userForUpdate.gold,
+                                    item: await t(interaction, item.nameKey),
+                                }),
                                 ephemeral: true,
                             });
-                            return;
                         }
 
-                        // Deduct gold and add item to inventory
-                        user.gold -= item.price;
-                        await user.save();
+                        userForUpdate.gold -= item.price;
 
-                        // Here you would add the item to the user's inventory
-                        // await Inventory.addItem(interaction.user.id, item.id, 1);
+                        // Tidak perlu manual save, Inventory.create() (jika pakai hooks) bisa update
+                        const InventoryAdventure = container.sequelize.models.InventoryAdventure;
+                        await InventoryAdventure.create({ userId: userForUpdate.userId, itemName: item.nameKey });
 
-                        await i.reply({
+                        await i.followUp({
                             content: await t(interaction, 'adventure.shop.purchase.success', {
                                 item: await t(interaction, item.nameKey),
                                 price: item.price,
@@ -274,68 +283,50 @@ module.exports = {
                             ephemeral: true,
                         });
 
-                        // Update the shop to reflect the new gold amount
-                        const currentCategory =
-                            i.message.components[0].components[0].options.find((opt) => opt.default)?.value || 'equipment';
-                        const { items: updatedPageItems, totalPages: updatedTotalPages } = getItemsInCategory(currentCategory, 1, 5);
-                        const { container: updatedContainer } = await generateShopContainer(
-                            interaction,
-                            user,
-                            currentCategory,
-                            1,
-                            updatedPageItems
-                        );
-                        const updatedComponents = await generateShopComponentRows(
-                            interaction,
-                            1,
-                            updatedTotalPages,
-                            currentCategory,
-                            updatedPageItems
-                        );
-
-                        await i.message.edit({
-                            ...updatedContainer.toJSON(),
-                            components: updatedComponents,
-                        });
+                        userForUpdate = await UserAdventure.getCache({ userId: interaction.user.id });
+                        currentPage = 1;
                     }
                 } else if (i.isButton()) {
-                    const currentCategory = i.message.components[0].components[0].options.find((opt) => opt.default)?.value || 'equipment';
-                    let currentPage = 1;
-
+                    // Perbaiki: Gunakan state saat ini!
                     if (i.customId === 'adventure_shop_page_prev') {
-                        currentPage = parseInt(i.message.components[1].components[0].label) - 1 || 1;
+                        currentPage = Math.max(1, currentPage - 1);
                     } else if (i.customId === 'adventure_shop_page_next') {
-                        currentPage =
-                            parseInt(i.message.components[1].components[1]?.label || i.message.components[1].components[0].label) + 1 || 2;
+                        currentPage = currentPage + 1;
                     }
-
-                    const { items: newPageItems, totalPages: newTotalPages } = getItemsInCategory(currentCategory, currentPage, 5);
-                    const { container: newContainer } = await generateShopContainer(
-                        interaction,
-                        user,
-                        currentCategory,
-                        currentPage,
-                        newPageItems
-                    );
-                    const newComponents = await generateShopComponentRows(
-                        interaction,
-                        currentPage,
-                        newTotalPages,
-                        currentCategory,
-                        newPageItems
-                    );
-
-                    await i.update({
-                        ...newContainer.toJSON(),
-                        components: newComponents,
-                    });
+                    // currentCategory tetap dari scope unless user ganti kategori via select menu
                 }
+
+                // --- BAGIAN UPDATE TAMPILAN ---
+                const { items: newPageItems, totalPages: newTotalPages } = getItemsInCategory(currentCategory, currentPage, 5);
+                currentPage = Math.max(1, Math.min(currentPage, newTotalPages));
+
+                const newComponents = await generateShopComponentRows(
+                    interaction,
+                    currentPage,
+                    newTotalPages,
+                    currentCategory,
+                    newPageItems
+                );
+                const { shopContainer: newContainer } = await generateShopContainer(
+                    interaction,
+                    userForUpdate,
+                    currentCategory,
+                    currentPage,
+                    newPageItems,
+                    newComponents
+                );
+
+                await i.editReply({
+                    components: [newContainer],
+                    flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
+                });
+                // --- END UPDATE ---
             } catch (error) {
                 console.error('Error in shop interaction:', error);
-                if (!i.replied && !i.deferred) {
-                    await i.reply({ content: await t(interaction, 'common.error.generic'), ephemeral: true });
-                } else {
+                try {
                     await i.followUp({ content: await t(interaction, 'common.error.generic'), ephemeral: true });
+                } catch (e) {
+                    console.error('Failed to send error followUp:', e);
                 }
             }
         });

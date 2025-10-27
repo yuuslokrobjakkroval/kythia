@@ -11,7 +11,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const KythiaUser = require('@coreModels/KythiaUser');
 const ServerSetting = require('@coreModels/ServerSetting');
 const { t } = require('@coreHelpers/translator');
-const BankManager = require('../helpers/bankManager');
+const banks = require('../helpers/banks');
 
 module.exports = {
     subcommand: true,
@@ -45,7 +45,7 @@ module.exports = {
         const maxHourly = avgHourly * 1.1;
         const baseReward = Math.floor(Math.random() * (maxHourly - minHourly + 1)) + Math.floor(minHourly);
 
-        const userBank = BankManager.getBank(user.bankType);
+        const userBank = banks.getBank(user.bankType);
         const incomeBonusPercent = userBank.incomeBonusPercent;
         const bankBonus = Math.floor(baseReward * (incomeBonusPercent / 100));
         const randomReward = baseReward + bankBonus;

@@ -6,9 +6,6 @@
  * @version 0.9.10-beta
  */
 const { EmbedBuilder } = require('discord.js');
-const UserAdventure = require('../database/models/UserAdventure');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     subcommand: true,
@@ -18,7 +15,13 @@ module.exports = {
             .setNameLocalizations({ id: 'kembali', fr: 'retour', ja: 'リコール' })
             .setDescription('🏙️ Get back to the city!')
             .setDescriptionLocalizations({ id: '🏙️ kembali ke kota', fr: '🏙️ Retourne en ville !', ja: '🏙️ 街へ戻ろう！' }),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        // Dependency
+        const t = container.t;
+        const { UserAdventure } = container.sequelize.models;
+        const embedFooter = container.helpers.discord.embedFooter;
+        const kythiaConfig = container.kythiaConfig;
+
         await interaction.deferReply();
         const user = await UserAdventure.getCache({ userId: interaction.user.id });
 
@@ -36,7 +39,7 @@ module.exports = {
         await user.saveAndUpdateCache();
         const embed = new EmbedBuilder()
             .setDescription(await t(interaction, 'adventure.recall.recalled'))
-            .setColor(kythia.bot.color)
+            .setColor(kythiaConfig.bot.color)
             .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
             .setFooter(await embedFooter(interaction));
         return interaction.editReply({ embeds: [embed] });

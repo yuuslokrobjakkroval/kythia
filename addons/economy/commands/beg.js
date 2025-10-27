@@ -10,7 +10,7 @@ const { embedFooter } = require('@coreHelpers/discord');
 const { checkCooldown } = require('@utils/time');
 const KythiaUser = require('@coreModels/KythiaUser');
 const { t } = require('@coreHelpers/translator');
-const BankManager = require('../helpers/bankManager');
+const banks = require('../helpers/banks');
 
 module.exports = {
     subcommand: true,
@@ -40,7 +40,7 @@ module.exports = {
 
         const baseCoin = Math.floor(Math.random() * 21) + 5;
 
-        const userBank = BankManager.getBank(user.bankType);
+        const userBank = banks.getBank(user.bankType);
         const incomeBonusPercent = userBank.incomeBonusPercent;
         const bankBonus = Math.floor(baseCoin * (incomeBonusPercent / 100));
         const randomCoin = baseCoin + bankBonus;

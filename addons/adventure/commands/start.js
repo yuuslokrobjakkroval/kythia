@@ -6,15 +6,12 @@
  * @version 0.9.10-beta
  */
 const { EmbedBuilder } = require('discord.js');
-const UserAdventure = require('../database/models/UserAdventure');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
-const CharManager = require('../helpers/charManager');
+const characters = require('../helpers/characters');
 
 module.exports = {
     subcommand: true,
     data: (subcommand) => {
-        const chars = CharManager.getAllCharacters();
+        const chars = characters.getAllCharacters();
         return subcommand
             .setName('start')
             .setNameLocalizations({ id: 'mulai', fr: 'demarrer', ja: 'スタート' })
@@ -38,6 +35,11 @@ module.exports = {
             );
     },
     async execute(interaction) {
+        // Dependency
+        const t = container.t;
+        const { UserAdventure } = container.sequelize.models;
+        const embedFooter = container.helpers.discord.embedFooter;
+
         await interaction.deferReply();
 
         const existing = await UserAdventure.getCache({ userId: interaction.user.id });
@@ -52,13 +54,12 @@ module.exports = {
         }
 
         const charId = interaction.options.getString('character');
-        const selected = CharManager.getChar(charId);
+        const selected = characters.getChar(charId);
         if (!selected) {
             const embed = new EmbedBuilder().setColor('Red').setDescription('Invalid character selection. Please try again.');
             return interaction.editReply({ embeds: [embed] });
         }
 
-        // Base stats
         let level = 1;
         let xp = 0;
         let baseHp = 100;
@@ -66,7 +67,6 @@ module.exports = {
         let strength = 10;
         let defense = 5;
 
-        // Apply character bonuses
         strength += selected.strengthBonus;
         defense += selected.defenseBonus;
         baseHp = Math.floor(baseHp * (1 + (selected.hpBonusPercent || 0) / 100));
@@ -83,7 +83,6 @@ module.exports = {
             characterId: selected.id,
         });
 
-        // Compose char bonus info for display
         const charStatsString = await t(interaction, 'adventure.start.choose.char.stats', {
             str: `${strength - selected.strengthBonus} (${selected.strengthBonus >= 0 ? '+' : ''}${selected.strengthBonus})`,
             def: `${defense - selected.defenseBonus} (${selected.defenseBonus >= 0 ? '+' : ''}${selected.defenseBonus})`,

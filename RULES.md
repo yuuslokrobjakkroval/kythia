@@ -43,7 +43,7 @@ This directory is for helper functions that are **only** used by that *one* spec
     * **MUST NOT** be required or imported by any *other* addon.
     * If another addon needs a function from here, that function **MUST** be promoted to `addons/core/helpers`.
     * **CAN** `require` or `import` its *own* models (e.g., `addons/economy/helpers` can use `addons/economy/database/models`).
-* **Examples:** `adventure/helpers/charManager.js`, `economy/helpers/bankManager.js`, `music/helpers/musicManager.js`.
+* **Examples:** `adventure/helpers/charManager.js`, `economy/helpers/banks.js`, `music/helpers/musicManager.js`.
 * **Requirement:** *Should* use a barrel file (`index.js` or `index.ts`) if the folder contains more than 2-3 files.
 
 ---

@@ -64,7 +64,7 @@ require('module-alias/register'); // Enables @src, @utils, etc. path aliases
 // ===== 2. Load Core Helpers & Utilities with Meaningful Descriptions =====
 const logger = require('@coreHelpers/logger'); // Logging system (console and ext. sinks)
 const translator = require('@coreHelpers/translator'); // I18n (Internationalization) manager
-const { isTeam, isOwner } = require('@coreHelpers/discord'); // Discord helper funcs for permissions/identity
+const { isTeam, isOwner, embedFooter } = require('@coreHelpers/discord'); // Discord helper funcs for permissions/identity
 
 // ===== 3. Load Database Models: Sequelize Models =====
 const ServerSetting = require('@coreModels/ServerSetting'); // Guild/server config model
@@ -106,7 +106,7 @@ const dependencies = {
     sequelize: sequelize,
     models: { ServerSetting, KythiaVoter },
     helpers: {
-        discord: { isTeam, isOwner },
+        discord: { isTeam, isOwner, embedFooter },
     },
 };
 

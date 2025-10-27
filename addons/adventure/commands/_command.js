@@ -5,7 +5,7 @@
  * @assistant chaa & graa
  * @version 0.9.10-beta
  */
-const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
     guildOnly: false,

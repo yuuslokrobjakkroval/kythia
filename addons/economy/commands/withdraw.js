@@ -9,7 +9,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const KythiaUser = require('@coreModels/KythiaUser');
 const { embedFooter } = require('@coreHelpers/discord');
 const { t } = require('@coreHelpers/translator');
-const BankManager = require('../helpers/bankManager');
+const banks = require('../helpers/banks');
 
 module.exports = {
     subcommand: true,
@@ -34,7 +34,7 @@ module.exports = {
                 return interaction.editReply({ embeds: [embed] });
             }
 
-            const userBank = BankManager.getBank(user.bankType);
+            const userBank = banks.getBank(user.bankType);
             const withdrawFeePercent = userBank.withdrawFeePercent;
             const fee = Math.floor(amount * (withdrawFeePercent / 100));
             const totalRequired = amount + fee;

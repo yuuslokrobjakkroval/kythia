@@ -92,7 +92,7 @@ async function generateShopContainer(interaction, user, category, page, pageItem
 async function generateShopComponentRows(interaction, page, totalPages, category, pageItems) {
     const categoryOptions = await Promise.all(
         Object.keys(shopData).map(async (cat) => ({
-            label: await t(interaction, `economy_shop_category_${cat}`),
+            label: await t(interaction, `economy.shop.category.${cat}`),
             value: `shop_category_${cat}`,
             default: category === cat,
         }))

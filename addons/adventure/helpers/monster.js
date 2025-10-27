@@ -44,10 +44,8 @@ const MONSTERS = [
 ];
 
 function getRandomMonster(level) {
-    // Find all monsters whose minLevel <= level <= maxLevel
     const available = MONSTERS.filter((m) => level >= m.minLevel && level <= m.maxLevel);
     if (available.length === 0) {
-        // fallback: return a random monster from the whole list
         return MONSTERS[Math.floor(Math.random() * MONSTERS.length)];
     }
     return available[Math.floor(Math.random() * available.length)];

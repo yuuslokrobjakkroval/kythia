@@ -2954,7 +2954,8 @@
                 "all": "All Items",
                 "utility": "Utility",
                 "robbing": "Robbing",
-                "pet": "Pet"
+                "pet": "Pet",
+                "merriage": "Merriage"
             },
             "select": {
                 "category": {
@@ -3663,6 +3664,10 @@
             "petfood_item": {
                 "name": "Pet Food",
                 "description": "Feed your pet to increase its happiness."
+            },
+            "marriage_ring": {
+                "name": "Marriage Ring",
+                "description": "A special ring to propose marriage and form a bond with another user."
             }
         }
     },

@@ -5,11 +5,8 @@
  * @assistant chaa & graa
  * @version 0.9.10-beta
  */
-const { SlashCommandSubcommandBuilder, EmbedBuilder } = require('discord.js');
-const UserAdventure = require('../database/models/UserAdventure');
-const CharManager = require('../helpers/charManager');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder } = require('discord.js');
+const characters = require('../helpers/characters');
 
 module.exports = {
     subcommand: true,
@@ -23,7 +20,13 @@ module.exports = {
                 fr: "📑 Tes statistiques d'aventure",
                 ja: '📑 冒険のステータスを確認しよう',
             }),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        // Dependency
+        const t = container.t;
+        const { UserAdventure } = container.sequelize.models;
+        const embedFooter = container.helpers.discord.embedFooter;
+        const kythiaConfig = container.kythiaConfig;
+
         await interaction.deferReply();
         const user = await UserAdventure.getCache({ userId: interaction.user.id });
 
@@ -41,7 +44,7 @@ module.exports = {
 
         const characterFields = [];
         if (user.characterId) {
-            const c = CharManager.getChar(user.characterId);
+            const c = characters.getChar(user.characterId);
             if (c) {
                 const charTitle = await t(interaction, 'adventure.stats.character');
                 characterFields.push({ name: charTitle, value: `${c.emoji} ${c.name}`, inline: false });
@@ -49,7 +52,7 @@ module.exports = {
         }
 
         const embed = new EmbedBuilder()
-            .setColor(kythia.bot.color)
+            .setColor(kythiaConfig.bot.color)
             .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
             .setDescription(await t(interaction, 'adventure.stats.embed.desc', { username: interaction.user.username }))
             .addFields(

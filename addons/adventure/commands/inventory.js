@@ -5,11 +5,8 @@
  * @assistant chaa & graa
  * @version 0.9.10-beta
  */
-const InventoryAdventure = require('../database/models/InventoryAdventure');
-const UserAdventure = require('../database/models/UserAdventure');
-const { embedFooter } = require('@coreHelpers/discord');
+
 const { EmbedBuilder } = require('discord.js');
-const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     subcommand: true,
@@ -23,7 +20,13 @@ module.exports = {
                 fr: '🎒 Ton inventaire',
                 ja: '🎒 所持品を確認しよう',
             }),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        // Dependency
+        const t = container.t;
+        const { UserAdventure, InventoryAdventure } = container.sequelize.models;
+        const embedFooter = container.helpers.discord.embedFooter;
+        const kythiaConfig = container.kythiaConfig;
+
         await interaction.deferReply();
         const userId = interaction.user.id;
         const user = await UserAdventure.getCache({ userId: userId });
@@ -42,7 +45,7 @@ module.exports = {
 
         if (inventory.length === 0) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'adventure.inventory.empty'))
                 .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
                 .setFooter(await embedFooter(interaction));
@@ -66,7 +69,7 @@ module.exports = {
             .join('\n');
 
         const embed = new EmbedBuilder()
-            .setColor(kythia.bot.color)
+            .setColor(kythiaConfig.bot.color)
             .setDescription(
                 await t(interaction, 'adventure.inventory.list', {
                     username: interaction.user.username,
