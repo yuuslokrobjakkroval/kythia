@@ -64,9 +64,8 @@ function flattenCommandOptions(options, schemas, namePrefix, descPrefix) {
     });
 }
 
-const safeCommands = kythia.addons.ai.safeCommands;
-
 function generateCommandSchema(client) {
+    const safeCommands = client.container.kythiaConfig.addons.ai.safeCommands;
     const schemas = [];
 
     client.commands.forEach((command) => {
@@ -117,4 +116,4 @@ function generateCommandSchema(client) {
     return schemas;
 }
 
-module.exports = { generateCommandSchema, safeCommands };
+module.exports = { generateCommandSchema };

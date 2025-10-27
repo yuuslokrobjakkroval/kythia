@@ -5,11 +5,10 @@
  * @assistant chaa & graa
  * @version 0.9.10-beta
  */
-const { isOwner } = require('@coreHelpers/discord');
 
-const personaPrompt = kythia.addons.ai.personaPrompt;
-
-const ownerInteractionPrompt = kythia.addons.ai.ownerInteractionPrompt;
+let _isOwner = () => false;
+let _personaPrompt = 'Default Persona: You are a helpful AI assistant.';
+let _ownerInteractionPrompt = '';
 
 const toolRulesPrompt = `
 --- TOOL USAGE RULES (MANDATORY) ---
@@ -32,13 +31,44 @@ const discordRulesPrompt = `
 6. DO NOT USE '[SPLIT]' if the message is not close to 2000 characters.
 `;
 
+/**
+ * 💉 Injects dependencies needed by the prompt builder.
+ * MUST be called once during application startup.
+ * @param {object} deps - Dependencies object
+ * @param {Function} deps.isOwner - The isOwner helper function
+ * @param {object} deps.config - The main application config object
+ */
+function init({ isOwner, config }) {
+    if (typeof isOwner !== 'function' || !config) {
+        console.error('PromptBuilder init requires isOwner function and config.');
+
+        return;
+    }
+    _isOwner = isOwner;
+    const aiConfig = config.addons?.ai || {};
+    _personaPrompt = aiConfig.personaPrompt || _personaPrompt;
+    _ownerInteractionPrompt = aiConfig.ownerInteractionPrompt || _ownerInteractionPrompt;
+}
+
+/**
+ * Builds the complete system instruction prompt for the AI.
+ * @param {object} context - Contextual information about the user and conversation.
+ * @param {string} context.userId - The Discord User ID.
+ * @param {string} context.userDisplayName - User's display name or username.
+ * @param {string} context.userTag - User's full Discord tag (username#discriminator).
+ * @param {string} context.userBio - User's Discord bio.
+ * @param {string} context.guildName - Name of the server (or 'Direct Message').
+ * @param {string} context.channelName - Name of the channel (or 'Direct Message').
+ * @param {string} [context.userFactsString] - Optional string of remembered facts about the user.
+ * @returns {string} The fully constructed system instruction prompt.
+ */
 function buildSystemInstruction(context) {
-    const isOwnerUser = isOwner(context.userId);
+    const isOwnerUser = _isOwner(context.userId);
 
-    const instructionParts = [personaPrompt, toolRulesPrompt, discordRulesPrompt];
+    const instructionParts = [_personaPrompt, toolRulesPrompt, discordRulesPrompt];
 
-    if (isOwnerUser) {
-        instructionParts.push(ownerInteractionPrompt);
+    if (isOwnerUser && _ownerInteractionPrompt) {
+        instructionParts.push(_ownerInteractionPrompt);
     }
 
     let instruction = instructionParts.join('\n');
@@ -62,4 +92,7 @@ function buildSystemInstruction(context) {
     return instruction;
 }
 
-module.exports = { buildSystemInstruction };
+module.exports = {
+    init,
+    buildSystemInstruction,
+};

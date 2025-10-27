@@ -8,7 +8,6 @@
 
 const { DataTypes } = require('sequelize');
 const KythiaModel = require('@src/database/KythiaModel');
-// const sequelize = require('@src/database/KythiaSequelize');
 
 class UserFact extends KythiaModel {
     static CACHE_KEYS = [['userId']];
@@ -16,29 +15,15 @@ class UserFact extends KythiaModel {
     static init(sequelize) {
         super.init(
             {
-                // ID unik untuk setiap fakta
-                id: {
-                    type: DataTypes.INTEGER,
-                    primaryKey: true,
-                    autoIncrement: true,
-                },
-                userId: {
-                    type: DataTypes.STRING,
-                    allowNull: false,
-                    comment: 'Discord User ID',
-                },
-                fact: {
-                    type: DataTypes.TEXT,
-                    allowNull: false,
-                    comment: 'The fact about the user',
-                },
+                id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+                userId: { type: DataTypes.STRING, allowNull: false, comment: 'Discord User ID' },
+                fact: { type: DataTypes.TEXT, allowNull: false, comment: 'The fact about the user' },
                 type: {
                     type: DataTypes.STRING,
                     allowNull: false,
                     defaultValue: 'other',
                     comment: 'The classified type of the fact (hobby, name, etc.)',
                 },
-                // Timestamp otomatis dibuat oleh Sequelize
             },
             {
                 sequelize,
@@ -52,5 +37,4 @@ class UserFact extends KythiaModel {
     }
 }
 
-// UserFact.init(sequelize);
 module.exports = UserFact;

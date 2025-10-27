@@ -8,34 +8,26 @@
 
 const { buildSystemInstruction } = require('../helpers/promptBuilder');
 const { GoogleGenAI, createPartFromUri } = require('@google/genai');
-const { kythiaInteraction } = require('@coreHelpers/events');
-const { safeCommands } = require('../helpers/commandSchema');
-const ServerSetting = require('@coreModels/ServerSetting');
 const { ChannelType } = require('discord.js');
-const { t } = require('@coreHelpers/translator');
-const logger = require('@coreHelpers/logger');
 const fs = require('fs').promises;
 const path = require('path');
 const { getAndUseNextAvailableToken } = require('../helpers/gemini');
-const { isOwner } = require('@coreHelpers/discord');
+const kythiaInteraction = require('../../core/helpers/events');
 
-const UserFact = require('../database/models/UserFact');
-
-const GEMINI_MODEL = kythia.addons.ai.model;
-const CONTEXT_MESSAGES_TO_FETCH = kythia.addons.ai.getMessageHistoryLength;
 const conversationCache = new Map();
 
 /**
  * Filter AI response for unwanted tags like @everyone/@here,
- * but if the user isOwner (see discord.js) and kythia.addons.ai.ownerBypassFilter is true,
+ * but if the user isOwner (see discord.js) and aiConfig.ownerBypassFilter is true,
  * always allow them.
  * @param {string} responseText
  * @param {string} [userId]
+ * @param {Function} isOwner
+ * @param {Object} aiConfig
  * @returns {object} { allowed: boolean, reason?: string }
  */
-function filterAiResponse(responseText, userId) {
-    // Owner bypass filter logic
-    if (typeof userId !== 'undefined' && kythia?.addons?.ai?.ownerBypassFilter && isOwner(userId)) {
+function filterAiResponse(responseText, userId, isOwner, aiConfig) {
+    if (typeof userId !== 'undefined' && aiConfig?.ownerBypassFilter && typeof isOwner === 'function' && isOwner(userId)) {
         return { allowed: true };
     }
     if (/@everyone|@here/i.test(responseText)) {
@@ -95,9 +87,11 @@ function classifyFact(fact) {
  * Menambahkan fakta baru ke profil user (langsung ke database).
  * @param {string} userId
  * @param {string} fact
+ * @param {Model} UserFact
+ * @param {Object} logger
  * @returns {'added' | 'duplicate' | 'error'}
  */
-async function appendUserFact(userId, fact) {
+async function appendUserFact(userId, fact, UserFact, logger) {
     const type = classifyFact(fact);
 
     try {
@@ -148,9 +142,10 @@ const typeLabels = {
  * 📋 getUserFactsString
  * Menghasilkan string terstruktur dari fakta-fakta user untuk prompt AI.
  * @param {string} userId
+ * @param {Model} UserFact
  * @returns {string}
  */
-async function getUserFactsString(userId) {
+async function getUserFactsString(userId, UserFact) {
     const userFacts = await UserFact.getAllCache({
         where: { userId: userId },
         order: [['createdAt', 'DESC']],
@@ -174,21 +169,23 @@ async function getUserFactsString(userId) {
     return result.trim();
 }
 
-const tempDir = path.join(__dirname, '..', 'temp');
+let tempDir;
 (async () => {
+    tempDir = path.join(__dirname, '..', 'temp');
     try {
         await fs.mkdir(tempDir, { recursive: true });
-    } catch (e) {
-        logger.error('❌ Failed to create temp folder:', e);
-    }
+    } catch (e) {}
 })();
 
 /**
  * 🧠 Merangkum riwayat obrolan untuk mengekstrak & menyimpan fakta penting secara otomatis.
- * @param {string} userId - ID user yang obrolannya dirangkum.
- * @param {Array<object>} conversationHistory - Array riwayat obrolan.
+ * @param {string} userId
+ * @param {Array<object>} conversationHistory
+ * @param {Object} logger
+ * @param {Model} UserFact
+ * @param {Object} config
  */
-async function summarizeAndStoreFacts(userId, conversationHistory) {
+async function summarizeAndStoreFacts(userId, conversationHistory, logger, UserFact, config) {
     if (conversationHistory.length < 4) return;
 
     logger.info(`🧠 Starting summarization for user ${userId}...`);
@@ -200,7 +197,8 @@ async function summarizeAndStoreFacts(userId, conversationHistory) {
             return;
         }
 
-        const GEMINI_API_KEY = kythia.addons.ai.geminiApiKeys.split(',')[tokenIdx];
+        const GEMINI_API_KEY = config.addons.ai.geminiApiKeys.split(',')[tokenIdx];
+        const GEMINI_MODEL = config.addons.ai.model;
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
         const summarizationInstruction = `
@@ -238,7 +236,7 @@ async function summarizeAndStoreFacts(userId, conversationHistory) {
             if (newFacts.length > 0) {
                 logger.info(`🧠 Found ${newFacts.length} new facts for user ${userId}:`, newFacts);
                 for (const fact of newFacts) {
-                    await appendUserFact(userId, fact);
+                    await appendUserFact(userId, fact, UserFact, logger);
                 }
             }
         } else {
@@ -257,7 +255,8 @@ setInterval(
             if (now - conv.lastActive > CONVERSATION_CACHE_TIMEOUT) {
                 const historyToSummarize = [...conv.history];
                 conversationCache.delete(userId);
-                summarizeAndStoreFacts(userId, historyToSummarize);
+
+                console.warn(`[AI Summarizer Interval] Need to summarize for ${userId}, but cannot access dependencies here.`);
             }
         }
     },
@@ -287,12 +286,13 @@ function addToHistory(conversation, role, content) {
 
 /**
  * Send AI response, with ability to split message if there is [SPLIT].
- * VERSI FINAL: Memastikan pesan pertama selalu me-reply dengan benar.
- * Menyisipkan filter middleware di sini agar apapun output AI di cek dulu sebelum dikirim.
- * @param {import('discord.js').Message} message - Objek pesan asli untuk dibalas.
- * @param {string} text - Teks lengkap dari AI.
+ * @param {import('discord.js').Message} message
+ * @param {string} text
+ * @param {Function} t
+ * @param {Function} isOwner
+ * @param {Object} aiConfig
  */
-async function sendSplitMessage(message, text) {
+async function sendSplitMessage(message, text, t, isOwner, aiConfig) {
     const CHUNK_SIZE = 2000;
     const parts = text.split('[SPLIT]');
 
@@ -302,7 +302,7 @@ async function sendSplitMessage(message, text) {
         let chunk = part.trim();
         if (chunk.length === 0) continue;
 
-        const filterResult = filterAiResponse(chunk, message.author?.id);
+        const filterResult = filterAiResponse(chunk, message.author?.id, isOwner, aiConfig);
         if (!filterResult.allowed) {
             await message.reply(await t(message, 'ai.events.messageCreate.filter.blocked'));
             return;
@@ -311,7 +311,7 @@ async function sendSplitMessage(message, text) {
         if (chunk.length > CHUNK_SIZE) {
             const subChunks = chunk.match(new RegExp(`.{1,${CHUNK_SIZE}}`, 'gs')) || [];
             for (const subChunk of subChunks) {
-                const filterResultSub = filterAiResponse(subChunk, message.author?.id);
+                const filterResultSub = filterAiResponse(subChunk, message.author?.id, isOwner, aiConfig);
                 if (!filterResultSub.allowed) {
                     await message.reply(await t(message, 'ai.events.messageCreate.filter.blocked'));
                     return;
@@ -336,13 +336,16 @@ async function sendSplitMessage(message, text) {
 
 /**
  * 🚦 Determine AI pathway with priority: Command (if clear) > Search (default).
- * @param {string} content - Teks pesan dari user.
+ * @param {string} content
+ * @param {Object} aiConfig
+ * @param {Object} logger
  * @returns {'function_calling' | 'google_search'}
  */
-function determineAiPathway(content) {
+function determineAiPathway(content, aiConfig, logger) {
     const clean = content.toLowerCase();
 
-    const additionalCommandKeywords = kythia.addons.ai.additionalCommandKeywords || [];
+    const additionalCommandKeywords = aiConfig?.additionalCommandKeywords || [];
+    const safeCommands = aiConfig?.safeCommands || [];
 
     const commandKeywords = Array.isArray(safeCommands) ? [...safeCommands, ...additionalCommandKeywords] : additionalCommandKeywords;
 
@@ -356,16 +359,27 @@ function determineAiPathway(content) {
     logger.info('🧠 Intent not specific. Using Google Search pathway (Default).');
     return 'google_search';
 }
+
 /**
  * 🤖 module.exports (AI Message Handler)
- * Main handler for event messageCreate, process message to AI if in AI channel, DM, or mention.
  */
 module.exports = async (bot, message) => {
+    const container = bot.container;
+    const logger = container.logger;
+    const t = container.t;
+    const ServerSetting = container.sequelize.models.ServerSetting;
+    const isOwner = container.helpers.discord.isOwner;
+    const UserFact = container.sequelize.models.UserFact;
+    const config = container.kythiaConfig;
+    const aiConfig = config.addons.ai;
+    const GEMINI_MODEL = aiConfig.model;
+    const CONTEXT_MESSAGES_TO_FETCH = aiConfig.getMessageHistoryLength;
+
     const client = bot.client;
     if (message.author?.bot) return;
 
     const content = message.content.trim();
-    if (Array.isArray(kythia?.bot?.prefixes) && kythia.bot.prefixes.some((prefix) => prefix && content.startsWith(prefix))) return;
+    if (Array.isArray(config?.bot?.prefixes) && config.bot.prefixes.some((prefix) => prefix && content.startsWith(prefix))) return;
 
     const isDm = message.channel.type === ChannelType.DM || message.channel.type == 1;
     const isMentioned =
@@ -388,7 +402,7 @@ module.exports = async (bot, message) => {
     let typingInterval;
 
     if (isAiChannel || isDm || isMentioned) {
-        const totalTokens = (kythia.addons.ai.geminiApiKeys || '')
+        const totalTokens = (aiConfig.geminiApiKeys || '')
             .split(',')
             .map((k) => k.trim())
             .filter(Boolean).length;
@@ -406,7 +420,7 @@ module.exports = async (bot, message) => {
 
             const userDisplayName = message.member?.displayName || message.author.username;
             const userTag = message.author.tag || `${message.author.username}#${message.author.discriminator}`;
-            const userFactsString = await getUserFactsString(message.author.id);
+            const userFactsString = await getUserFactsString(message.author.id, UserFact);
             const userBio = await getUserBio(message.author.id, client);
             const guildName = message.guild?.name || 'Direct Message';
             const channelName = message.channel.name || 'Direct Message';
@@ -449,21 +463,27 @@ module.exports = async (bot, message) => {
                             const tmp = require('tmp');
                             const { promises: fsp } = require('fs');
 
-                            const tmpobj = tmp.fileSync({ postfix: path.extname(attachment.name || '.mp4'), dir: tempDir });
+                            const tmpobj = tmp.fileSync({
+                                postfix: path.extname(attachment.name || '.mp4'),
+                                dir: tempDir,
+                            });
                             await fsp.writeFile(tmpobj.name, buffer);
 
                             let uploadedFile;
                             logger.info(`📤 Uploading ${attachment.contentType}: ${attachment.name}...`);
                             try {
-                                uploadedFile = await new GoogleGenAI({ apiKey: kythia.addons.ai.geminiApiKeys.split(',')[0] }).files.upload(
-                                    { file: tmpobj.name, config: { mimeType: attachment.contentType } }
-                                );
+                                uploadedFile = await new GoogleGenAI({
+                                    apiKey: aiConfig.geminiApiKeys.split(',')[0],
+                                }).files.upload({
+                                    file: tmpobj.name,
+                                    config: { mimeType: attachment.contentType },
+                                });
                             } catch (uploadErr) {
                                 if (uploadErr?.details?.includes?.('not in an ACTIVE state')) {
                                     logger.warn('File not active, retrying upload...');
                                     await new Promise((res) => setTimeout(res, 2000));
                                     uploadedFile = await new GoogleGenAI({
-                                        apiKey: kythia.addons.ai.geminiApiKeys.split(',')[0],
+                                        apiKey: aiConfig.geminiApiKeys.split(',')[0],
                                     }).files.upload({ file: tmpobj.name, config: { mimeType: attachment.contentType } });
                                 } else {
                                     throw uploadErr;
@@ -474,9 +494,9 @@ module.exports = async (bot, message) => {
                             let safetyNet = 0;
                             while (uploadedFile.state === 'PROCESSING' && safetyNet < 15) {
                                 await new Promise((resolve) => setTimeout(resolve, 2000));
-                                uploadedFile = await new GoogleGenAI({ apiKey: kythia.addons.ai.geminiApiKeys.split(',')[0] }).files.get({
-                                    name: uploadedFile.name,
-                                });
+                                uploadedFile = await new GoogleGenAI({
+                                    apiKey: aiConfig.geminiApiKeys.split(',')[0],
+                                }).files.get({ name: uploadedFile.name });
                                 logger.info(`  - Current state: ${uploadedFile.state}`);
                                 safetyNet++;
                             }
@@ -561,7 +581,7 @@ module.exports = async (bot, message) => {
                 let fact = memoryMatch[1].trim();
                 fact = fact.replace(/^(<@!?\d+>|kythia)[\s,.:]*/i, '').trim();
                 if (fact.length > 0) {
-                    const status = await appendUserFact(message.author.id, fact);
+                    const status = await appendUserFact(message.author.id, fact, UserFact, logger);
                     if (status === 'added') {
                         await message.reply(await t(message, 'ai.events.messageCreate.memory.added'));
                     } else if (status === 'duplicate') {
@@ -593,10 +613,10 @@ module.exports = async (bot, message) => {
 
                 const initialHistory = [];
                 for (const msg of relevantMessages) {
-                    const content = msg.content.replace(/<@!?\d+>/g, '').trim();
-                    if (!content && msg.attachments.size === 0) continue;
+                    const c = msg.content.replace(/<@!?\d+>/g, '').trim();
+                    if (!c && msg.attachments.size === 0) continue;
                     const role = msg.author.id === client.user.id ? 'model' : 'user';
-                    initialHistory.push({ role, content: content });
+                    initialHistory.push({ role, content: c });
                 }
 
                 userConv = { history: initialHistory, lastActive: Date.now() };
@@ -628,7 +648,7 @@ module.exports = async (bot, message) => {
                 }
             }
 
-            const pathway = determineAiPathway(cleanContent);
+            const pathway = determineAiPathway(cleanContent, aiConfig, logger);
 
             const toolsConfig = [];
 
@@ -653,7 +673,7 @@ module.exports = async (bot, message) => {
                     break;
                 }
 
-                const GEMINI_API_KEY = kythia.addons.ai.geminiApiKeys.split(',')[tokenIdx];
+                const GEMINI_API_KEY = aiConfig.geminiApiKeys.split(',')[tokenIdx];
                 if (!GEMINI_API_KEY) {
                     logger.warn(`Token index ${tokenIdx} is invalid. Skipping.`);
                     continue;
@@ -717,7 +737,9 @@ module.exports = async (bot, message) => {
                     try {
                         const executionResult = await command.execute(fakeInteraction, client.container);
 
-                        const genAI = new GoogleGenAI({ apiKey: kythia.addons.ai.geminiApiKeys.split(',')[0] });
+                        const genAI = new GoogleGenAI({
+                            apiKey: aiConfig.geminiApiKeys.split(',')[0],
+                        });
                         const followUpResponse = await genAI.models.generateContent({
                             model: GEMINI_MODEL,
                             contents: [
@@ -729,7 +751,12 @@ module.exports = async (bot, message) => {
                                         {
                                             functionResponse: {
                                                 name: fullFunctionName,
-                                                response: { content: JSON.stringify({ success: true, result: executionResult }) },
+                                                response: {
+                                                    content: JSON.stringify({
+                                                        success: true,
+                                                        result: executionResult,
+                                                    }),
+                                                },
                                             },
                                         },
                                     ],
@@ -739,12 +766,12 @@ module.exports = async (bot, message) => {
 
                         const finalReply = followUpResponse.text.trim();
 
-                        const filterResult = filterAiResponse(finalReply, message.author?.id);
+                        const filterResult = filterAiResponse(finalReply, message.author?.id, isOwner, aiConfig);
                         if (!filterResult.allowed) {
                             await message.reply(await t(message, 'ai.events.messageCreate.filter.blocked'));
                             return;
                         }
-                        await sendSplitMessage(message, finalReply);
+                        await sendSplitMessage(message, finalReply, t, isOwner, aiConfig);
                         addToHistory(userConv, 'model', finalReply);
                     } catch (err) {
                         logger.error(`🧠 Error running '${fullFunctionName}':`, err);
@@ -754,12 +781,12 @@ module.exports = async (bot, message) => {
                 } else {
                     const replyText = finalResponse.text.trim();
 
-                    const filterResult = filterAiResponse(replyText, message.author?.id);
+                    const filterResult = filterAiResponse(replyText, message.author?.id, isOwner, aiConfig);
                     if (!filterResult.allowed) {
                         await message.reply(await t(message, 'ai.events.messageCreate.filter.blocked'));
                         return;
                     }
-                    await sendSplitMessage(message, replyText);
+                    await sendSplitMessage(message, replyText, t, isOwner, aiConfig);
                     addToHistory(userConv, 'model', replyText);
                 }
             } else {

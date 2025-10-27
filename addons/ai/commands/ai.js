@@ -21,8 +21,12 @@ module.exports = {
     voteLocked: true,
     guildOnly: true,
     async execute(interaction, container) {
-        const ServerSetting = container.sequelize.models.ServerSetting;
+        // Dependency
         const t = container.t;
+        const { ServerSetting } = container.sequelize.models;
+        const embedFooter = container.helpers.discord.embedFooter;
+        const kythiaConfig = container.kythiaConfig;
+
         await interaction.deferReply();
 
         const channelId = interaction.channel.id;
@@ -32,7 +36,10 @@ module.exports = {
 
         if (subcommand === 'enable') {
             if (aiChannelIds.includes(channelId)) {
-                const embed = new EmbedBuilder().setColor('Yellow').setDescription(await t(interaction, 'ai.ai.manage.already.enabled'));
+                const embed = new EmbedBuilder()
+                    .setColor('Yellow')
+                    .setDescription(await t(interaction, 'ai.ai.manage.already.enabled'))
+                    .setFooter(await embedFooter(interaction));
                 return interaction.editReply({ embeds: [embed] });
             }
 
@@ -40,14 +47,20 @@ module.exports = {
             setting.aiChannelIds = aiChannelIds;
             setting.changed('aiChannelIds', true);
             await setting.save();
-            const embed = new EmbedBuilder().setColor('Green').setDescription(await t(interaction, 'ai.ai.manage.enable.success'));
+            const embed = new EmbedBuilder()
+                .setColor(kythiaConfig.bot.color)
+                .setDescription(await t(interaction, 'ai.ai.manage.enable.success'))
+                .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
 
         if (subcommand === 'disable') {
             const index = aiChannelIds.indexOf(channelId);
             if (index === -1) {
-                const embed = new EmbedBuilder().setColor('Red').setDescription(await t(interaction, 'ai.ai.manage.not.enabled'));
+                const embed = new EmbedBuilder()
+                    .setColor('Red')
+                    .setDescription(await t(interaction, 'ai.ai.manage.not.enabled'))
+                    .setFooter(await embedFooter(interaction));
                 return interaction.editReply({ embeds: [embed] });
             }
 
@@ -56,12 +69,18 @@ module.exports = {
             setting.changed('aiChannelIds', true);
             await setting.save();
 
-            const embed = new EmbedBuilder().setColor('Orange').setDescription(await t(interaction, 'ai.ai.manage.disable.success'));
+            const embed = new EmbedBuilder()
+                .setColor('Orange')
+                .setDescription(await t(interaction, 'ai.ai.manage.disable.success'))
+                .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
 
         // Fallback for unknown subcommand
-        const embed = new EmbedBuilder().setColor('Red').setDescription(await t(interaction, 'ai.ai.manage.unknown.subcommand'));
+        const embed = new EmbedBuilder()
+            .setColor('Red')
+            .setDescription(await t(interaction, 'ai.ai.manage.unknown.subcommand'))
+            .setFooter(await embedFooter(interaction));
         return interaction.editReply({ embeds: [embed] });
     },
 };

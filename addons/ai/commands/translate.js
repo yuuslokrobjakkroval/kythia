@@ -6,19 +6,9 @@
  * @version 0.9.10-beta
  */
 
-const {
-    SlashCommandBuilder,
-    ContextMenuCommandBuilder,
-    ApplicationCommandType,
-    EmbedBuilder,
-    MessageFlags,
-    Message,
-} = require('discord.js');
+const { SlashCommandBuilder, ContextMenuCommandBuilder, ApplicationCommandType, EmbedBuilder } = require('discord.js');
 const { getAndUseNextAvailableToken } = require('../helpers/gemini');
-const { embedFooter } = require('@coreHelpers/discord');
 const { GoogleGenAI } = require('@google/genai');
-const { t } = require('@coreHelpers/translator');
-const logger = require('@coreHelpers/logger');
 
 module.exports = {
     slashCommand: new SlashCommandBuilder()
@@ -31,13 +21,18 @@ module.exports = {
 
     contextMenuDescription: '🌐 Translate message to another language using Gemini AI.',
     isInMainGuild: true,
-    async execute(interaction) {
+    async execute(interaction, container) {
+        // Dependency
+        const t = container.t;
+        const embedFooter = container.helpers.discord.embedFooter;
+        const kythiaConfig = container.kythiaConfig;
+
         const text = interaction.options?.getString('text') || interaction.targetMessage?.content;
         const lang = interaction.options?.getString('lang') || 'en';
 
         await interaction.deferReply();
 
-        const totalTokens = kythia.addons.ai.geminiApiKeys.split(',').length;
+        const totalTokens = kythiaConfig.addons.ai.geminiApiKeys.split(',').length;
         let success = false;
         let finalResponse = null;
         let lastError = null;
@@ -54,7 +49,7 @@ module.exports = {
                 return interaction.editReply({ embeds: [embed] });
             }
 
-            const GEMINI_API_KEY = kythia.addons.ai.geminiApiKeys.split(',')[tokenIdx];
+            const GEMINI_API_KEY = kythiaConfig.addons.ai.geminiApiKeys.split(',')[tokenIdx];
             if (!GEMINI_API_KEY) {
                 logger.warn(`Token index ${tokenIdx} is invalid. Skipping.`);
                 continue;
@@ -66,7 +61,7 @@ module.exports = {
 
             try {
                 const response = await ai.models.generateContent({
-                    model: kythia.addons.ai.model,
+                    model: kythiaConfig.addons.ai.model,
                     contents: prompt,
                 });
 
@@ -89,7 +84,7 @@ module.exports = {
         if (success && finalResponse) {
             const translated = finalResponse.text || finalResponse.response?.text || (await t(interaction, 'ai.translate.no.result'));
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'ai.translate.success', { lang, text, translated }))
                 .setFooter(await embedFooter(interaction));
             await interaction.editReply({

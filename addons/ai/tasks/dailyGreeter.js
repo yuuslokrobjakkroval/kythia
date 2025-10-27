@@ -8,10 +8,8 @@
 
 const { getAndUseNextAvailableToken } = require('../helpers/gemini');
 const { GoogleGenAI } = require('@google/genai');
-const logger = require('@coreHelpers/logger');
 const cron = require('node-cron');
 
-// Helper untuk mencari channel utama (logika tetap, hanya dipisah)
 function findMainChannel(guild, client) {
     let mainChannel = null;
     if (guild.systemChannelId) {
@@ -31,12 +29,14 @@ function findMainChannel(guild, client) {
 
 function initializeAiTasks(bot) {
     const client = bot.client;
+    const logger = client.container.logger;
+    const kythiaConfig = client.container.kythiaConfig;
 
-    const schedule = kythia.addons.ai.dailyGreeterSchedule || '0 7 * * *';
+    const schedule = kythiaConfig.addons.ai.dailyGreeterSchedule || '0 7 * * *';
     cron.schedule(
         schedule,
         async () => {
-            if (kythia.addons.ai.geminiApiKeys.length === 0) return;
+            if (kythiaConfig.addons.ai.geminiApiKeys.length === 0) return;
 
             try {
                 const guilds = client.guilds.cache;
@@ -46,8 +46,8 @@ function initializeAiTasks(bot) {
                         const mainChannel = findMainChannel(guild, client);
                         if (!mainChannel) continue;
 
-                        const personaPrompt = kythia.addons.ai.personaPrompt;
-                        const morningPrompt = kythia.addons.ai.dailyGreeterPrompt;
+                        const personaPrompt = kythiaConfig.addons.ai.personaPrompt;
+                        const morningPrompt = kythiaConfig.addons.ai.dailyGreeterPrompt;
 
                         let guildInfo = `FYI: Nama Server ${guild.name}\n
                     Jumlah Member Online ${guild.members.cache.filter((m) => !m.user.bot).size}`;
@@ -60,11 +60,11 @@ function initializeAiTasks(bot) {
                             return;
                         }
 
-                        const GEMINI_API_KEY = kythia.addons.ai.geminiApiKeys.split(',')[tokenIdx];
+                        const GEMINI_API_KEY = kythiaConfig.addons.ai.geminiApiKeys.split(',')[tokenIdx];
                         const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
                         const response = await genAI.models.generateContent({
-                            model: kythia.addons.ai.model,
+                            model: kythiaConfig.addons.ai.model,
                             contents: prompt,
                         });
 
@@ -79,7 +79,7 @@ function initializeAiTasks(bot) {
             }
         },
         {
-            timezone: kythia.bot.timezone,
+            timezone: kythiaConfig.bot.timezone,
         }
     );
 }
