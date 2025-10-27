@@ -25,7 +25,6 @@ const loadFonts = require('./utils/fonts');
 const Sentry = require('@sentry/node');
 const figlet = require('figlet');
 
-// Import specialized managers
 const InteractionManager = require('./managers/InteractionManager');
 const ShutdownManager = require('./managers/ShutdownManager');
 const AddonManager = require('./managers/AddonManager');
@@ -37,7 +36,7 @@ class Kythia {
      * Initializes the Discord client, REST API, and dependency container.
      * Sets up manager instances (but doesn't start them yet).
      */
-    constructor({ config, logger, redis, translator, models, helpers, utils }) {
+    constructor({ config, logger, redis, sequelize, translator, models, helpers, utils }) {
         const missingDeps = [];
         if (!config) missingDeps.push('config');
         if (!logger) missingDeps.push('logger');
@@ -62,12 +61,13 @@ class Kythia {
         this.utils = utils;
 
         this.redis = redis;
+        this.sequelize = sequelize;
 
         this.logger = logger;
         this.translator = translator;
         this.container = {
             client: this.client,
-            sequelize: null,
+            sequelize: this.sequelize,
             logger: this.logger,
             t: this.translator.t,
             redis: this.redis,
@@ -84,7 +84,6 @@ class Kythia {
         this.dbReadyHooks = [];
         this.clientReadyHooks = [];
 
-        // Initialize manager references (will be instantiated in start())
         this.addonManager = null;
         this.interactionManager = null;
         this.eventManager = null;
@@ -289,14 +288,12 @@ class Kythia {
             });
 
         try {
-            // Render figlet banner
             const data = await figletText('KYTHIA', {
                 font: 'ANSI Shadow',
                 horizontalLayout: 'full',
                 verticalLayout: 'full',
             });
 
-            // Info lines
             const infoLines = [
                 clc.cyan('Created by kenndeclouv'),
                 clc.cyan('Discord Support: ') + clc.underline('https://dsc.gg/kythia'),
@@ -307,7 +304,6 @@ class Kythia {
                 clc.yellowBright('Respect my work by not removing the credit'),
             ];
 
-            // Calculate border width
             const rawInfoLines = infoLines.map((line) => clc.strip(line));
             const infoMaxLen = Math.max(...rawInfoLines.map((l) => l.length));
             const pad = 8;
@@ -318,7 +314,6 @@ class Kythia {
             const bottomBorder = clc.cyanBright('╚' + borderChar.repeat(borderWidth) + '╝');
             const emptyLine = sideChar + ' '.repeat(borderWidth) + sideChar;
 
-            // Center figlet lines
             const figletLines = data.split('\n');
             const centeredFigletInBorder = figletLines
                 .map((line) => {
@@ -328,7 +323,6 @@ class Kythia {
                 })
                 .join('\n');
 
-            // Center info lines
             const centeredInfo = infoLines
                 .map((line, idx) => {
                     const raw = rawInfoLines[idx];
@@ -337,7 +331,6 @@ class Kythia {
                 })
                 .join('\n');
 
-            // Print banner
             console.log('\n' + topBorder);
             console.log(emptyLine);
             console.log(centeredFigletInBorder);
@@ -351,7 +344,6 @@ class Kythia {
 
         this.logger.info('🚀 Starting kythia...');
 
-        // Initialize Sentry
         if (this.kythiaConfig.sentry.dsn) {
             Sentry.init({
                 dsn: this.kythiaConfig.sentry.dsn,
@@ -368,38 +360,32 @@ class Kythia {
         try {
             const shouldDeploy = process.argv.includes('--deploy');
 
-            // Load locales & fonts
             this.logger.info('▬▬▬▬▬▬▬▬▬▬▬[ Load Locales & Fonts ]▬▬▬▬▬▬▬▬▬▬▬');
             this.translator.loadLocales();
             loadFonts(this.logger);
 
-            // 1. Initialize Redis cache
             this.logger.info('▬▬▬▬▬▬▬▬▬▬▬▬▬▬[ Initialize Cache ]▬▬▬▬▬▬▬▬▬▬▬▬▬▬');
-            // this.container.redis = KythiaModel.initialize(this.kythiaConfig.db.redis);
 
-            // 2. Create AddonManager and load addons
             this.logger.info('▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬[ Kythia Addons ]▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬');
             this.addonManager = new AddonManager({ client: this.client, container: this.container });
             const allCommands = await this.addonManager.loadAddons(this);
 
-            // 3. Initialize database (will use dbReadyHooks that were populated during addon loading)
             this.logger.info('▬▬▬▬▬▬▬▬▬▬▬▬▬▬[ Load KythiaORM ]▬▬▬▬▬▬▬▬▬▬▬▬▬▬');
             const sequelize = await KythiaORM({
                 kythiaInstance: this,
-                ...this.dbDependencies, // <-- Oper semua (sequelize, KythiaModel, logger, config)
+                sequelize: this.sequelize,
+                KythiaModel: this.dbDependencies.KythiaModel,
+                logger: this.dbDependencies.logger,
+                config: this.dbDependencies.config,
             });
-            this.container.sequelize = sequelize;
 
-            // 5. Create and initialize EventManager
             const handlers = this.addonManager.getHandlers();
             this.eventManager = new EventManager({ client: this.client, container: this.container, eventHandlers: handlers.eventHandlers });
             this.eventManager.initialize();
 
-            // 6. Create and initialize InteractionManager
             this.interactionManager = new InteractionManager({ client: this.client, container: this.container, handlers: handlers });
             this.interactionManager.initialize();
 
-            // 7. Deploy commands if requested
             this.logger.info('▬▬▬▬▬▬▬▬▬▬▬▬▬[ Deploy Commands ]▬▬▬▬▬▬▬▬▬▬▬▬▬');
             if (shouldDeploy) {
                 await this._deployCommands(allCommands);
@@ -407,13 +393,11 @@ class Kythia {
                 this.logger.info('⏭️  Skipping command deployment. Use --deploy flag to force update.');
             }
 
-            // 8. Create and initialize ShutdownManager
             this.shutdownManager = new ShutdownManager({ client: this.client, container: this.container });
             this.shutdownManager.initialize();
 
             this.logger.info('▬▬▬▬▬▬▬▬▬▬▬[ Systems Initializing ]▬▬▬▬▬▬▬▬▬▬▬▬');
 
-            // 9. Set up client ready handler
             this.client.once('clientReady', async (c) => {
                 this.logger.info(`🌸 Logged in as ${this.client.user.tag}`);
                 this.logger.info(`🚀 Executing ${this.clientReadyHooks.length} client-ready hooks...`);
@@ -426,7 +410,6 @@ class Kythia {
                 }
             });
 
-            // 10. Login to Discord
             await this.client.login(this.kythiaConfig.bot.token);
         } catch (error) {
             this.logger.error('❌ Kythia initialization failed:', error);

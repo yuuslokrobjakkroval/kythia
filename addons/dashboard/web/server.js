@@ -12,8 +12,8 @@ const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const DiscordStrategy = require('passport-discord').Strategy;
 const CachedSessionStore = require('@utils/session');
-const sequelize = require('@src/database/KythiaSequelize');
-const logger = require('@coreHelpers/logger');
+// const sequelize = require('@src/database/KythiaSequelize'); // <--- Hapus, ambil dari container
+// const logger = require('@coreHelpers/logger'); // Idealnya dihapus, tapi kita biarin dulu import bawah
 const { Server } = require('socket.io');
 const passport = require('passport');
 const express = require('express');
@@ -21,14 +21,28 @@ const path = require('path');
 const http = require('http');
 const fs = require('fs');
 
+// Impor logger SEBELUM dipakai (sementara)
+const logger = require('@coreHelpers/logger');
+
 module.exports = (bot) => {
+    // --- AMBIL DEPENDENSI DARI CONTAINER ---
+    const sequelize = bot.container.sequelize;
+    const kythiaConfig = bot.container.kythiaConfig;
+    // Opsional: const logger = bot.container.logger;
+
+    if (!sequelize) {
+        logger.error('❌ Dashboard Init Error: Sequelize instance not found in bot.container!');
+        return;
+    }
+    // --- SELESAI AMBIL DEPENDENSI ---
+
     const app = express();
     const server = http.createServer(app);
     const io = new Server(server);
 
     app.locals.bot = bot;
 
-    const PORT = kythia.addons.dashboard.port;
+    const PORT = kythiaConfig.addons.dashboard.port;
 
     const sequelizeStore = new SequelizeStore({
         db: sequelize,
@@ -42,9 +56,9 @@ module.exports = (bot) => {
     passport.use(
         new DiscordStrategy(
             {
-                clientID: kythia.bot.clientId,
-                clientSecret: kythia.bot.clientSecret,
-                callbackURL: `${kythia.addons.dashboard.url}/auth/discord/callback`,
+                clientID: kythiaConfig.bot.clientId,
+                clientSecret: kythiaConfig.bot.clientSecret,
+                callbackURL: `${kythiaConfig.addons.dashboard.url}/auth/discord/callback`,
                 scope: ['identify', 'guilds'],
             },
             (accessToken, refreshToken, profile, done) => done(null, profile)
@@ -60,7 +74,7 @@ module.exports = (bot) => {
     app.use(
         session({
             store: cachedStore,
-            secret: kythia.addons.dashboard.sessionSecret,
+            secret: kythiaConfig.addons.dashboard.sessionSecret,
             resave: false,
             saveUninitialized: false,
             cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 },
@@ -80,6 +94,8 @@ module.exports = (bot) => {
     });
 
     app.set('botClient', bot);
+
+    // ... (Logika walkSync & loading routes biarin aja) ...
 
     const walkSync = (dir, filelist = []) => {
         fs.readdirSync(dir).forEach((file) => {
@@ -128,7 +144,7 @@ module.exports = (bot) => {
         res.locals.currentPage = req.path;
         res.locals.guild = null;
         res.locals.page = '';
-        res.locals.botClientId = kythia.bot.clientId;
+        res.locals.botClientId = kythiaConfig.bot.clientId;
         res.locals.botPermissions = '8';
         next();
     });
@@ -159,6 +175,6 @@ module.exports = (bot) => {
     });
 
     server.listen(PORT, '0.0.0.0', () => {
-        logger.info(`🚀 Dashboard running on ${kythia.addons.dashboard.url}`);
+        logger.info(`🚀 Dashboard running on ${kythiaConfig.addons.dashboard.url}`);
     });
 };

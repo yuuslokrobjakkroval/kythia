@@ -7,7 +7,7 @@
  */
 
 const logger = require('@coreHelpers/logger');
-const { reloadConfig } = require('@utils/reload_config');
+const { reloadConfig } = require('../../core/helpers/reload_config');
 
 async function reloadLavalinkNodes(client) {
     logger.info('🔄 Attempting to reload Lavalink nodes...');
