@@ -4,6 +4,9 @@
 
 **Description:** 😋 A brief introduction about Kythia
 
+### 📋 Details
+
+- **Aliases:** `abt`, `🌸`
 ### 💻 Usage
 
 `/about`
@@ -168,6 +171,9 @@
 
 **Description:** 💡 Displays a list of bot commands with complete details.
 
+### 📋 Details
+
+- **Aliases:** `h`, `ℹ️`
 ### 💻 Usage
 
 `/help`
@@ -178,6 +184,9 @@
 
 **Description:** 🔍 Checks the bot's, Discord API's, database and cache/redis connection speed.
 
+### 📋 Details
+
+- **Aliases:** `p`, `pong`, `🏓`
 ### 💻 Usage
 
 `/ping`
@@ -237,6 +246,9 @@
 
 **Description:** 📊 Displays Kythia statistics.
 
+### 📋 Details
+
+- **Aliases:** `s`, `📊`
 ### 💻 Usage
 
 `/stats`
@@ -289,6 +301,9 @@
 
 **Description:** ❤️ Vote for Kythia on top.gg!
 
+### 📋 Details
+
+- **Aliases:** `v`
 ### 💻 Usage
 
 `/vote`

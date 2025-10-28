@@ -58,6 +58,7 @@
         "sequelize": "^6.37.7",
         "socket.io": "^4.8.1",
         "tmp": "^0.2.5",
+        "topgg-autoposter": "^2.0.2",
         "winston": "^3.17.0",
         "winston-daily-rotate-file": "^5.0.0",
         "youtube-transcript": "^1.2.1"

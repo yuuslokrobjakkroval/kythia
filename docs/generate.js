@@ -11,14 +11,13 @@
  *
  * This script automatically generates detailed Markdown documentation for all bot commands
  * by reading their source files. It extracts not only the structure (name, options) but
- * also critical metadata like permissions, cooldowns, and usage examples.
+ * also critical metadata like permissions, cooldowns, usage examples, and aliases.
  *
  * @version 0.9.11-beta
  */
 
 require('dotenv').config();
 require('../kythia.config.js');
-
 require('module-alias/register');
 
 const fs = require('fs');
@@ -51,7 +50,6 @@ function getSlashCommandBuilder(commandModule) {
  * @returns {string}
  */
 function getOptionType(type) {
-    // This function remains the same
     switch (type) {
         case ApplicationCommandOptionType.String:
             return 'Text';
@@ -86,7 +84,6 @@ function getOptionType(type) {
 function generateOptionsDocs(optionsData, isListStyle = false) {
     let md = isListStyle ? '' : '### ⚙️ Options\n\n';
     for (const opt of optionsData) {
-        // ADDED: Asterisk for required options
         md += `- **\`${opt.name}${opt.required ? '*' : ''}\`**\n`;
         md += `  - **Description:** ${opt.description}\n`;
         md += `  - **Type:** ${getOptionType(opt.type)}\n`;
@@ -100,12 +97,14 @@ function generateOptionsDocs(optionsData, isListStyle = false) {
 
 /**
  * 📝 Generates Markdown for a subcommand.
+ * Accepts extraSubMeta, optionally containing aliases and metadata for the subcommand.
  * @param {string} parentName - The name of the root command.
  * @param {object} subData - The subcommand's JSON data.
  * @param {string|null} [groupName=null] - The name of the subcommand group, if any.
+ * @param {object} [extraSubMeta=null] - Metadata for this subcommand (e.g. aliases).
  * @returns {string} The generated Markdown string.
  */
-function generateSubcommandDocs(parentName, subData, groupName = null) {
+function generateSubcommandDocs(parentName, subData, groupName = null, extraSubMeta = null) {
     const groupPrefix = groupName ? `${groupName} ` : '';
     const subOptions = subData.options || [];
 
@@ -118,7 +117,27 @@ function generateSubcommandDocs(parentName, subData, groupName = null) {
         .join(' ');
 
     let md = `**\`/${parentName} ${groupPrefix}${subData.name}${usageString ? ' ' + usageString : ''}\`**\n`;
-    md += `> ${subData.description}\n\n`;
+    md += `> ${subData.description}\n`;
+
+    // Aliases and metadata for subcommand if provided in extraSubMeta
+    if (extraSubMeta && Array.isArray(extraSubMeta.aliases) && extraSubMeta.aliases.length > 0) {
+        md += `> _Aliases: ${extraSubMeta.aliases.map(a => `\`${a}\``).join(', ')}_\n`;
+    }
+    if (extraSubMeta && extraSubMeta.ownerOnly) {
+        md += `> _Owner Only: Yes_\n`;
+    }
+    if (extraSubMeta && extraSubMeta.cooldown) {
+        md += `> _Cooldown: ${extraSubMeta.cooldown} seconds_\n`;
+    }
+    if (extraSubMeta && extraSubMeta.permissions && extraSubMeta.permissions.length > 0) {
+        const perms = new PermissionsBitField(extraSubMeta.permissions).toArray();
+        md += `> _User Permissions: ${perms.map(p=>`\`${p}\``).join(', ')}_\n`;
+    }
+    if (extraSubMeta && extraSubMeta.botPermissions && extraSubMeta.botPermissions.length > 0) {
+        const perms = new PermissionsBitField(extraSubMeta.botPermissions).toArray();
+        md += `> _Bot Permissions: ${perms.map(p=>`\`${p}\``).join(', ')}_\n`;
+    }
+    md += '\n';
 
     if (subOptions.length > 0) {
         md += `**Options for this subcommand:**\n`;
@@ -130,13 +149,19 @@ function generateSubcommandDocs(parentName, subData, groupName = null) {
 }
 
 /**
- * ✨ [NEW] Generates the metadata block for a command (permissions, cooldown, etc.).
+ * ✨ [NEW] Generates the metadata block for a command (permissions, cooldown, etc.), and aliases if present.
  * @param {object} commandModule - The full command module object.
  * @returns {string} The generated Markdown string for the metadata section.
  */
 function generateMetadataDocs(commandModule) {
     let md = '### 📋 Details\n\n';
     let hasMetadata = false;
+
+    // Handle aliases if present
+    if (commandModule.aliases && Array.isArray(commandModule.aliases) && commandModule.aliases.length > 0) {
+        md += `- **Aliases:** ${commandModule.aliases.map(a => `\`${a}\``).join(', ')}\n`;
+        hasMetadata = true;
+    }
 
     if (commandModule.ownerOnly) {
         md += `- **Owner Only:** ✅ Yes\n`;
@@ -162,12 +187,14 @@ function generateMetadataDocs(commandModule) {
 
 /**
  * ✨ [UPGRADED] Generates the complete Markdown for a command with a consistent structure.
- * Now includes a "Usage" summary for ALL command types before the detailed breakdown.
+ * Includes a "Usage" summary for ALL command types and lists aliases (if available).
+ * Accepts subcommandExtraMeta: for split structure, so aliases from subcommand file bisa dimunculkan di dokumen.
  * @param {object} commandJSON - The command's toJSON() output.
  * @param {object} commandModule - The full command module object.
+ * @param {object} [subcommandExtraMeta=null] - Mapping {subName: meta}, for split commands, for aliases and meta per sub.
  * @returns {string} The complete Markdown string for the command.
  */
-function generateCommandMarkdown(commandJSON, commandModule) {
+function generateCommandMarkdown(commandJSON, commandModule, subcommandExtraMeta = null) {
     const parentName = commandJSON.name;
     let mdContent = `### 💾 \`/${parentName}\`\n\n`;
     mdContent += `**Description:** ${commandJSON.description}\n\n`;
@@ -180,7 +207,7 @@ function generateCommandMarkdown(commandJSON, commandModule) {
         (opt) => opt.type !== ApplicationCommandOptionType.Subcommand && opt.type !== ApplicationCommandOptionType.SubcommandGroup
     );
 
-    // --- NEW CONSISTENT USAGE SUMMARY SECTION ---
+    // --- USAGE SUMMARY SECTION ---
     mdContent += '### 💻 Usage\n\n';
     if (subcommands && subcommands.length > 0) {
         subcommands.forEach((sub) => {
@@ -210,10 +237,12 @@ function generateCommandMarkdown(commandJSON, commandModule) {
         for (const sub of subcommands) {
             if (sub.type === ApplicationCommandOptionType.SubcommandGroup) {
                 for (const subInGroup of sub.options) {
-                    mdContent += generateSubcommandDocs(parentName, subInGroup, sub.name);
+                    const meta = subcommandExtraMeta && subcommandExtraMeta[subInGroup.name] ? subcommandExtraMeta[subInGroup.name] : null;
+                    mdContent += generateSubcommandDocs(parentName, subInGroup, sub.name, meta);
                 }
             } else {
-                mdContent += generateSubcommandDocs(parentName, sub);
+                const meta = subcommandExtraMeta && subcommandExtraMeta[sub.name] ? subcommandExtraMeta[sub.name] : null;
+                mdContent += generateSubcommandDocs(parentName, sub, null, meta);
             }
         }
     } else if (regularOptions && regularOptions.length > 0) {
@@ -226,6 +255,7 @@ function generateCommandMarkdown(commandJSON, commandModule) {
 /**
  * ✨ [NEW] Processes a directory with a split command structure (_command.js).
  * It assembles the main command and all its subcommands before generating docs.
+ * Memperhatikan aliases dan metadata dari subcommand file juga.
  * @param {string} dirPath - Path to the command directory.
  * @param {string} categoryName - The name of the category/addon.
  */
@@ -237,7 +267,7 @@ function processSplitCommandDirectory(dirPath, categoryName) {
 
         if (baseCommandModule.ownerOnly) {
             console.log(`⏩ Ignoring owner-only split command in '${categoryName}'.`);
-            return; // Jangan proses sama sekali
+            return;
         }
 
         const mainBuilder = getSlashCommandBuilder(baseCommandModule);
@@ -248,19 +278,46 @@ function processSplitCommandDirectory(dirPath, categoryName) {
 
         const subcommandFiles = fs.readdirSync(dirPath).filter((file) => file.endsWith('.js') && file !== '_command.js');
 
+        // Mapping: { subcommand name -> meta from subcommandModule (aliases, cooldown, ...)}
+        const subcommandExtraMeta = {};
+
         for (const subFile of subcommandFiles) {
             const subFilePath = path.join(dirPath, subFile);
             const subcommandModule = require(subFilePath);
 
+            // Kumpulkan aliases dan properti meta lain dari setiap subcommand file
             if (typeof subcommandModule.data === 'function') {
                 const subcommandBuilder = new SlashCommandSubcommandBuilder();
                 subcommandModule.data(subcommandBuilder);
                 mainBuilder.addSubcommand(subcommandBuilder);
+
+                // Untuk identifikasi nama subcommand yang benar:
+                let subcommandName = null;
+                try {
+                    // If it uses .setName()
+                    subcommandName = subcommandBuilder.name; // Should be set by .setName()
+                } catch (err) {
+                    // fallback to fileName without ext
+                    subcommandName = path.basename(subFile, '.js');
+                }
+
+                // Get meta information (aliases, ownerOnly, cooldown, permissions, botPermissions)
+                const subMeta = {};
+                if (Array.isArray(subcommandModule.aliases) && subcommandModule.aliases.length > 0) {
+                    subMeta.aliases = subcommandModule.aliases;
+                }
+                if (subcommandModule.ownerOnly) subMeta.ownerOnly = true;
+                if (subcommandModule.cooldown) subMeta.cooldown = subcommandModule.cooldown;
+                if (subcommandModule.permissions && subcommandModule.permissions.length > 0) subMeta.permissions = subcommandModule.permissions;
+                if (subcommandModule.botPermissions && subcommandModule.botPermissions.length > 0) subMeta.botPermissions = subcommandModule.botPermissions;
+                if (Object.keys(subMeta).length > 0 && subcommandName) {
+                    subcommandExtraMeta[subcommandName] = subMeta;
+                }
             }
         }
 
         const commandJSON = mainBuilder.toJSON();
-        const markdown = generateCommandMarkdown(commandJSON, baseCommandModule);
+        const markdown = generateCommandMarkdown(commandJSON, baseCommandModule, subcommandExtraMeta);
 
         if (!markdownBuffers[categoryName]) {
             markdownBuffers[categoryName] = `## 📁 Command Category: ${categoryName.charAt(0).toUpperCase() + categoryName.slice(1)}\n\n`;
@@ -290,7 +347,7 @@ function runGenerator() {
 
                     if (commandModule.ownerOnly) {
                         console.log(`⏩ Ignoring owner-only command '${file}' in '${categoryName}'.`);
-                        continue; // Skip file ini dan lanjut ke file berikutnya
+                        continue;
                     }
 
                     const commandBuilder = getSlashCommandBuilder(commandModule);

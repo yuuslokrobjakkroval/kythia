@@ -29,6 +29,7 @@
 
 **`/eco bank`**
 > 💰 Check your kythia bank balance and full bank info.
+> _Aliases: `bank`_
 
 
 **`/eco beg`**
@@ -52,6 +53,7 @@
   - **Choices:** `Heads` (`heads`), `Tails` (`tails`)
 **`/eco daily`**
 > 💰 Collect your daily kythia coin.
+> _Aliases: `daily`_
 
 
 **`/eco deposit <type> [<amount>]`**
@@ -92,6 +94,7 @@
 
 **`/eco lootbox`**
 > 🎁 Open a lootbox to get a random reward.
+> _Aliases: `lootbox`_
 
 
 **`/eco profile [<user>]`**
@@ -114,6 +117,7 @@
 
 **`/eco slots <bet>`**
 > 🎰 Play the Las Kythia slot machine! (Warning: Addictive!)
+> _Cooldown: 20 seconds_
 
 **Options for this subcommand:**
 - **`bet*`**
@@ -138,6 +142,7 @@
   - **Type:** Integer
 **`/eco work`**
 > ⚒️ Work to earn money with various scenarios!
+> _Aliases: `work`_
 
 
 

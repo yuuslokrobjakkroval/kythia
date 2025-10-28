@@ -10,6 +10,7 @@ const { cleanupUserCache } = require('./helpers/index.js');
 const logger = require('@coreHelpers/logger.js');
 const path = require('path');
 const { userCache } = require('./helpers/automod.js');
+const setupTopGGPoster = require('./tasks/topggPoster.js');
 
 const initialize = (bot) => {
     const summary = [];
@@ -23,6 +24,16 @@ const initialize = (bot) => {
         logger.error("Error registering button handler 'reactrole':", error);
     }
 
+    // Setup Top.gg auto-poster
+    const topGGPoster = setupTopGGPoster(bot);
+    if (topGGPoster) {
+        summary.push('  └─ Task: Top.gg auto-poster initialized');
+        process.on('exit', () => {
+            topGGPoster.cleanup();
+        });
+    }
+
+    // Setup interval for cleaning up user cache
     setInterval(() => cleanupUserCache(userCache), 1000 * 60 * 60 * 1);
     summary.push('  └─ Interval: cleanup user cache (per hour)');
 

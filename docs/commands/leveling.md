@@ -17,6 +17,7 @@
 
 **`/level add <user> <level>`**
 > Add levels to a user.
+> _User Permissions: `ManageGuild`_
 
 **Options for this subcommand:**
 - **`user*`**
@@ -38,6 +39,7 @@
   - **Type:** User
 **`/level set <user> <level>`**
 > Set a user's level to a specific value.
+> _User Permissions: `ManageGuild`_
 
 **Options for this subcommand:**
 - **`user*`**
@@ -48,6 +50,7 @@
   - **Type:** Integer
 **`/level xp-add <user> <xp>`**
 > Add XP to a user.
+> _User Permissions: `ManageGuild`_
 
 **Options for this subcommand:**
 - **`user*`**
@@ -58,6 +61,7 @@
   - **Type:** Integer
 **`/level xp-set <user> <xp>`**
 > Set a user's total XP to a specific value.
+> _User Permissions: `ManageGuild`_
 
 **Options for this subcommand:**
 - **`user*`**

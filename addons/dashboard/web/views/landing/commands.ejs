@@ -92,6 +92,15 @@
                                             </p>
                                             <p class="ms-1">
                                                 <%= sub.description %>
+                                                <% if (sub.aliases && sub.aliases.length > 0) { %>
+                                                    <div class="mt-1">
+                                                        <small class="text-muted">Aliases: 
+                                                            <% sub.aliases.forEach(function(alias, i) { %>
+                                                                <code><%= alias %></code><% if (i < sub.aliases.length - 1) { %>, <% } %>
+                                                            <% }); %>
+                                                        </small>
+                                                    </div>
+                                                <% } %>
                                             </p>
 
                                             <% if (sub.options && sub.options.length> 0) { %>

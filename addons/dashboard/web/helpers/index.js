@@ -191,6 +191,14 @@ async function getCommandsData(client) {
 
             const uniqueKey = `slash-${commandJSON.name}`;
 
+            // Gather aliases for this command, supports command.aliases as array or string
+            let aliases = [];
+            if (Array.isArray(command.aliases)) {
+                aliases = command.aliases.filter(alias => typeof alias === "string" && alias.trim());
+            } else if (typeof command.aliases === "string" && command.aliases.trim()) {
+                aliases = [command.aliases.trim()];
+            }
+
             if (!processedCommands.has(uniqueKey)) {
                 processedCommands.add(uniqueKey);
 
@@ -201,6 +209,7 @@ async function getCommandsData(client) {
                     category: categoryName,
                     options: [],
                     subcommands: [],
+                    aliases: aliases,
                     type: 'slash',
                     isContextMenu: false,
                 };
@@ -222,6 +231,13 @@ async function getCommandsData(client) {
                             if (sub.type === ApplicationCommandOptionType.SubcommandGroup) {
                                 totalCommandCount += sub.options?.length || 0;
                                 (sub.options || []).forEach((subInGroup) => {
+                                    // sub-aliases not common, but theoretically possible. Add if present.
+                                    let subAliases = [];
+                                    if (Array.isArray(subInGroup.aliases)) {
+                                        subAliases = subInGroup.aliases.filter(alias => typeof alias === "string" && alias.trim());
+                                    } else if (typeof subInGroup.aliases === "string" && subInGroup.aliases.trim()) {
+                                        subAliases = [subInGroup.aliases.trim()];
+                                    }
                                     parsedCommand.subcommands.push({
                                         name: `${sub.name} ${subInGroup.name}`,
                                         description: subInGroup.description,
@@ -232,10 +248,17 @@ async function getCommandsData(client) {
                                             required: opt.required ?? false,
                                             choices: formatChoices(opt.choices),
                                         })),
+                                        aliases: subAliases,
                                     });
                                 });
                             } else {
                                 totalCommandCount += 1;
+                                let subAliases = [];
+                                if (Array.isArray(sub.aliases)) {
+                                    subAliases = sub.aliases.filter(alias => typeof alias === "string" && alias.trim());
+                                } else if (typeof sub.aliases === "string" && sub.aliases.trim()) {
+                                    subAliases = [sub.aliases.trim()];
+                                }
                                 parsedCommand.subcommands.push({
                                     name: sub.name,
                                     description: sub.description,
@@ -246,6 +269,7 @@ async function getCommandsData(client) {
                                         required: opt.required ?? false,
                                         choices: formatChoices(opt.choices),
                                     })),
+                                    aliases: subAliases,
                                 });
                             }
                         });
@@ -306,6 +330,14 @@ async function getCommandsData(client) {
                     }
                 }
 
+                // Gather aliases for contextMenuCommand too, though rare
+                let aliases = [];
+                if (Array.isArray(command.aliases)) {
+                    aliases = command.aliases.filter(alias => typeof alias === "string" && alias.trim());
+                } else if (typeof command.aliases === "string" && command.aliases.trim()) {
+                    aliases = [command.aliases.trim()];
+                }
+
                 // Only include if has a non-empty description
                 if (description && description.trim()) {
                     const parsedCommand = {
@@ -314,6 +346,7 @@ async function getCommandsData(client) {
                         category: categoryName,
                         options: [],
                         subcommands: [],
+                        aliases: aliases,
                         type: commandJSON.type === ApplicationCommandType.User ? 'user' : 'message',
                         isContextMenu: true,
                     };

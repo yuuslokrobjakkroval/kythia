@@ -6,6 +6,7 @@
 
 ### 📋 Details
 
+- **Aliases:** `srv`
 - **Bot Permissions:** `ManageChannels`, `ManageGuild`, `ManageRoles`
 ### 💻 Usage
 
