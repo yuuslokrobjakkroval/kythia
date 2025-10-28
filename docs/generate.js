@@ -3,7 +3,7 @@
  * @type: Module
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
- * @version 0.9.10-beta
+ * @version 0.9.11-beta
  */
 
 /**
@@ -13,7 +13,7 @@
  * by reading their source files. It extracts not only the structure (name, options) but
  * also critical metadata like permissions, cooldowns, and usage examples.
  *
- * @version 0.9.10-beta
+ * @version 0.9.11-beta
  */
 
 require('dotenv').config();

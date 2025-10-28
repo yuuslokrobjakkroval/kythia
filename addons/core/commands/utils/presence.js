@@ -3,7 +3,7 @@
  * @type: Command
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
- * @version 0.9.10-beta
+ * @version 0.9.11-beta
  */
 const { SlashCommandBuilder, ActivityType, InteractionContextType } = require('discord.js');
 const { t } = require('@coreHelpers/translator');

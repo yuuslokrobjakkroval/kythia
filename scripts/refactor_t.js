@@ -3,7 +3,7 @@
  * @type: Module
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
- * @version 0.9.10-beta
+ * @version 0.9.11-beta
  */
 
 /**
@@ -12,7 +12,7 @@
  * @file scripts/refactor_t.js
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
- * @version 0.9.10-beta
+ * @version 0.9.11-beta
  *
  * @description
  * Scans all translation key usages in the project, corrects their namespace to match file location,
