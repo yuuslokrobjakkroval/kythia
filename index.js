@@ -75,14 +75,13 @@ const { loadFonts } = require('@coreHelpers/fonts');
 const Redis = require('ioredis');
 const convertColor = require('@kenndeclouv/kythia-core').utils.color;
 // We create a Redis client instance, using the URL in config, in lazy mode (connect on use).
-const redisClient = new Redis(kythiaConfig.db.redis, { lazyConnect: true });
 
 // ===== 5. Setup Sequelize ORM Instance for Relational Database Access =====
 // Create a Sequelize instance, provided with config and logger for flex diagnostics
 const sequelize = createSequelizeInstance(kythiaConfig, logger);
 
 // ===== 6. Set Up Models' Internal Dependencies =====
-KythiaModel.setDependencies({ logger, config: kythiaConfig, redis: redisClient }); // Inject utility deps
+KythiaModel.setDependencies({ logger, config: kythiaConfig, redisOptions: kythiaConfig.db.redis }); // Inject utility deps
 
 // ===== 7. Collect All Service/Model Deps for Containerized Injection =====
 /**
@@ -99,13 +98,13 @@ const dependencies = {
     config: kythiaConfig,
     logger: logger,
     translator: translator,
-    redis: redisClient,
+    redis: KythiaModel.redis,
     sequelize: sequelize,
     models: {},
     helpers: {
         discord: { isTeam, isOwner, embedFooter },
         fonts: { loadFonts },
-        color: { convertColor }
+        color: { convertColor },
     },
     appRoot: __dirname,
 };
