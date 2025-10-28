@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. See [standa
 ### [0.9.11-beta](https://github.com/kythia/kythia/compare/v0.9.10-beta...v0.9.11-beta) (2025-10-28)
 
 
-### ⚠ BREAKING CHANGES
+### ⚠️ BREAKING CHANGES
 
 * **core:** The core functionalities located in the 'src/' directory have been moved to a separate NPM package '@kenndeclouv/kythia-core'. The main bot project now depends on this package.
 
