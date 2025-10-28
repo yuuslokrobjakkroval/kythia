@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.11-beta](https://github.com/kythia/kythia/compare/v0.9.10-beta...v0.9.11-beta) (2025-10-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core:** The core functionalities located in the 'src/' directory have been moved to a separate NPM package '@kenndeclouv/kythia-core'. The main bot project now depends on this package.
+
+This refactor includes several key changes:
+- Moved core classes (Kythia, KythiaClient, managers, utils, database helpers) to the new package.
+- Established the core package as CommonJS (CJS) to maintain compatibility with existing CJS addons.
+- Implemented Dependency Injection (DI) via the container for accessing models, core helpers (logger, translator, etc.), and config within addon commands, resolving critical circular dependency issues during addon loading. Addon commands must now retrieve these dependencies from `interaction.client.container` inside the `execute` function instead of using top-level `require`.
+- Configured `discord.js` as a `peerDependency` in the core package to resolve `instanceof` errors caused by multiple `discord.js` instances when using `npm link` or similar setups. The main bot project is now responsible for providing `discord.js`.
+- Updated main bot entry point (`index.js`) to import core components from the new package and inject necessary dependencies (like `appRoot` and `discord.js` during the inject-phase, though `discord.js` injection was later removed due to `peerDependencies`).
+- Adjusted internal path resolutions within the core package (e.g., for loading addons and models) to correctly use the injected `appRoot`.
+
+### 🔧 Changed
+
+* **adventure:** to use dependency injection, rename charManager to characters for more readablity, ADVENTURE ADDON READY v.1.0.0 ([e6ce9e6](https://github.com/kythia/kythia/commit/e6ce9e66222410e128433223756cbd3e8d90205b))
+* **ai:** translation and server settings using DI ([b1a7ce2](https://github.com/kythia/kythia/commit/b1a7ce2627f8f01249db349e653d89f254db1a9a))
+* **ai:** update AI addon to use dependency injection for configuration and logging, enhance command handling, and improve overall structure, ADVENTURE ADDON READY v1.0.0 ([b10551a](https://github.com/kythia/kythia/commit/b10551a1ee841de521c25e08be8a027418468046))
+* **core:** Enhance Kythia initialization and dependency management ([b838bbf](https://github.com/kythia/kythia/commit/b838bbfb251154427c6ed9f49e9d82f6f4a978fe))
+* **core:** Extract core engine into @kenndeclouv/kythia-core package ([0125a6b](https://github.com/kythia/kythia/commit/0125a6b6b6d3a1e46a4360407bbb7b0f0504d35b))
+* remove unused files and move src/utils/time to addons/core/helpers ([ed04be7](https://github.com/kythia/kythia/commit/ed04be7a78cd292c5765eb72ff2a5e7cecc23f31))
+
 ### [0.9.10-beta](https://github.com/kythia/kythia/compare/v0.9.9-beta-rc.5...v0.9.10-beta) (2025-10-27)
 
 
