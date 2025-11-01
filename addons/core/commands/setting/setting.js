@@ -7,10 +7,6 @@
  */
 const { SlashCommandBuilder, EmbedBuilder, ChannelType, PermissionFlagsBits, InteractionContextType } = require('discord.js');
 const { updateStats } = require('../../helpers/stats');
-const ServerSetting = require('@coreModels/ServerSetting');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
-const logger = require('@coreHelpers/logger');
 
 const fs = require('fs');
 const path = require('path');
@@ -567,9 +563,13 @@ module.exports = {
     permissions: PermissionFlagsBits.ManageGuild,
     botPermissions: PermissionFlagsBits.ManageGuild,
     async autocomplete(interaction) {
+        const container = interaction.client.container;
+        const { t, models } = container;
+        const { ServerSetting } = models;
+
         const focused = interaction.options.getFocused();
-        const serverSetting = await ServerSetting.getCache({ guildId: interaction.guild.id });
-        const stats = serverSetting?.serverStats ?? [];
+        const settings = await ServerSetting.getCache({ guildId: interaction.guild.id });
+        const stats = settings?.serverStats ?? [];
 
         const filtered = stats
             .filter((stat) => {
@@ -586,7 +586,11 @@ module.exports = {
 
         await interaction.respond(filtered.slice(0, 25));
     },
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, kythiaConfig, helpers, models, logger } = container;
+        const { embedFooter } = helpers.discord;
+        const { ServerSetting } = models;
+
         await interaction.deferReply({ ephemeral: true });
 
         const group = interaction.options.getSubcommandGroup(false);
@@ -610,7 +614,7 @@ module.exports = {
 
         const embed = new EmbedBuilder()
             .setTitle(await t(interaction, 'core.setting.setting.embed.title.text'))
-            .setColor(kythia.bot.color)
+            .setColor(kythiaConfig.bot.color)
             .setThumbnail(interaction.client.user.displayAvatarURL())
             .setFooter(await embedFooter(interaction))
             .setTimestamp();
@@ -747,7 +751,7 @@ module.exports = {
             const buildPageEmbed = async (pageIdx) => {
                 return new EmbedBuilder()
                     .setTitle(await t(interaction, 'core.setting.setting.embed.title.view'))
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setDescription(pages[pageIdx] || (await t(interaction, 'core.setting.setting.no.configured')))
                     .setFooter({
                         text: `${await t(interaction, 'common.embed.footer', { username: interaction.client.user.username })} • Page ${pageIdx + 1}/${totalPages}`,
@@ -757,7 +761,7 @@ module.exports = {
             if (pages.length === 1) {
                 embed
                     .setTitle(await t(interaction, 'core.setting.setting.embed.title.view'))
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setDescription(pages[0] || (await t(interaction, 'core.setting.setting.no.configured')))
                     .setFooter(await embedFooter(interaction));
                 return interaction.editReply({ embeds: [embed] });
