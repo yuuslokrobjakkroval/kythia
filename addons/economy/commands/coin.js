@@ -5,21 +5,22 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
     subcommand: true,
     data: (subcommand) => subcommand.setName('coin').setDescription('💰 Check your kythia coin balance.'),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
 
         let user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
@@ -27,7 +28,7 @@ module.exports = {
         }
 
         const cashEmbed = new EmbedBuilder()
-            .setColor(kythia.bot.color)
+            .setColor(kythiaConfig.bot.color)
             .setThumbnail(interaction.user.displayAvatarURL())
             .setDescription(
                 await t(interaction, 'economy.cash.cash.balance', {

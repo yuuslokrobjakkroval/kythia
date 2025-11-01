@@ -5,12 +5,8 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { embedFooter } = require('@coreHelpers/discord');
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const Inventory = require('@coreModels/Inventory');
-const { checkCooldown } = require('@coreHelpers/time');
-const { t } = require('@coreHelpers/translator');
+
+const { EmbedBuilder } = require('discord.js');
 const banks = require('../helpers/banks');
 
 module.exports = {
@@ -20,7 +16,12 @@ module.exports = {
             .setName('rob')
             .setDescription('💵 Try to rob money from another user.')
             .addUserOption((option) => option.setName('target').setDescription('The user you want to rob').setRequired(true)),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser, Inventory } = models;
+        const { embedFooter } = helpers.discord;
+        const { checkCooldown } = helpers.time;
+
         await interaction.deferReply();
 
         const targetUser = interaction.options.getUser('target');

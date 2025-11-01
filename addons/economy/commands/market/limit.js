@@ -5,13 +5,8 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const MarketPortfolio = require('../../database/models/MarketPortfolio');
-const MarketOrder = require('../../database/models/MarketOrder');
+const { EmbedBuilder } = require('discord.js');
 const { ASSET_IDS } = require('../../helpers/market');
-const { t } = require('@coreHelpers/translator');
-const { embedFooter } = require('@coreHelpers/discord');
 
 module.exports = {
     subcommand: true,
@@ -40,7 +35,11 @@ module.exports = {
                 option.setName('price').setDescription('The price at which to place the order').setRequired(true).setMinValue(0.01)
             ),
 
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser, MarketPortfolio, MarketOrder } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
 
         const side = interaction.options.getString('side');
@@ -51,7 +50,7 @@ module.exports = {
         let user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));

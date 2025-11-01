@@ -6,21 +6,22 @@
  * @version 0.9.11-beta
  */
 const { EmbedBuilder } = require('discord.js');
-const { embedFooter } = require('@coreHelpers/discord');
-const KythiaUser = require('@coreModels/KythiaUser');
-const { t } = require('@coreHelpers/translator');
 const banks = require('../helpers/banks');
 
 module.exports = {
     subcommand: true,
     aliases: ['bank'],
     data: (subcommand) => subcommand.setName('bank').setDescription('💰 Check your kythia bank balance and full bank info.'),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
         let user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
@@ -107,7 +108,7 @@ module.exports = {
         }
 
         const embed = new EmbedBuilder()
-            .setColor(kythia.bot.color)
+            .setColor(kythiaConfig.bot.color)
             .setThumbnail(interaction.user.displayAvatarURL())
             .setDescription(descriptionParts.join('\n'))
             .setFooter(await embedFooter(interaction));

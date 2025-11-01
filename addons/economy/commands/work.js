@@ -5,13 +5,8 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const banks = require('../helpers/banks');
-const KythiaUser = require('@coreModels/KythiaUser');
-const Inventory = require('@coreModels/Inventory');
-const { embedFooter } = require('@coreHelpers/discord');
-const { checkCooldown } = require('@coreHelpers/time');
-const { t } = require('@coreHelpers/translator');
 const jobs = require('../helpers/jobs');
 
 module.exports = {
@@ -20,13 +15,17 @@ module.exports = {
     data: (subcommand) => subcommand.setName('work').setDescription('⚒️ Work to earn money with various scenarios!'),
 
     async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser, Inventory } = models;
+        const { embedFooter } = helpers.discord;
+        const { checkCooldown } = helpers.time;
         await interaction.deferReply();
 
         const user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
-                .setDescription(await t?.(interaction, 'economy_withdraw_no_account_desc'))
+                .setColor(kythiaConfig.bot.color)
+                .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setTimestamp()
                 .setFooter(await embedFooter(interaction));
@@ -35,7 +34,7 @@ module.exports = {
 
         const userInventory = await Inventory.getAllCache({ userId: user.userId });
 
-        const cooldown = checkCooldown(user.lastWork, kythia.addons.economy.workCooldown || 28800, interaction);
+        const cooldown = checkCooldown(user.lastWork, kythiaConfig.addons.economy.workCooldown || 28800, interaction);
 
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()

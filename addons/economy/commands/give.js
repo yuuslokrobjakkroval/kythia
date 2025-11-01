@@ -5,10 +5,7 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 module.exports = {
     subcommand: true,
@@ -18,7 +15,11 @@ module.exports = {
             .setDescription('💰 Give kythia coin to another user.')
             .addUserOption((option) => option.setName('target').setDescription('User to give kythia coin to').setRequired(true))
             .addIntegerOption((option) => option.setName('amount').setDescription('Amount of kythia coin to give').setRequired(true)),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
 
         const target = interaction.options.getUser('target');
@@ -27,7 +28,7 @@ module.exports = {
         const giver = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!giver) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
@@ -72,7 +73,7 @@ module.exports = {
         }
 
         const confirmEmbed = new EmbedBuilder()
-            .setColor(kythia.bot.color)
+            .setColor(kythiaConfig.bot.color)
             .setThumbnail(interaction.user.displayAvatarURL())
             .setDescription(
                 await t(interaction, 'economy.give.give.confirm', {
@@ -110,7 +111,7 @@ module.exports = {
                 await receiver.saveAndUpdateCache('userId');
 
                 const successEmbed = new EmbedBuilder()
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setDescription(
                         await t(interaction, 'economy.give.give.success', {
                             amount,
@@ -122,7 +123,7 @@ module.exports = {
                 await i.update({ embeds: [successEmbed], components: [] });
 
                 const receiverEmbed = new EmbedBuilder()
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setDescription(
                         await t(interaction, 'economy.give.give.received', {
                             amount,
@@ -137,7 +138,7 @@ module.exports = {
                 } catch (e) {}
             } else if (i.customId === 'cancel') {
                 const cancelEmbed = new EmbedBuilder()
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setDescription(await t(interaction, 'economy.give.give.cancelled'))
                     .setFooter(await embedFooter(interaction));
                 await i.update({ embeds: [cancelEmbed], components: [] });
@@ -147,7 +148,7 @@ module.exports = {
         collector.on('end', async (collected) => {
             if (collected.size === 0) {
                 const timeoutEmbed = new EmbedBuilder()
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setDescription(await t(interaction, 'economy.give.give.timeout'))
                     .setFooter(await embedFooter(interaction));
                 await interaction.editReply({ embeds: [timeoutEmbed], components: [] });

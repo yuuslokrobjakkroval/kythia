@@ -6,14 +6,11 @@
  * @version 0.9.11-beta
  */
 
-// addons/dashboard/register.js
-
-const logger = require('@coreHelpers/logger');
 const { initializeOrderProcessing } = require('./helpers/orderProcessor');
 module.exports = {
     async initialize(bot) {
         const summery = [];
-        initializeOrderProcessing();
+        initializeOrderProcessing(bot);
         summery.push('   └─ Task: Order processing');
         return summery;
     },

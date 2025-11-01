@@ -6,16 +6,12 @@
  * @version 0.9.11-beta
  */
 
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const MarketPortfolio = require('../../database/models/MarketPortfolio');
+const { EmbedBuilder } = require('discord.js');
 const { getMarketData } = require('../../helpers/market');
-const { t } = require('@coreHelpers/translator');
-const { embedFooter } = require('@coreHelpers/discord');
-const KythiaUser = require('@coreModels/KythiaUser');
 
 function getChangeEmoji(percent) {
     if (percent > 0) return '🟢 ▲';
-    if (percent < 0) return '🔻 ▼';
+    if (percent < 0) return '🔴 ▼';
     return '⏹️';
 }
 
@@ -23,13 +19,17 @@ module.exports = {
     subcommand: true,
     data: (subcommand) => subcommand.setName('portfolio').setDescription('💼 View your personal asset portfolio.'),
 
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser, MarketPortfolio } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
 
         let user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
@@ -37,13 +37,13 @@ module.exports = {
         }
 
         const userHoldings = await MarketPortfolio.getAllCache({
-            where: { userId: interaction.user.id }, // <-- Pastikan tetap pakai 'where' untuk konsistensi
+            where: { userId: interaction.user.id },
             cacheTags: [`MarketPortfolio:byUser:${interaction.user.id}`],
         });
 
         if (userHoldings.length === 0) {
             const emptyEmbed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(
                     `## ${await t(interaction, 'economy.market.portfolio.empty.title')}\n${await t(interaction, 'economy.market.portfolio.empty.desc')}`
                 )
@@ -58,7 +58,6 @@ module.exports = {
         let totalUnrealizedLoss = 0;
         let totalUnrealizedGain = 0;
 
-        // Store all portfolio fields for embed
         const portfolioFields = [];
 
         for (let holding of userHoldings) {
@@ -95,7 +94,6 @@ module.exports = {
             const change24hSign = currentAssetData.usd_24h_change > 0 ? '+' : currentAssetData.usd_24h_change < 0 ? '' : '';
             const change24hEmoji = getChangeEmoji(currentAssetData.usd_24h_change);
 
-            // All info lines with localization
             const lines = [
                 `> **${await t(interaction, 'economy.market.portfolio.field.quantity')}** \`${holding.quantity}\``,
                 `> **${await t(interaction, 'economy.market.portfolio.field.avg.buy.price')}** \`$${holding.avgBuyPrice.toLocaleString(undefined, { maximumFractionDigits: 8 })}\``,
@@ -120,7 +118,6 @@ module.exports = {
         const totalPnlEmoji = totalPnl > 0 ? '📈' : totalPnl < 0 ? '📉' : '⏹️';
         const totalReturnPct = totalInvested > 0 ? ((totalPnl / totalInvested) * 100).toFixed(2) : '0.00';
 
-        // Localized summary
         const summaryLines = [
             `**${await t(interaction, 'economy.market.portfolio.summary.total.invested')}** \`$${totalInvested.toLocaleString(undefined, { maximumFractionDigits: 2 })}\``,
             `**${await t(interaction, 'economy.market.portfolio.summary.market.value')}** \`$${totalValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}\``,

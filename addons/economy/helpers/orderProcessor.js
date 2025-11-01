@@ -5,17 +5,15 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { Op } = require('sequelize');
-const KythiaUser = require('@coreModels/KythiaUser');
-const MarketOrder = require('../database/models/MarketOrder');
-const MarketPortfolio = require('../database/models/MarketPortfolio');
-const MarketTransaction = require('../database/models/MarketTransaction');
+
 const { getMarketData } = require('./market');
-const logger = require('@coreHelpers/logger');
 const cron = require('node-cron');
 
-async function processOrders() {
-    logger.info('Processing market orders...');
+async function processOrders(bot) {
+    const { models, logger } = bot.container;
+    const { KythiaUser, MarketOrder, MarketPortfolio, MarketTransaction } = models;
+
+    logger.info(`[Economy] Processing market orders...`);
     try {
         const marketData = await getMarketData();
         const openOrders = await MarketOrder.getAllCache({ status: 'open' });
@@ -97,19 +95,19 @@ async function processOrders() {
  * Mimics the style used in @ai/tasks/dailyGreeter.js.
  * @param {Object} [options] Optional scheduling options (e.g. custom cron, timezone).
  */
-function initializeOrderProcessing(options = {}) {
-    const schedule =
-        typeof kythia !== 'undefined' && kythia.addons && kythia.addons.economy && kythia.addons.economy.orderProcessorSchedule
-            ? kythia.addons.economy.orderProcessorSchedule
-            : '*/5 * * * *';
+function initializeOrderProcessing(bot, options = {}) {
+    const kythiaConfig = bot.container.kythiaConfig;
+    const schedule = kythiaConfig.addons.economy.orderProcessorSchedule
+        ? kythiaConfig.addons.economy.orderProcessorSchedule
+        : '*/5 * * * *';
 
     cron.schedule(
         schedule,
         async () => {
-            await processOrders();
+            await processOrders(bot);
         },
         {
-            timezone: typeof kythia !== 'undefined' && kythia.bot && kythia.bot.timezone ? kythia.bot.timezone : undefined,
+            timezone: kythiaConfig.bot.timezone ? kythiaConfig.bot.timezone : undefined,
             ...options,
         }
     );

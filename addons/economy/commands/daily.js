@@ -5,31 +5,32 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const { embedFooter } = require('@coreHelpers/discord');
-const { checkCooldown } = require('@coreHelpers/time');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder } = require('discord.js');
 const banks = require('../helpers/banks');
 
 module.exports = {
     subcommand: true,
     aliases: ['daily'],
     data: (subcommand) => subcommand.setName('daily').setDescription('💰 Collect your daily kythia coin.'),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+        const { checkCooldown } = helpers.time;
+
         await interaction.deferReply();
 
         let user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const cooldown = checkCooldown(user.lastDaily, kythia.addons.economy.dailyCooldown || 86400, interaction);
+        const cooldown = checkCooldown(user.lastDaily, kythiaConfig.addons.economy.dailyCooldown || 86400, interaction);
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setColor('Yellow')
@@ -58,7 +59,7 @@ module.exports = {
         await user.saveAndUpdateCache('userId');
 
         const embed = new EmbedBuilder()
-            .setColor(kythia.bot.color)
+            .setColor(kythiaConfig.bot.color)
             .setThumbnail(interaction.user.displayAvatarURL())
             .setDescription(await t(interaction, 'economy.daily.daily.success', { amount: randomCoin }))
             .setFooter(await embedFooter(interaction));

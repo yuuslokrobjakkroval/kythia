@@ -5,10 +5,7 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder } = require('discord.js');
 const banks = require('../helpers/banks');
 
 module.exports = {
@@ -25,7 +22,11 @@ module.exports = {
                     .addChoices({ name: 'Deposit All', value: 'all' }, { name: 'Deposit Partial', value: 'partial' })
             )
             .addIntegerOption((option) => option.setName('amount').setDescription('Amount to deposit').setRequired(false).setMinValue(1)),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
         const type = interaction.options.getString('type');
         let amount = interaction.options.getInteger('amount');
@@ -33,7 +34,7 @@ module.exports = {
         let user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
@@ -101,7 +102,7 @@ module.exports = {
         await user.saveAndUpdateCache();
 
         const embed = new EmbedBuilder()
-            .setColor(kythia.bot.color)
+            .setColor(kythiaConfig.bot.color)
             .setThumbnail(interaction.user.displayAvatarURL())
             .setDescription(await t(interaction, 'economy.deposit.deposit.success', { amount }))
             .setFooter(await embedFooter(interaction));

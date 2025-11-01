@@ -5,11 +5,9 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder } = require('discord.js');
 const banks = require('../../helpers/banks');
+
 module.exports = {
     subcommand: true,
     data: (subcommand) =>
@@ -28,7 +26,11 @@ module.exports = {
                         }))
                     )
             ),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
         const bankType = interaction.options.getString('bank');
         const userId = interaction.user.id;
@@ -37,7 +39,7 @@ module.exports = {
         const existingUser = await KythiaUser.getCache({ userId: userId });
         if (existingUser) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.account.create.account.create.already.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
@@ -48,7 +50,7 @@ module.exports = {
         await KythiaUser.create({ userId, bankType });
 
         const embed = new EmbedBuilder()
-            .setColor(kythia.bot.color)
+            .setColor(kythiaConfig.bot.color)
             .setDescription(await t(interaction, 'economy.account.create.account.create.success.desc', { bankType: bankDisplay }))
             .setThumbnail(interaction.user.displayAvatarURL())
             .setFooter(await embedFooter(interaction));

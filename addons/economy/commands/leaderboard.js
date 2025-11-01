@@ -15,15 +15,13 @@ const {
     SeparatorBuilder,
     MessageFlags,
 } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const { t } = require('@coreHelpers/translator');
-const convertColor = require('@kenndeclouv/kythia-core').utils.color;
 
 const USERS_PER_PAGE = 10;
 const MAX_USERS = 100;
 
 // Helper to build a row of nav buttons, optionally disabled
 async function buildNavButtons(interaction, page, totalPages, allDisabled = false) {
+    const { t } = interaction.client.container;
     return [
         new ButtonBuilder()
             .setCustomId('leaderboard_first')
@@ -49,6 +47,9 @@ async function buildNavButtons(interaction, page, totalPages, allDisabled = fals
 }
 
 async function generateLeaderboardContainer(interaction, page, topUsers, totalUsers, navDisabled = false) {
+    const { t, kythiaConfig, helpers } = interaction.client.container;
+    const { convertColor } = helpers.color;
+
     const totalPages = Math.max(1, Math.ceil(totalUsers / USERS_PER_PAGE));
     page = Math.max(1, Math.min(page, totalPages));
 
@@ -90,8 +91,8 @@ async function generateLeaderboardContainer(interaction, page, topUsers, totalUs
     // Build container, insert navigation buttons inside
     const navButtons = await buildNavButtons(interaction, page, totalPages, navDisabled);
 
-    const container = new ContainerBuilder()
-        .setAccentColor(convertColor(kythia.bot.color, { from: 'hex', to: 'decimal' }))
+    const leaderboardContainer = new ContainerBuilder()
+        .setAccentColor(convertColor(kythiaConfig.bot.color, { from: 'hex', to: 'decimal' }))
         .addTextDisplayComponents(
             new TextDisplayBuilder().setContent(
                 await t(interaction, 'economy.leaderboard.title', {
@@ -113,14 +114,18 @@ async function generateLeaderboardContainer(interaction, page, topUsers, totalUs
         // Add navigation buttons using addActionRowComponents, see about.js
         .addActionRowComponents(new ActionRowBuilder().addComponents(...navButtons));
 
-    return { container, page, totalPages };
+    return { leaderboardContainer, page, totalPages };
 }
 
 module.exports = {
     subcommand: true,
     data: (subcommand) => subcommand.setName('leaderboard').setDescription('🏆 View the global economy leaderboard.'),
 
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
 
         // Fetch all users ordered by total wealth (coin + bank)
@@ -135,17 +140,17 @@ module.exports = {
         let currentPage = 1;
 
         if (totalUsers === 0) {
-            const { container } = await generateLeaderboardContainer(interaction, 1, [], 0, /*navDisabled*/ true);
+            const { leaderboardContainer } = await generateLeaderboardContainer(interaction, 1, [], 0, /*navDisabled*/ true);
             return interaction.editReply({
-                components: [container],
+                components: [leaderboardContainer],
                 flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
             });
         }
 
-        const { container, page, totalPages } = await generateLeaderboardContainer(interaction, currentPage, allUsers, totalUsers);
+        const { leaderboardContainer, page, totalPages } = await generateLeaderboardContainer(interaction, currentPage, allUsers, totalUsers);
 
         const message = await interaction.editReply({
-            components: [container],
+            components: [leaderboardContainer],
             flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
             fetchReply: true,
         });
@@ -174,31 +179,29 @@ module.exports = {
                 currentPage = totalPages;
             }
 
-            const { container: newContainer, page: newPage } = await generateLeaderboardContainer(i, currentPage, allUsers, totalUsers);
+            const { leaderboardContainer: newLeaderboardContainer } = await generateLeaderboardContainer(i, currentPage, allUsers, totalUsers);
 
             await i.update({
-                components: [newContainer],
+                components: [newLeaderboardContainer],
                 flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
             });
         });
 
         collector.on('end', async () => {
             try {
-                const { container: finalContainer } = await generateLeaderboardContainer(
+                const { leaderboardContainer: finalContainer } = await generateLeaderboardContainer(
                     interaction,
                     currentPage,
                     allUsers,
                     totalUsers,
-                    /*navDisabled*/ true
+                    true
                 );
 
                 await message.edit({
                     components: [finalContainer],
                     flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
                 });
-            } catch (error) {
-                // Message might be deleted
-            }
+            } catch (error) {}
         });
     },
 };

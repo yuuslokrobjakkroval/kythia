@@ -5,10 +5,7 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
     subcommand: true,
@@ -24,12 +21,16 @@ module.exports = {
                     .setRequired(true)
                     .addChoices({ name: 'Heads', value: 'heads' }, { name: 'Tails', value: 'tails' })
             ),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
         let user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
@@ -56,7 +57,7 @@ module.exports = {
 
             await user.saveAndUpdateCache('userId');
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setDescription(
                     await t(interaction, 'economy.coinflip.coinflip.win', {

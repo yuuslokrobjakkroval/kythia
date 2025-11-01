@@ -5,12 +5,7 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const MarketOrder = require('../../database/models/MarketOrder');
-const MarketPortfolio = require('../../database/models/MarketPortfolio');
-const { t } = require('@coreHelpers/translator');
-const { embedFooter } = require('@coreHelpers/discord');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
     subcommand: true,
@@ -20,7 +15,11 @@ module.exports = {
             .setDescription('Cancel an open order.')
             .addStringOption((option) => option.setName('order_id').setDescription('The ID of the order to cancel').setRequired(true)),
 
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser, MarketPortfolio, MarketOrder } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
         const orderId = interaction.options.getString('order_id');
 

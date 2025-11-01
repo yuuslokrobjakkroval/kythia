@@ -6,7 +6,6 @@
  * @version 0.9.11-beta
  */
 const {
-    SlashCommandBuilder,
     ActionRowBuilder,
     StringSelectMenuBuilder,
     ButtonBuilder,
@@ -17,11 +16,7 @@ const {
     SeparatorSpacingSize,
     MessageFlags,
 } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const Inventory = require('@coreModels/Inventory');
-const { embedFooter } = require('@coreHelpers/discord');
 const shopData = require('../helpers/items');
-const { t } = require('@coreHelpers/translator');
 
 const allItems = Object.values(shopData).flat();
 
@@ -30,6 +25,8 @@ function safeLocaleString(value, fallback = '0') {
 }
 
 async function generateShopContainer(interaction, user, category, page, pageItems, componentsBelow = []) {
+    const { t, kythiaConfig, helpers } = interaction.client.container;
+
     let cashDisplay = '0';
     if (user && typeof user.kythiaCoin !== 'undefined' && user.kythiaCoin !== null) {
         cashDisplay = safeLocaleString(user.kythiaCoin, '0');
@@ -67,8 +64,8 @@ async function generateShopContainer(interaction, user, category, page, pageItem
 
     const footerText = await t(interaction, 'economy.shop.footer', { page, totalPages });
 
-    const container = new ContainerBuilder()
-        .setAccentColor(kythia.bot.color ? parseInt(kythia.bot.color.replace('#', ''), 16) : undefined)
+    const shopContainer = new ContainerBuilder()
+        .setAccentColor(kythiaConfig.bot.color ? parseInt(kythiaConfig.bot.color.replace('#', ''), 16) : undefined)
         .addTextDisplayComponents(new TextDisplayBuilder().setContent(headerText))
         .addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true))
         .addTextDisplayComponents(...itemBlocks)
@@ -76,13 +73,13 @@ async function generateShopContainer(interaction, user, category, page, pageItem
         .addTextDisplayComponents(new TextDisplayBuilder().setContent(footerText ?? ''));
 
     if (componentsBelow && componentsBelow.length) {
-        container
+        shopContainer
             .addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true))
             .addActionRowComponents(...componentsBelow);
     }
 
     return {
-        container,
+        shopContainer,
         pageItems,
         page,
         totalPages,
@@ -90,6 +87,7 @@ async function generateShopContainer(interaction, user, category, page, pageItem
 }
 
 async function generateShopComponentRows(interaction, page, totalPages, category, pageItems) {
+    const { t } = interaction.client.container;
     const categoryOptions = await Promise.all(
         Object.keys(shopData).map(async (cat) => ({
             label: await t(interaction, `economy.shop.category.${cat}`),
@@ -111,6 +109,7 @@ async function generateShopComponentRows(interaction, page, totalPages, category
                 ...categoryOptions,
             ])
     );
+
     const buyOptions = await Promise.all(
         pageItems.map(async (item) => ({
             label: await t(interaction, item.nameKey),
@@ -159,15 +158,17 @@ module.exports = {
     data: (subcommand) => subcommand.setName('shop').setDescription('🛒 Look and buy items from the shop.'),
 
     async execute(interaction) {
+        const { t, kythiaConfig, models } = interaction.client.container;
+        const { KythiaUser, Inventory } = models;
         await interaction.deferReply();
         let user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
-            const errContainer = new ContainerBuilder()
-                .setAccentColor(kythia.bot.color ? parseInt(kythia.bot.color.replace('#', ''), 16) : undefined)
+            const errShopContainer = new ContainerBuilder()
+                .setAccentColor(kythiaConfig.bot.color ? parseInt(kythiaConfig.bot.color.replace('#', ''), 16) : undefined)
                 .addTextDisplayComponents(new TextDisplayBuilder().setContent(await t(interaction, 'economy.withdraw.no.account.desc')))
                 .addTextDisplayComponents(new TextDisplayBuilder().setContent(''));
             return interaction.reply({
-                components: [errContainer],
+                components: [errShopContainer],
                 ephemeral: true,
                 flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
             });
@@ -183,14 +184,7 @@ module.exports = {
         let pageItems = itemsToShow.slice(0, 5);
 
         let components = await generateShopComponentRows(interaction, currentPage, totalPages, currentCategory, pageItems);
-        let { container: shopContainer } = await generateShopContainer(
-            interaction,
-            user,
-            currentCategory,
-            currentPage,
-            pageItems,
-            components
-        );
+        let { shopContainer } = await generateShopContainer(interaction, user, currentCategory, currentPage, pageItems, components);
 
         const message = await interaction.editReply({
             components: [shopContainer],
@@ -201,12 +195,13 @@ module.exports = {
         const collector = message.createMessageComponentCollector({ time: 300000 });
 
         collector.on('collect', async (i) => {
+            const { t, kythia } = interaction.client.container;
             if (i.user.id !== interaction.user.id) {
-                const errContainer = new ContainerBuilder()
-                    .setAccentColor(kythia.bot.color ? parseInt(kythia.bot.color.replace('#', ''), 16) : undefined)
+                const errShopContainer = new ContainerBuilder()
+                    .setAccentColor(kythiaConfig.bot.color ? parseInt(kythiaConfig.bot.color.replace('#', ''), 16) : undefined)
                     .addTextDisplayComponents(new TextDisplayBuilder().setContent(await t(i, 'economy.shop.not.your.interaction.desc')));
                 return i.reply({
-                    components: [errContainer],
+                    components: [errShopContainer],
                     ephemeral: true,
                     flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
                 });
@@ -237,11 +232,11 @@ module.exports = {
                 const selectedItem = allItems.find((item) => item.id === itemId);
 
                 if (!selectedItem) {
-                    const errContainer = new ContainerBuilder()
-                        .setAccentColor(kythia.bot.color ? parseInt(kythia.bot.color.replace('#', ''), 16) : undefined)
+                    const errShopContainer = new ContainerBuilder()
+                        .setAccentColor(kythiaConfig.bot.color ? parseInt(kythiaConfig.bot.color.replace('#', ''), 16) : undefined)
                         .addTextDisplayComponents(new TextDisplayBuilder().setContent(await t(i, 'economy.shop.item.not.found.desc')));
                     return i.followUp({
-                        components: [errContainer],
+                        components: [errShopContainer],
                         ephemeral: true,
                         flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
                     });
@@ -253,30 +248,30 @@ module.exports = {
                 user = await KythiaUser.getCache({ userId: interaction.user.id });
 
                 if (!user || typeof user.kythiaCoin !== 'number' || isNaN(user.kythiaCoin)) {
-                    const errContainer = new ContainerBuilder()
-                        .setAccentColor(kythia.bot.color ? parseInt(kythia.bot.color.replace('#', ''), 16) : undefined)
+                    const errShopContainer = new ContainerBuilder()
+                        .setAccentColor(kythiaConfig.bot.color ? parseInt(kythiaConfig.bot.color.replace('#', ''), 16) : undefined)
                         .addTextDisplayComponents(
                             new TextDisplayBuilder().setContent(
                                 await t(i, 'economy.shop.not.enough.money.desc', { item: itemNameWithEmoji })
                             )
                         );
                     return i.followUp({
-                        components: [errContainer],
+                        components: [errShopContainer],
                         ephemeral: true,
                         flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
                     });
                 }
 
                 if (user.kythiaCoin < selectedItem.price) {
-                    const errContainer = new ContainerBuilder()
-                        .setAccentColor(kythia.bot.color ? parseInt(kythia.bot.color.replace('#', ''), 16) : undefined)
+                    const errShopContainer = new ContainerBuilder()
+                        .setAccentColor(kythiaConfig.bot.color ? parseInt(kythiaConfig.bot.color.replace('#', ''), 16) : undefined)
                         .addTextDisplayComponents(
                             new TextDisplayBuilder().setContent(
                                 await t(i, 'economy.shop.not.enough.money.desc', { item: itemNameWithEmoji })
                             )
                         );
                     return i.followUp({
-                        components: [errContainer],
+                        components: [errShopContainer],
                         ephemeral: true,
                         flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
                     });
@@ -291,8 +286,8 @@ module.exports = {
                 await Inventory.create({ userId: user.userId, itemName: itemNameWithEmoji });
 
                 const priceStr = safeLocaleString(selectedItem.price, '?');
-                const successContainer = new ContainerBuilder()
-                    .setAccentColor(kythia.bot.color ? parseInt(kythia.bot.color.replace('#', ''), 16) : undefined)
+                const successShopContainer = new ContainerBuilder()
+                    .setAccentColor(kythiaConfig.bot.color ? parseInt(kythiaConfig.bot.color.replace('#', ''), 16) : undefined)
                     .addTextDisplayComponents(
                         new TextDisplayBuilder().setContent(
                             await t(i, 'economy.shop.buy.success.desc', {
@@ -302,7 +297,7 @@ module.exports = {
                         )
                     );
                 await i.followUp({
-                    components: [successContainer],
+                    components: [successShopContainer],
                     ephemeral: true,
                     flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
                 });
@@ -318,7 +313,7 @@ module.exports = {
             pageItems = itemsToShow.slice(startIndex, startIndex + 5);
 
             const newComponents = await generateShopComponentRows(interaction, currentPage, totalPages, currentCategory, pageItems);
-            const { container: newShopContainer } = await generateShopContainer(
+            const { shopContainer: newShopContainer } = await generateShopContainer(
                 interaction,
                 await KythiaUser.getCache({ userId: interaction.user.id }),
                 currentCategory,

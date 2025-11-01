@@ -6,10 +6,7 @@
  * @version 0.9.11-beta
  */
 
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder } = require('discord.js');
 
 const symbols = {
     '🍒': { weight: 25, payout: { two: 1.5, three: 5 } },
@@ -40,19 +37,22 @@ module.exports = {
     data: (subcommand) =>
         subcommand
             .setName('slots')
-            .setDescription(`🎰 Play the Las ${kythia.bot.name} slot machine! (Warning: Addictive!)`)
+            .setDescription(`🎰 Play the Las Vegas Kythia slot machine! (Warning: Addictive!)`)
             .addIntegerOption((option) =>
                 option.setName('bet').setDescription('The amount of money to bet').setRequired(true).setMinValue(10)
             ),
     cooldown: 20,
     async execute(interaction, container) {
-        const { t } = container || {};
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+
         const bet = interaction.options.getInteger('bet');
         const user = await KythiaUser.getCache({ userId: interaction.user.id });
 
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));

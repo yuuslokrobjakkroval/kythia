@@ -5,10 +5,7 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder } = require('discord.js');
 const banks = require('../helpers/banks');
 
 module.exports = {
@@ -18,7 +15,11 @@ module.exports = {
             .setName('withdraw')
             .setDescription('Withdraw your kythia coin from kythia bank.')
             .addIntegerOption((option) => option.setName('amount').setDescription('Amount to withdraw').setRequired(true)),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
         try {
             const amount = interaction.options.getInteger('amount');
@@ -26,7 +27,7 @@ module.exports = {
 
             if (!user) {
                 const embed = new EmbedBuilder()
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                     .setThumbnail(interaction.user.displayAvatarURL())
                     .setTimestamp()
@@ -58,7 +59,7 @@ module.exports = {
             await user.saveAndUpdateCache('userId');
 
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setDescription(
                     await t(interaction, 'economy.withdraw.withdraw.success', {

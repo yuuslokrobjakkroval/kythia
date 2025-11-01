@@ -6,12 +6,7 @@
  * @version 0.9.11-beta
  */
 
-const { embedFooter } = require('@coreHelpers/discord');
-const { checkCooldown } = require('@coreHelpers/time');
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const Inventory = require('@coreModels/Inventory');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder } = require('discord.js');
 const banks = require('../helpers/banks');
 
 module.exports = {
@@ -23,7 +18,12 @@ module.exports = {
             .addUserOption((option) => option.setName('target').setDescription('User you want to hack').setRequired(true)),
     guildOnly: true,
 
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser, Inventory } = models;
+        const { embedFooter } = helpers.discord;
+        const { checkCooldown } = helpers.time;
+
         await interaction.deferReply();
 
         const targetUser = interaction.options.getUser('target');
@@ -32,14 +32,14 @@ module.exports = {
 
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const cooldown = checkCooldown(user.lastHack, kythia.addons.economy.hackCooldown || 7200, interaction);
+        const cooldown = checkCooldown(user.lastHack, kythiaConfig.addons.economy.hackCooldown || 7200, interaction);
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setColor('Yellow')
@@ -94,7 +94,7 @@ module.exports = {
                 })
             )
             .setThumbnail(interaction.user.displayAvatarURL())
-            .setColor(kythia.bot.color);
+            .setColor(kythiaConfig.bot.color);
 
         await interaction.editReply({ embeds: [embed] });
 
@@ -142,7 +142,7 @@ module.exports = {
                 } catch (err) {}
 
                 const successEmbed = new EmbedBuilder()
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setThumbnail(interaction.user.displayAvatarURL())
                     .setDescription(
                         await t(interaction, 'economy.hack.hack.success.text', {

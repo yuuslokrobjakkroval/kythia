@@ -5,17 +5,17 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const MarketTransaction = require('../../database/models/MarketTransaction');
-const { t } = require('@coreHelpers/translator');
-const { embedFooter } = require('@coreHelpers/discord');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
     subcommand: true,
     data: (subcommand) => subcommand.setName('history').setDescription('View your transaction history.'),
 
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser, MarketPortfolio, MarketTransaction } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
 
         let user = await KythiaUser.getCache({ userId: interaction.user.id });

@@ -5,32 +5,33 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { checkCooldown } = require('@coreHelpers/time');
-const { embedFooter } = require('@coreHelpers/discord');
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const ServerSetting = require('@coreModels/ServerSetting');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder } = require('discord.js');
+
 const banks = require('../helpers/banks');
 
 module.exports = {
     subcommand: true,
     aliases: ['lootbox'],
     data: (subcommand) => subcommand.setName('lootbox').setDescription('🎁 Open a lootbox to get a random reward.'),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+        const { checkCooldown } = helpers.time;
+
         await interaction.deferReply();
 
         let user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
             return interaction.editReply({ embeds: [embed] });
         }
 
-        const cooldown = checkCooldown(user.lastLootbox, kythia.addons.economy.lootboxCooldown || 43200, interaction);
+        const cooldown = checkCooldown(user.lastLootbox, kythiaConfig.addons.economy.lootboxCooldown || 43200, interaction);
         if (cooldown.remaining) {
             const embed = new EmbedBuilder()
                 .setColor('Yellow')
@@ -59,7 +60,7 @@ module.exports = {
         await user.saveAndUpdateCache('userId');
 
         const embed = new EmbedBuilder()
-            .setColor(kythia.bot.color)
+            .setColor(kythiaConfig.bot.color)
             .setTitle(await t(interaction, 'economy.lootbox.lootbox.title'))
             .setThumbnail(interaction.user.displayAvatarURL())
             .setDescription(await t(interaction, 'economy.lootbox.lootbox.success', { amount: randomReward }))

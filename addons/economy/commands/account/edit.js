@@ -5,11 +5,8 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const banks = require('@addons/economy/helpers/banks');
-const { embedFooter } = require('@coreHelpers/discord');
-const KythiaUser = require('@coreModels/KythiaUser');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder } = require('discord.js');
+const banks = require('../../helpers/banks');
 
 module.exports = {
     subcommand: true,
@@ -29,7 +26,11 @@ module.exports = {
                         }))
                     )
             ),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
         try {
             const bankType = interaction.options.getString('bank');
@@ -41,7 +42,7 @@ module.exports = {
             const existingUser = await KythiaUser.getCache({ userId: userId });
             if (!existingUser) {
                 const embed = new EmbedBuilder()
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                     .setThumbnail(interaction.user.displayAvatarURL())
                     .setFooter(await embedFooter(interaction));
@@ -54,7 +55,7 @@ module.exports = {
             await existingUser.saveAndUpdateCache('userId');
 
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.account.edit.account.edit.success.desc', { bankType: bankDisplay }))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
@@ -62,7 +63,7 @@ module.exports = {
         } catch (error) {
             console.error('Error during account edit command execution:', error);
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.account.edit.account.edit.error.desc'))
                 .setTimestamp()
                 .setFooter(await embedFooter(interaction));

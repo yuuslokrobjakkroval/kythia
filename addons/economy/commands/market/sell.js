@@ -5,13 +5,8 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const MarketPortfolio = require('../../database/models/MarketPortfolio');
-const MarketTransaction = require('../../database/models/MarketTransaction');
+const { EmbedBuilder } = require('discord.js');
 const { getMarketData, ASSET_IDS } = require('../../helpers/market');
-const { t } = require('@coreHelpers/translator');
-const { embedFooter } = require('@coreHelpers/discord');
 
 module.exports = {
     subcommand: true,
@@ -34,7 +29,11 @@ module.exports = {
                     .setMinValue(0.000001)
             ),
 
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser, MarketPortfolio, MarketTransaction } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
 
         const assetId = interaction.options.getString('asset');
@@ -43,7 +42,7 @@ module.exports = {
         let user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
@@ -57,7 +56,7 @@ module.exports = {
 
         if (!holding || holding.quantity < sellQuantity) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(
                     `## ${await t(interaction, 'economy.market.sell.insufficient.asset.title')}\n${await t(interaction, 'economy.market.sell.insufficient.asset.desc', { asset: assetId.toUpperCase() })}`
                 )
@@ -71,7 +70,7 @@ module.exports = {
 
         if (!assetData) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(
                     `## ${await t(interaction, 'economy.market.sell.asset.not.found.title')}\n${await t(interaction, 'economy.market.sell.asset.not.found.desc')}`
                 )
@@ -137,7 +136,7 @@ module.exports = {
         } catch (error) {
             console.error('Error during market sell:', error);
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(
                     `## ${await t(interaction, 'economy.market.sell.error.title')}\n${await t(interaction, 'economy.market.sell.error.desc')}`
                 )

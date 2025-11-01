@@ -5,10 +5,7 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder } = require('discord.js');
 const banks = require('../helpers/banks');
 
 module.exports = {
@@ -18,7 +15,11 @@ module.exports = {
             .setName('profile')
             .setDescription("🗃️ View a user's full profile, including level, bank, cash, and more.")
             .addUserOption((option) => option.setName('user').setDescription('The user whose profile you want to view').setRequired(false)),
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
 
         // Get target user or self
@@ -29,7 +30,7 @@ module.exports = {
         const userData = await KythiaUser.getCache({ userId: userId });
         if (!userData) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
@@ -44,7 +45,7 @@ module.exports = {
         const bankDisplay = `(${userBank.emoji} ${userBank.name})`;
         // Build embed using t for all text
         const embed = new EmbedBuilder()
-            .setColor(kythia.bot.color)
+            .setColor(kythiaConfig.bot.color)
             .setThumbnail(targetUser.displayAvatarURL({ dynamic: true }))
             .setDescription(
                 [

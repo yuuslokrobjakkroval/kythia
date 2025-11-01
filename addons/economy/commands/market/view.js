@@ -7,11 +7,7 @@
  */
 
 const { getMarketData, ASSET_IDS, getChartBuffer } = require('../../helpers/market');
-const { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } = require('discord.js');
-const KythiaUser = require('@coreModels/KythiaUser');
-const MarketOrder = require('../../database/models/MarketOrder');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
+const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
 
 function formatMarketTable(rows) {
     return ['```', 'SYMBOL   |    PRICE (USD)  |  24H CHANGE', '----------------------------------------', ...rows, '```'].join('\n');
@@ -37,13 +33,17 @@ module.exports = {
                     .addChoices(...ASSET_IDS.map((id) => ({ name: id.toUpperCase(), value: id })))
             ),
 
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, models, kythiaConfig, helpers } = container;
+        const { KythiaUser, MarketOrder } = models;
+        const { embedFooter } = helpers.discord;
+
         await interaction.deferReply();
 
         let user = await KythiaUser.getCache({ userId: interaction.user.id });
         if (!user) {
             const embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(await t(interaction, 'economy.withdraw.no.account.desc'))
                 .setThumbnail(interaction.user.displayAvatarURL())
                 .setFooter(await embedFooter(interaction));
@@ -68,7 +68,7 @@ module.exports = {
                 const emoji = getChangeEmoji(data.usd_24h_change);
 
                 embed = new EmbedBuilder()
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setTitle(await t(interaction, 'economy.market.view.chart.title', { asset: assetId.toUpperCase() }))
                     .addFields(
                         {
@@ -129,7 +129,7 @@ module.exports = {
             const prettyTable = formatMarketTable(assetRows);
 
             embed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(`## ${await t(interaction, 'economy.market.view.all.title')}\n` + prettyTable)
                 .setFooter(await embedFooter(interaction));
         }
