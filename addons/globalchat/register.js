@@ -12,8 +12,9 @@ const { initializeWebhookHealthCheck } = require('./tasks/webhookHealthCheck');
 module.exports = {
     async initialize(bot) {
         const summery = [];
-
-        initializeWebhookHealthCheck(bot);
+        bot.addClientReadyHook(() => {
+            initializeWebhookHealthCheck(bot);
+        });
         summery.push('   └─ Task: Webhook Health Check (Cron Job) On');
 
         return summery;

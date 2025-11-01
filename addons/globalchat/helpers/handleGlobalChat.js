@@ -10,7 +10,7 @@ const fetch = require('node-fetch');
 const { handleFailedGlobalChat } = require('./handleFailedGlobalChat');
 
 async function handleGlobalChat(message, container) {
-    const { logger } = container;
+    const { logger, kythiaConfig } = container;
 
     if (message.author.bot) return;
     if (!message.guild) return;
@@ -58,10 +58,16 @@ async function handleGlobalChat(message, container) {
             })),
         };
 
-        const apiUrl = kythia.addons.globalchat.apiUrl;
+     
+        const apiUrl = kythiaConfig.addons.globalchat.apiUrl;
+        const apiKey = kythiaConfig.addons.globalchat.apiKey;
+
         const response = await fetch(`${apiUrl}/chat`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+            },
             body: JSON.stringify({
                 message: safeMessage,
                 guildName: message.guild.name,

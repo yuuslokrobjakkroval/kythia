@@ -28,14 +28,15 @@ module.exports = {
         bot.addClientReadyHook(() => {
             bot.aiCommandSchema = generateCommandSchema(bot.client);
             logger.info(`✅ Successfully loaded ${bot.aiCommandSchema.length} command schema for AI.`);
+            
+            if (bot.container.kythiaConfig.addons.ai.dailyGreeter === true) {
+                initializeAiTasks(bot);
+                summery.push('   └─ Task: Daily Greeter (Cron Job) On');
+            } else {
+                summery.push('   └─ Task: Daily Greeter (Cron Job) Off');
+            }
         });
 
-        if (bot.container.kythiaConfig.addons.ai.dailyGreeter === true) {
-            initializeAiTasks(bot);
-            summery.push('   └─ Task: Daily Greeter (Cron Job) On');
-        } else {
-            summery.push('   └─ Task: Daily Greeter (Cron Job) Off');
-        }
         return summery;
     },
 };

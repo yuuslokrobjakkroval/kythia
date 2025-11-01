@@ -6,11 +6,8 @@
  * @version 0.9.11-beta
  */
 
-const { SlashCommandBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder, InteractionContextType, MessageFlags } = require('discord.js');
+const { PermissionFlagsBits, ChannelType, EmbedBuilder, MessageFlags } = require('discord.js');
 const fetch = require('node-fetch');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
-const GlobalChat = require('../database/models/GlobalChat');
 
 module.exports = {
     subcommand: true,
@@ -26,9 +23,11 @@ module.exports = {
                     .setRequired(false)
             ),
     async execute(interaction, container) {
-        const { logger } = container;
-        const client = interaction.client;
-        const apiUrl = kythia?.addons?.globalchat?.apiUrl;
+        const { t, models, kythiaConfig, helpers, logger, client } = container;
+        const { GlobalChat } = models;
+        const { embedFooter } = helpers.discord;
+
+        const apiUrl = kythiaConfig?.addons?.globalchat?.apiUrl;
         const webhookName = 'Kythia Global Chat';
 
         await interaction.deferReply();
@@ -165,7 +164,10 @@ module.exports = {
         try {
             await fetch(`${apiUrl}/add`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${kythiaConfig.addons.globalchat.apiKey}`,
+                },
                 body: JSON.stringify({
                     guildId: interaction.guild.id,
                     globalChannelId: usedChannelId,

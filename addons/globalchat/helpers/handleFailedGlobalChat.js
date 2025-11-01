@@ -4,6 +4,9 @@
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
  * @version 0.9.11-beta
+ *
+ * Attempts to automatically fix broken webhooks for guilds that failed delivery.
+ * Also updates the new webhook info on the local database, not just the API.
  */
 
 const fetch = require('node-fetch');
@@ -11,21 +14,29 @@ const { PermissionsBitField } = require('discord.js');
 
 /**
  * Attempts to automatically fix broken webhooks for guilds that failed delivery.
- * Fetches guild info, creates a new webhook, and updates the API.
+ * Fetches guild info, creates a new webhook, updates the API, and persists in DB.
  * @param {Array<{guildId: string, guildName?: string, error: string}>} failedGuilds - Array of failed guilds from API response.
- * @param {object} container - The Kythia container object (client, logger, etc.).
+ * @param {object} container - The Kythia container object (client, logger, kythiaConfig, models, etc.).
  */
 async function handleFailedGlobalChat(failedGuilds, container) {
-    const { logger, client } = container;
-    const apiUrl = kythia.addons.globalchat.apiUrl;
-    const webhookName = kythia.addons.globalchat.webhookName || 'Global Chat via Kythia';
+    const { logger, client, kythiaConfig, models } = container;
+    const { GlobalChat } = models;
+
+    const apiUrl = kythiaConfig.addons.globalchat.apiUrl;
+    const apiKey = kythiaConfig.addons.globalchat.apiKey;
+    const webhookName = kythiaConfig.addons.globalchat.webhookName || 'Global Chat via Kythia';
 
     logger.info(`🌏 [GlobalChat] Starting webhook fix process for ${failedGuilds.length} failed guild(s)...`);
 
     let allGuildsData;
     try {
         logger.info('🌏 [GlobalChat] Fetching master guild list from API...');
-        const listResponse = await fetch(`${apiUrl}/list`);
+        const listResponse = await fetch(`${apiUrl}/list`, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiKey}`,
+            },
+        });
         if (!listResponse.ok) throw new Error(`API /list returned status ${listResponse.status}`);
 
         const listData = await listResponse.json();
@@ -107,11 +118,15 @@ async function handleFailedGlobalChat(failedGuilds, container) {
                 continue;
             }
 
+            let webhookUpdateSuccess = false;
             try {
                 logger.info(`🌏 [GlobalChat] Updating API with new webhook info for guild ${failedGuild.guildId}...`);
                 const updateResponse = await fetch(`${apiUrl}/add`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${apiKey}`,
+                    },
                     body: JSON.stringify({
                         guildId: failedGuild.guildId,
                         globalChannelId: guildInfo.globalChannelId,
@@ -126,6 +141,7 @@ async function handleFailedGlobalChat(failedGuilds, container) {
                     logger.info(
                         `✅ [GlobalChat] Successfully fixed and updated webhook for guild ${failedGuild.guildName || failedGuild.guildId}`
                     );
+                    webhookUpdateSuccess = true;
                 } else {
                     logger.error(
                         `❌ [GlobalChat] Failed to update guild ${failedGuild.guildName || failedGuild.guildId} in API after creating webhook:`,
@@ -141,6 +157,36 @@ async function handleFailedGlobalChat(failedGuilds, container) {
                 await newWebhook
                     .delete('Failed to call Global Chat API /add')
                     .catch((delErr) => logger.warn(`⚠️ [GlobalChat] Failed to delete orphaned webhook ${newWebhook.id}:`, delErr));
+            }
+
+            // Update our local DB only if API update succeeded
+            if (webhookUpdateSuccess) {
+                try {
+                    // Try to find and update existing entry, or fallback to upsert/create
+                    logger.info(`🌏 [GlobalChat] Updating local database with new webhook for guild ${failedGuild.guildId}...`);
+                    const updateResult = await GlobalChat.update(
+                        {
+                            globalChannelId: guildInfo.globalChannelId,
+                            webhookId: newWebhook.id,
+                            webhookToken: newWebhook.token,
+                        },
+                        {
+                            where: { guildId: failedGuild.guildId },
+                        }
+                    );
+
+                    if (!updateResult || (Array.isArray(updateResult) && updateResult[0] === 0)) {
+                        await GlobalChat.create({
+                            guildId: failedGuild.guildId,
+                            globalChannelId: guildInfo.globalChannelId,
+                            webhookId: newWebhook.id,
+                            webhookToken: newWebhook.token,
+                        });
+                    }
+                    logger.info(`✅ [GlobalChat] Local DB updated for guild ${failedGuild.guildId}.`);
+                } catch (dbErr) {
+                    logger.error(`❌ [GlobalChat] Failed to update local DB for guild ${failedGuild.guildId}:`, dbErr);
+                }
             }
         } catch (error) {
             logger.error(`❌ [GlobalChat] Unexpected error during webhook fix for guild ${failedGuild.guildId}:`, error);
