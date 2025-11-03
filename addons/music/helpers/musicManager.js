@@ -151,6 +151,31 @@ async function initializeMusicManager(bot) {
         plugins: plugins,
     };
 
+    // -- Begin Lavlink node connection error suppression logic
+    // Patch process-wide unhandled rejection for Poru lavalink node connection failures to be warnings, not errors
+
+    // Save previous listener to keep chain safe
+    const prevListener = process.listeners('unhandledRejection').slice();
+    const poruLavalinkPattern = /\[Poru Websocket\] Unable to connect with (.+?) node after (\d+) tries/;
+
+    function lavalinkRejectionHandler(reason, promise) {
+        if (reason && reason.message && typeof reason.message === 'string' && poruLavalinkPattern.test(reason.message)) {
+            logger.warn(`‼️ Lavalink node connection warning: ${reason.message}`);
+            // don't throw, don't log as error, handled here
+        } else {
+            // Pass to previous handlers
+            for (const prev of prevListener) {
+                try { prev(reason, promise); } catch (err) {}
+            }
+        }
+    }
+    // Only add once!
+    if (!lavalinkRejectionHandler._hooked) {
+        process.on('unhandledRejection', lavalinkRejectionHandler);
+        lavalinkRejectionHandler._hooked = true;
+    }
+    // -- End error suppression patch
+
     client.poru = new Poru(client, nodes, PoruOptions);
 
     client.poru.on('playerCreate', (player) => {
@@ -165,7 +190,15 @@ async function initializeMusicManager(bot) {
     });
 
     client.poru.on('nodeConnect', (node) => logger.info(`🎚️  Node "${node.name}" connected.`));
-    client.poru.on('nodeError', (node, error) => logger.info(`❌ Node "${node.name}" error: ${error.message}`));
+    // Instead of logging node errors as error, warn for lavalink connection problems, allow all other errors normally
+    client.poru.on('nodeError', (node, error) => {
+        const poruLavalinkPatternNode = /\[Poru Websocket\] Unable to connect with (.+?) node after (\d+) tries/;
+        if (error && error.message && poruLavalinkPatternNode.test(error.message)) {
+            logger.warn(`‼️ Lavalink node connection warning: ${error.message}`);
+        } else {
+            logger.info(`❌ Node "${node.name}" error: ${error.message}`);
+        }
+    });
 
     /**
      * ▶️ Handles when a new track starts playing.
