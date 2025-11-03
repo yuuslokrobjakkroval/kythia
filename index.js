@@ -67,7 +67,7 @@ const logger = require('@coreHelpers/logger'); // Logging system (console and ex
 const translator = require('@coreHelpers/translator'); // I18n (Internationalization) manager
 const { isTeam, isOwner, embedFooter } = require('@coreHelpers/discord'); // Discord helper funcs for permissions/identity
 const { loadFonts } = require('@coreHelpers/fonts');
-const { checkCooldown } = require('@coreHelpers/time');
+const { checkCooldown, formatDuration } = require('@coreHelpers/time');
 
 // ===== 3. Load Database Models: Sequelize Models =====
 // const ServerSetting = require('@coreModels/ServerSetting'); // Guild/server config model
@@ -107,7 +107,7 @@ const dependencies = {
         discord: { isTeam, isOwner, embedFooter },
         fonts: { loadFonts },
         color: { convertColor },
-        time: { checkCooldown },
+        time: { checkCooldown, formatDuration },
     },
     appRoot: __dirname,
 };
