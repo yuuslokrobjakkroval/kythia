@@ -1441,10 +1441,8 @@
                         "name": "📊・server-stats"
                     },
                     "total": "👥 Total: {memberstotal}",
-                    "online": "🟢 Online: {online}",
-                    "humans": "🙎 Users: {humans}",
-                    "bots": "🤖 Bots: {bots}",
-                    "success": "✅ Server stats setup successful!\n\n👥 <#{total}>\n🟢 <#{online}>\n🙎 <#{humans}>\n🤖 <#{bots}>"
+                    "boosts": "🚀 Boosts: {boosts}",
+                    "success": "✅ Server stats setup successful!\n\n👥 <#{total}>\n🚀 <#{boosts}>"
                 },
                 "minecraft": {
                     "category": {

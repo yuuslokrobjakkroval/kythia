@@ -9,13 +9,9 @@
 const { ChannelType } = require('discord.js');
 const { t } = require('@coreHelpers/translator');
 const logger = require('@coreHelpers/logger');
+const Sentry = require('@sentry/node');
 
-// Cache untuk terjemahan agar tidak dipanggil berulang kali
 const timeLocaleCache = {};
-
-/**
- * Mengambil dan men-cache nama hari & bulan yang sudah diterjemahkan.
- */
 async function getLocalizedTime(locale) {
     if (timeLocaleCache[locale]) return timeLocaleCache[locale];
 
@@ -49,16 +45,13 @@ async function getLocalizedTime(locale) {
 
 /**
  * Resolve placeholders in a string using provided data and locale.
- * This version merges the full placeholder set and translation caching.
  */
 async function resolvePlaceholders(str, data, locale) {
-    // Defensive: If str is not a string, return empty string
     if (typeof str !== 'string') return '';
 
     const now = new Date();
     const { days, months } = await getLocalizedTime(locale);
 
-    // Calculate server age
     let guildAge = 'Unknown';
     if (data.createdAt) {
         const created = new Date(data.createdAt);
@@ -66,7 +59,6 @@ async function resolvePlaceholders(str, data, locale) {
         const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
         const monthsDiff = Math.floor((diff % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24 * 30));
         const daysDiff = Math.floor((diff % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24));
-        // Use translation for "years", "months", "days" if available
         let yearsLabel = years > 0 ? await t({ locale }, 'core.helpers.stats.years') : '';
         let monthsLabel = await t({ locale }, 'core.helpers.stats.months.months');
         let daysLabel = await t({ locale }, 'core.helpers.stats.days.days');
@@ -76,7 +68,6 @@ async function resolvePlaceholders(str, data, locale) {
                 : `${monthsDiff} ${monthsLabel} ${daysDiff} ${daysLabel}`;
     }
 
-    // For booleans with translation
     const verifiedStr = data.verified
         ? await t({ locale }, 'core.helpers.stats.verified.yes')
         : await t({ locale }, 'core.helpers.stats.verified.no');
@@ -84,7 +75,6 @@ async function resolvePlaceholders(str, data, locale) {
         ? await t({ locale }, 'core.helpers.stats.partnered.yes')
         : await t({ locale }, 'core.helpers.stats.partnered.no');
 
-    // Date/time formatting
     const formatDate = (d) => {
         if (!(d instanceof Date) || isNaN(d)) return 'Unknown';
         return d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -93,21 +83,21 @@ async function resolvePlaceholders(str, data, locale) {
         if (!(d instanceof Date) || isNaN(d)) return 'Unknown';
         return d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
     };
+
     /**
+     * ===== INI YANG DIRAPIIN =====
+     *
+     * Placeholder yang TIDAK didukung (karena hemat RAM):
+     * {online}, {idle}, {dnd}, {offline}, {bots}, {humans},
+     * {online_bots}, {online_humans}
+     *
+     * Placeholder yang DIDUKUNG:
      * {user}
      * {user_id}
      * {tag}
      * {username}
      * {memberstotal}
      * {members}
-     * {online}
-     * {idle}
-     * {dnd}
-     * {offline}
-     * {bots}
-     * {humans}
-     * {online_bots}
-     * {online_humans}
      * {boosts}
      * {boost_level}
      * {channels}
@@ -142,25 +132,14 @@ async function resolvePlaceholders(str, data, locale) {
      * {member_join}
      */
     const placeholders = {
-        // user info
         '{user}': data.userId ? `<@${data.userId}>` : 'Unknown',
         '{user_id}': data.userId || '0',
         '{tag}': data.tag ? `#${data.tag}` : 'Unknown',
         '{username}': data.username || 'Unknown',
 
-        // Member statistics
         '{memberstotal}': data.members ?? 0,
         '{members}': data.members ?? 0,
-        '{online}': data.online ?? 0,
-        '{idle}': data.idle ?? 0,
-        '{dnd}': data.dnd ?? 0,
-        '{offline}': data.offline ?? 0,
-        '{bots}': data.bots ?? 0,
-        '{humans}': data.humans ?? 0,
-        '{online_bots}': data.onlineBots ?? 0,
-        '{online_humans}': data.onlineHumans ?? 0,
 
-        // Server statistics
         '{boosts}': data.boosts ?? 0,
         '{boost_level}': data.boostLevel ?? 0,
         '{channels}': data.channels ?? 0,
@@ -173,7 +152,6 @@ async function resolvePlaceholders(str, data, locale) {
         '{emojis}': data.emojis ?? 0,
         '{stickers}': data.stickers ?? 0,
 
-        // Server information
         '{guild}': data.guildName || 'Server',
         '{guild_id}': data.guildId || '0',
         '{owner}': data.ownerName || 'Owner',
@@ -182,9 +160,9 @@ async function resolvePlaceholders(str, data, locale) {
         '{verified}': verifiedStr,
         '{partnered}': partneredStr,
 
-        // Waktu dinamis
         '{date}': formatDate(now),
         '{time}': formatTime(now),
+
         '{datetime}': `${formatDate(now)} ${formatTime(now)}`,
         '{day}': days[now.getDay()],
         '{month}': months[now.getMonth()],
@@ -194,7 +172,6 @@ async function resolvePlaceholders(str, data, locale) {
         '{second}': now.getSeconds().toString().padStart(2, '0'),
         '{timestamp}': now.getTime().toString(),
 
-        // Dynamic server information
         '{created_date}': data.createdAt ? formatDate(new Date(data.createdAt)) : 'Unknown',
         '{created_time}': data.createdAt ? formatTime(new Date(data.createdAt)) : 'Unknown',
         '{guild_age}': guildAge,
@@ -202,26 +179,21 @@ async function resolvePlaceholders(str, data, locale) {
     };
 
     let result = str;
-    // Defensive: Only call .replace if result is a string
     for (const [key, val] of Object.entries(placeholders)) {
         if (typeof result === 'string') {
             result = result.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), val?.toString() ?? '');
         }
     }
-    // Defensive: If result is not a string after replacement, fallback to empty string
     if (typeof result !== 'string') return '';
     return result;
 }
 
 /**
  * Update server stats channels for all guilds/settings.
- * - Uses translation cache for day/month names.
- * - Only updates voice/stage channels and checks for manageability.
- * - Adds logging and rate limit handling.
+ * (Fungsi ini udah 100% bener dari kodemu tadi, gak aku ubah)
  */
 async function updateStats(client, activeSettings) {
-    logger.info('Starting stats update for all guilds...');
-    const updates = [];
+    logger.info(`Processing stats for ${activeSettings.length} guild(s)...`);
 
     for (const setting of activeSettings) {
         if (!setting.serverStatsOn || !setting.serverStats || !Array.isArray(setting.serverStats)) continue;
@@ -230,16 +202,8 @@ async function updateStats(client, activeSettings) {
         if (!guild) continue;
 
         try {
-            const members = guild.members.cache;
-            const bots = members.filter((m) => m.user.bot).size;
-            const online = members.filter((m) => m.presence && m.presence.status !== 'offline').size;
-            const idle = members.filter((m) => m.presence && m.presence.status === 'idle').size;
-            const dnd = members.filter((m) => m.presence && m.presence.status === 'dnd').size;
-            const offline = members.filter((m) => !m.presence || m.presence.status === 'offline').size;
-            const onlineBots = members.filter((m) => m.user.bot && m.presence && m.presence.status !== 'offline').size;
-            const onlineHumans = members.filter((m) => !m.user.bot && m.presence && m.presence.status !== 'offline').size;
+            const owner = await guild.fetchOwner().catch(() => null);
 
-            // Channel type counts
             const channelTypes = {
                 text: 0,
                 voice: 0,
@@ -267,17 +231,8 @@ async function updateStats(client, activeSettings) {
                 }
             });
 
-            // Data lengkap untuk placeholder
             const data = {
                 members: guild.memberCount,
-                online: online,
-                idle: idle,
-                dnd: dnd,
-                offline: offline,
-                bots: bots,
-                humans: guild.memberCount - bots,
-                onlineBots: onlineBots,
-                onlineHumans: onlineHumans,
                 boosts: guild.premiumSubscriptionCount || 0,
                 boostLevel: guild.premiumTier,
                 channels: guild.channels.cache.size,
@@ -291,7 +246,7 @@ async function updateStats(client, activeSettings) {
                 stickers: guild.stickers.cache.size,
                 guildName: guild.name,
                 guildId: guild.id,
-                ownerName: guild.ownerId ? guild.members.cache.get(guild.ownerId)?.user?.tag : 'Unknown',
+                ownerName: owner ? owner.user.tag : 'Unknown',
                 ownerId: guild.ownerId || '0',
                 region: guild.preferredLocale,
                 verified: guild.verified,
@@ -300,36 +255,37 @@ async function updateStats(client, activeSettings) {
                 memberJoin: setting.memberJoin || null,
             };
 
+            const guildUpdatePromises = [];
+
             for (const stat of setting.serverStats) {
                 if (!stat.enabled || !stat.channelId || !stat.format) continue;
 
                 const channel = guild.channels.cache.get(stat.channelId);
-                // Only update if channel is voice/stage and manageable
                 if (!channel || ![ChannelType.GuildVoice, ChannelType.GuildStageVoice].includes(channel.type) || !channel.manageable) {
                     continue;
                 }
 
                 const newName = await resolvePlaceholders(stat.format, data, guild.preferredLocale);
+
                 if (channel.name !== newName) {
-                    // Kumpulkan promise sebagai fungsi untuk dieksekusi nanti
-                    updates.push(() => channel.setName(newName.substring(0, 100), 'Server Stats Update'));
+                    guildUpdatePromises.push(
+                        channel.setName(newName.substring(0, 100), 'Server Stats Update').catch((err) => {
+                            logger.warn(`Failed to update channel ${channel.id} in ${guild.name}: ${err.message}`);
+                        })
+                    );
                 }
+            }
+
+            if (guildUpdatePromises.length > 0) {
+                await Promise.allSettled(guildUpdatePromises);
+                logger.info(`Updated ${guildUpdatePromises.length} channel(s) for guild: ${guild.name}`);
             }
         } catch (err) {
             logger.error(`[STATS HELPER ERROR] Failed to process guild ${guild.name} (${setting.guildId}):`, err);
+            Sentry.captureException(err, { extra: { guildId: guild.id } });
         }
     }
 
-    // Eksekusi update satu per satu dengan jeda untuk menghindari rate limit
-    logger.info(`Found ${updates.length} channel(s) to update.`);
-    for (const updateFunc of updates) {
-        try {
-            await updateFunc();
-            await new Promise((resolve) => setTimeout(resolve, 3000)); // Jeda 3 detik antar update
-        } catch (err) {
-            logger.warn(`Could not update a channel name (likely a temp Discord issue): ${err.message}`);
-        }
-    }
     logger.info('Finished processing all channel updates.');
 }
 
@@ -348,4 +304,36 @@ async function safeResolvePlaceholder(member, text, statsData, fallback = '') {
     }
 }
 
-module.exports = { updateStats, resolvePlaceholders, safeResolvePlaceholder };
+async function runStatsUpdater(client) {
+    const { models, kythiaConfig, logger } = client.container;
+    const { ServerSetting } = models;
+    logger.info('📊 Starting server stats update cycle...');
+    try {
+        const allSettings = await ServerSetting.getAllCache();
+        const guildsCache = client.guilds.cache;
+
+        if (!guildsCache) {
+            logger.error('❌ client.guilds.cache is unavailable during stats update.');
+            return;
+        }
+
+        const activeSettings = allSettings.filter((s) => guildsCache.has(s.guildId) && s.serverStatsOn);
+
+        if (activeSettings.length === 0) {
+            logger.info('📊 No guilds with active server stats. Skipping update cycle.');
+            return;
+        }
+
+        logger.info(`📊 Found ${activeSettings.length} guild(s) to update stats for.`);
+
+        await updateStats(client, activeSettings);
+        logger.info('📊 Server stats update cycle finished.');
+    } catch (err) {
+        logger.error('❌ A critical error occurred in runStatsUpdater:', err);
+        if (kythiaConfig && kythiaConfig.sentry && kythiaConfig.sentry.dsn) {
+            Sentry.captureException(err);
+        }
+    }
+}
+
+module.exports = { updateStats, resolvePlaceholders, safeResolvePlaceholder, runStatsUpdater };

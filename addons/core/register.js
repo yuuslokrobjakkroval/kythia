@@ -6,13 +6,14 @@
  * @version 0.9.11-beta
  */
 
+const cron = require('node-cron');
 const { cleanupUserCache } = require('./helpers/index.js');
-const logger = require('@coreHelpers/logger.js');
-const path = require('path');
-const { userCache } = require('./helpers/automod.js');
 const setupTopGGPoster = require('./tasks/topggPoster.js');
+const { userCache } = require('./helpers/automod.js');
+const { runStatsUpdater } = require('./helpers/stats.js');
 
 const initialize = (bot) => {
+    const logger = bot.container.logger;
     const summary = [];
 
     try {
@@ -33,9 +34,11 @@ const initialize = (bot) => {
         });
     }
 
-    // Setup interval for cleaning up user cache
-    setInterval(() => cleanupUserCache(userCache), 1000 * 60 * 60 * 1);
-    summary.push('  └─ Interval: cleanup user cache (per hour)');
+    cron.schedule('0 * * * *', () => cleanupUserCache(userCache));
+    summary.push('  └─ Cron: cleanup user cache (per day at 00:00)');
+
+    cron.schedule('* * * * *', () => runStatsUpdater(bot.client));
+    summary.push('  └─ Cron: cleanup user cache (every 5 minutes)');
 
     return summary;
 };

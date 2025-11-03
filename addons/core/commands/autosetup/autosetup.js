@@ -6,8 +6,6 @@
  * @version 0.9.11-beta
  */
 const { SlashCommandBuilder, ChannelType, PermissionFlagsBits, InteractionContextType } = require('discord.js');
-const ServerSetting = require('@coreModels/ServerSetting');
-const { t } = require('@coreHelpers/translator');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -15,17 +13,17 @@ module.exports = {
         .setDescription('⚙️ Automatically setup certain features')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .setContexts(InteractionContextType.Guild)
-        .addSubcommand((subcommand) =>
-            subcommand
-                .setName('testimony')
-                .setDescription('Automatically setup testimony & feedback channels')
-                .addBooleanOption((option) =>
-                    option.setName('newcategory').setDescription('Create a new category or not').setRequired(true)
-                )
-                .addStringOption((option) =>
-                    option.setName('category_id').setDescription('Use an existing category ID (ignore if creating new)').setRequired(false)
-                )
-        )
+        // .addSubcommand((subcommand) =>
+        //     subcommand
+        //         .setName('testimony')
+        //         .setDescription('Automatically setup testimony & feedback channels')
+        //         .addBooleanOption((option) =>
+        //             option.setName('newcategory').setDescription('Create a new category or not').setRequired(true)
+        //         )
+        //         .addStringOption((option) =>
+        //             option.setName('category_id').setDescription('Use an existing category ID (ignore if creating new)').setRequired(false)
+        //         )
+        // )
         .addSubcommand((subcommand) =>
             subcommand
                 .setName('server-stats')
@@ -37,45 +35,49 @@ module.exports = {
                     option.setName('category_id').setDescription('Use an existing category ID (ignore if creating new)').setRequired(false)
                 )
         )
-        .addSubcommand((subcommand) =>
-            subcommand
-                .setName('minecraft')
-                .setDescription('Automatically setup Minecraft server statistics channels')
-                .addBooleanOption((option) =>
-                    option.setName('newcategory').setDescription('Create a new category or not').setRequired(true)
-                )
-                .addStringOption((option) =>
-                    option.setName('category_id').setDescription('Use an existing category ID (ignore if creating new)').setRequired(false)
-                )
-        )
-        .addSubcommand((subcommand) =>
-            subcommand
-                .setName('store')
-                .setDescription('Automatically setup open/close store channel')
-                .addBooleanOption((option) =>
-                    option.setName('newcategory').setDescription('Create a new category or not').setRequired(true)
-                )
-                .addStringOption((option) =>
-                    option
-                        .setName('type')
-                        .setDescription('Store action type (change channel name, send message, or both).')
-                        .addChoices(
-                            { name: 'Change Channel Name', value: 'channelname' },
-                            { name: 'Send Embed Message', value: 'channelmessage' },
-                            { name: 'Name + Message', value: 'channelnameandmessage' }
-                        )
-                        .setRequired(true)
-                )
-                .addStringOption((option) =>
-                    option.setName('category_id').setDescription('Use an existing category ID (ignore if creating new)').setRequired(false)
-                )
-        )
+        // .addSubcommand((subcommand) =>
+        //     subcommand
+        //         .setName('minecraft')
+        //         .setDescription('Automatically setup Minecraft server statistics channels')
+        //         .addBooleanOption((option) =>
+        //             option.setName('newcategory').setDescription('Create a new category or not').setRequired(true)
+        //         )
+        //         .addStringOption((option) =>
+        //             option.setName('category_id').setDescription('Use an existing category ID (ignore if creating new)').setRequired(false)
+        //         )
+        // )
+        // .addSubcommand((subcommand) =>
+        //     subcommand
+        //         .setName('store')
+        //         .setDescription('Automatically setup open/close store channel')
+        //         .addBooleanOption((option) =>
+        //             option.setName('newcategory').setDescription('Create a new category or not').setRequired(true)
+        //         )
+        //         .addStringOption((option) =>
+        //             option
+        //                 .setName('type')
+        //                 .setDescription('Store action type (change channel name, send message, or both).')
+        //                 .addChoices(
+        //                     { name: 'Change Channel Name', value: 'channelname' },
+        //                     { name: 'Send Embed Message', value: 'channelmessage' },
+        //                     { name: 'Name + Message', value: 'channelnameandmessage' }
+        //                 )
+        //                 .setRequired(true)
+        //         )
+        //         .addStringOption((option) =>
+        //             option.setName('category_id').setDescription('Use an existing category ID (ignore if creating new)').setRequired(false)
+        //         )
+        // )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .setContexts(InteractionContextType.Guild),
     voteLocked: true,
     permissions: PermissionFlagsBits.ManageGuild,
     botPermissions: PermissionFlagsBits.ManageGuild,
-    async execute(interaction) {
+    async execute(interaction, container) {
+        const { t, helpers, models } = container;
+        const { embedFooter } = helpers.discord;
+        const { ServerSetting } = models;
+
         await interaction.deferReply({ ephemeral: true });
         const subcommand = interaction.options.getSubcommand();
 
@@ -173,11 +175,7 @@ module.exports = {
 
                 // Create stats channels
                 const totalMembers = guild.memberCount;
-                const onlineMembers = guild.members.cache.filter(
-                    (m) => m.presence && ['online', 'idle', 'dnd'].includes(m.presence.status)
-                ).size;
-                const botCount = guild.members.cache.filter((m) => m.user.bot).size;
-                const humanCount = totalMembers - botCount;
+                const boostCount = guild.premiumSubscriptionCount || 0;
 
                 const totalMembersChannel = await guild.channels.create({
                     name: await t(interaction, 'core.autosetup.autosetup.serverstats.total', { memberstotal: totalMembers }),
@@ -192,8 +190,8 @@ module.exports = {
                     ],
                 });
 
-                const onlineMembersChannel = await guild.channels.create({
-                    name: await t(interaction, 'core.autosetup.autosetup.serverstats.online', { online: onlineMembers }),
+                const boostChannel = await guild.channels.create({
+                    name: await t(interaction, 'core.autosetup.autosetup.serverstats.boosts', { boosts: boostCount }),
                     type: ChannelType.GuildVoice,
                     parent: category.id,
                     permissionOverwrites: [
@@ -205,33 +203,6 @@ module.exports = {
                     ],
                 });
 
-                const humanMembersChannel = await guild.channels.create({
-                    name: await t(interaction, 'core.autosetup.autosetup.serverstats.humans', { humans: humanCount }),
-                    type: ChannelType.GuildVoice,
-                    parent: category.id,
-                    permissionOverwrites: [
-                        {
-                            id: guild.roles.everyone,
-                            deny: [PermissionFlagsBits.Connect],
-                            allow: [PermissionFlagsBits.ViewChannel],
-                        },
-                    ],
-                });
-
-                const botMembersChannel = await guild.channels.create({
-                    name: await t(interaction, 'core.autosetup.autosetup.serverstats.bots', { bots: botCount }),
-                    type: ChannelType.GuildVoice,
-                    parent: category.id,
-                    permissionOverwrites: [
-                        {
-                            id: guild.roles.everyone,
-                            deny: [PermissionFlagsBits.Connect],
-                            allow: [PermissionFlagsBits.ViewChannel],
-                        },
-                    ],
-                });
-
-                // simpan ke database
                 const serverSetting = await ServerSetting.getCache({ guildId: guild.id });
                 serverSetting.serverStatsCategoryId = category.id;
                 serverSetting.serverStatsOn = true;
@@ -242,18 +213,8 @@ module.exports = {
                         enabled: true,
                     },
                     {
-                        channelId: onlineMembersChannel.id,
-                        format: await t(interaction, 'core.autosetup.autosetup.serverstats.online', { online: '{online}' }),
-                        enabled: true,
-                    },
-                    {
-                        channelId: humanMembersChannel.id,
-                        format: await t(interaction, 'core.autosetup.autosetup.serverstats.humans', { humans: '{humans}' }),
-                        enabled: true,
-                    },
-                    {
-                        channelId: botMembersChannel.id,
-                        format: await t(interaction, 'core.autosetup.autosetup.serverstats.bots', { bots: '{bots}' }),
+                        channelId: boostChannel.id,
+                        format: await t(interaction, 'core.autosetup.autosetup.serverstats.boosts', { boosts: '{boosts}' }),
                         enabled: true,
                     },
                 ];
@@ -262,9 +223,7 @@ module.exports = {
                 await interaction.editReply({
                     content: await t(interaction, 'core.autosetup.autosetup.serverstats.success', {
                         total: totalMembersChannel.id,
-                        online: onlineMembersChannel.id,
-                        humans: humanMembersChannel.id,
-                        bots: botMembersChannel.id,
+                        boosts: boostChannel.id,
                     }),
                 });
                 break;

@@ -6,14 +6,10 @@
  * @version 0.9.11-beta
  */
 
-const ServerSetting = require('../database/models/ServerSetting');
-const { updateStats } = require('../helpers/stats');
 const { ActivityType } = require('discord.js');
-const { t } = require('@coreHelpers/translator');
-const logger = require('@coreHelpers/logger');
-const Sentry = require('@sentry/node');
 
 function setBotPresence(client) {
+    const logger = client.container.logger;
     if (!client.user) {
         logger.error('❌ client.user is undefined, cannot set presence.');
         return;
@@ -41,43 +37,6 @@ function setBotPresence(client) {
     }
 }
 
-async function runStatsUpdater(client) {
-    logger.info('📊 Starting server stats update cycle...');
-    try {
-        const allSettings = await ServerSetting.getAllCache();
-        const guildsCache = client.guilds.cache;
-
-        if (!guildsCache) {
-            logger.error('❌ client.guilds.cache is unavailable during stats update.');
-            return;
-        }
-
-        const activeSettings = allSettings.filter((s) => guildsCache.has(s.guildId) && s.serverStatsOn);
-
-        if (activeSettings.length === 0) {
-            logger.info('📊 No guilds with active server stats. Skipping update cycle.');
-            return;
-        }
-
-        logger.info(`📊 Found ${activeSettings.length} guild(s) to update stats for.`);
-
-        await updateStats(client, activeSettings);
-        logger.info('📊 Server stats update cycle finished.');
-    } catch (err) {
-        logger.error('❌ A critical error occurred in runStatsUpdater:', err);
-        if (kythia.sentry.dsn) {
-            Sentry.captureException(err);
-        }
-    }
-}
-
 module.exports = async (bot, client) => {
     setBotPresence(client);
-
-    setTimeout(() => runStatsUpdater(client), 5000);
-
-    const statsInterval = 10 * 60 * 1000;
-    setInterval(() => runStatsUpdater(client), statsInterval);
-
-    logger.info(`🕒 Server stats updater scheduled to run every ${statsInterval / 60000} minutes.`);
 };

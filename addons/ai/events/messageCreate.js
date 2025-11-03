@@ -285,12 +285,18 @@ async function getUserBio(userId, client) {
 }
 
 function addToHistory(conversation, role, content) {
-    conversation.history.push({ role, content });
+    const lastMessage = conversation.history[conversation.history.length - 1];
+
+    if (lastMessage && lastMessage.role === role && role === 'user') {
+        lastMessage.content += '\n' + content;
+    } else {
+        conversation.history.push({ role, content });
+    }
+
     if (conversation.history.length > 12) {
         conversation.history.splice(0, 2);
     }
 }
-
 /**
  * Send AI response, with ability to split message if there is [SPLIT].
  * @param {import('discord.js').Message} message
@@ -302,7 +308,7 @@ function addToHistory(conversation, role, content) {
 async function sendSplitMessage(message, text, t, isOwner, aiConfig) {
     const CHUNK_SIZE = 2000;
     // Ensure text is a string to prevent .split on undefined/null
-    text = typeof text === "string" ? text : "";
+    text = typeof text === 'string' ? text : '';
     const parts = text.split('[SPLIT]');
 
     let hasReplied = false;
@@ -387,7 +393,7 @@ module.exports = async (bot, message) => {
     const client = bot.client;
     if (message.author?.bot) return;
 
-    const content = typeof message.content === "string" ? message.content.trim() : "";
+    const content = typeof message.content === 'string' ? message.content.trim() : '';
     if (Array.isArray(config?.bot?.prefixes) && config.bot.prefixes.some((prefix) => prefix && content.startsWith(prefix))) return;
 
     const isDm = message.channel.type === ChannelType.DM || message.channel.type == 1;
@@ -546,7 +552,7 @@ module.exports = async (bot, message) => {
             }
 
             const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
-            const matches = typeof message.content === "string" ? message.content.matchAll(youtubeRegex) : [];
+            const matches = typeof message.content === 'string' ? message.content.matchAll(youtubeRegex) : [];
             for (const match of matches) {
                 const videoId = match[1];
                 if (videoId) {
@@ -561,9 +567,13 @@ module.exports = async (bot, message) => {
                 }
             }
 
-            const cleanContent = typeof message.content === "string"
-                ? message.content.replace(/<@!?\d+>/g, '').trim().slice(0, 1500)
-                : "";
+            const cleanContent =
+                typeof message.content === 'string'
+                    ? message.content
+                          .replace(/<@!?\d+>/g, '')
+                          .trim()
+                          .slice(0, 1500)
+                    : '';
             if (!cleanContent && mediaParts.length === 0) {
                 if (typingInterval) clearInterval(typingInterval);
                 return;
@@ -621,7 +631,7 @@ module.exports = async (bot, message) => {
 
                 const initialHistory = [];
                 for (const msg of relevantMessages) {
-                    const c = typeof msg.content === "string" ? msg.content.replace(/<@!?\d+>/g, '').trim() : "";
+                    const c = typeof msg.content === 'string' ? msg.content.replace(/<@!?\d+>/g, '').trim() : '';
                     if (!c && msg.attachments.size === 0) continue;
                     const role = msg.author.id === client.user.id ? 'model' : 'user';
                     initialHistory.push({ role, content: c });
@@ -635,7 +645,7 @@ module.exports = async (bot, message) => {
 
             let contents = userConv.history.map((msg) => ({
                 role: msg.role === 'model' ? 'model' : 'user',
-                parts: [{ text: typeof msg.content === "string" ? msg.content : "" }],
+                parts: [{ text: typeof msg.content === 'string' ? msg.content : '' }],
             }));
 
             if (mediaParts.length > 0) {
@@ -721,13 +731,13 @@ module.exports = async (bot, message) => {
 
             if (success && finalResponse) {
                 // Defensive extract of .text (could be function, string, or undefined/null)
-                let replyText = "";
-                if (finalResponse && typeof finalResponse.text === "function") {
+                let replyText = '';
+                if (finalResponse && typeof finalResponse.text === 'function') {
                     replyText = finalResponse.text();
-                } else if (finalResponse && typeof finalResponse.text === "string") {
+                } else if (finalResponse && typeof finalResponse.text === 'string') {
                     replyText = finalResponse.text;
                 }
-                replyText = typeof replyText === "string" ? replyText.trim() : "";
+                replyText = typeof replyText === 'string' ? replyText.trim() : '';
 
                 if (finalResponse.functionCalls && finalResponse.functionCalls.length > 0) {
                     const call = finalResponse.functionCalls[0];
@@ -782,12 +792,12 @@ module.exports = async (bot, message) => {
                         });
 
                         let finalReply = undefined;
-                        if (followUpResponse && typeof followUpResponse.text === "function") {
+                        if (followUpResponse && typeof followUpResponse.text === 'function') {
                             finalReply = followUpResponse.text();
-                        } else if (followUpResponse && typeof followUpResponse.text === "string") {
+                        } else if (followUpResponse && typeof followUpResponse.text === 'string') {
                             finalReply = followUpResponse.text;
                         }
-                        finalReply = typeof finalReply === "string" ? finalReply.trim() : "";
+                        finalReply = typeof finalReply === 'string' ? finalReply.trim() : '';
 
                         const filterResult = filterAiResponse(finalReply, message.author?.id, isOwner, aiConfig);
                         if (!filterResult.allowed) {

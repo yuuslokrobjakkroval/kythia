@@ -6,13 +6,13 @@
  * @version 0.9.11-beta
  */
 
-const Embed = require('@coreModels/Embed');
-const { t } = require('@coreHelpers/translator');
-
 module.exports = {
     execute: async (interaction) => {
+        const { t, models } = interaction.client.container;
+        const { Embed } = models;
+
         const [_, embedId, buttonIndex] = interaction.customId.split('-');
-        const embedData = await Embed.findByPk(embedId);
+        const embedData = await Embed.getCache({ messageId: embedId });
         if (!embedData) return;
 
         const buttonData = embedData.buttons[buttonIndex];
