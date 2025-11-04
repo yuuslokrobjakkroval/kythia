@@ -59,9 +59,49 @@ module.exports = {
     aliases: ['s', '📊'],
     data: new SlashCommandBuilder().setName('stats').setDescription(`📊 Displays kythia statistics.`),
     async execute(interaction, container) {
-        const { t, kythiaConfig, helpers } = container;
+        const { t, kythiaConfig, helpers, models } = container;
         const { formatDuration } = helpers.time;
         const { embedFooter } = helpers.discord;
+
+        const anyModelKey = models ? Object.keys(models)[0] : undefined;
+        const KythiaModel = anyModelKey ? Object.getPrototypeOf(models[anyModelKey]) : null;
+
+        let cacheStatus = 'N/A';
+        let cacheHits = 0;
+        let cacheMisses = 0;
+
+        if (KythiaModel) {
+            const stats = KythiaModel.cacheStats;
+            cacheHits = (stats.redisHits || 0) + (stats.mapHits || 0);
+            cacheMisses = stats.misses || 0;
+
+            const urls = KythiaModel._redisFallbackURLs || [];
+            const currentIndex = KythiaModel._redisCurrentIndex || 0;
+
+            if (KythiaModel.isRedisConnected) {
+                if (urls.length > 1) {
+                    let statusList = [];
+                    urls.forEach((url, index) => {
+                        let name = `Kythia Redis #${index + 1}`;
+
+                        if (index === currentIndex) {
+                            statusList.push(`✅ **${name} (Active)**`);
+                        } else if (KythiaModel._redisFailedIndexes.has(index)) {
+                            statusList.push(`❌ ${name} (Failed)`);
+                        } else {
+                            statusList.push(`⚪ ${name} (Standby)`);
+                        }
+                    });
+                    cacheStatus = statusList.join('\n');
+                } else {
+                    cacheStatus = '> \`✅\` **Kythia Redis (Online)**';
+                }
+            } else if (!KythiaModel.isShardMode) {
+                cacheStatus = '> \`⚠️\` **In-Memory (Fallback)**';
+            } else {
+                cacheStatus = '> \`❌\` **DISABLED (Sharding)**';
+            }
+        }
 
         const { client } = interaction;
 
@@ -103,6 +143,10 @@ module.exports = {
             kythiaVersion,
             kythiaCoreVersion,
             githubCommit: githubCommit || 'N/A',
+
+            cacheStatus: cacheStatus,
+            cacheHits: cacheHits,
+            cacheMisses: cacheMisses,
         });
 
         const embed = new EmbedBuilder()

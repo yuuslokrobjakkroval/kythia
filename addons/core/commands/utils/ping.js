@@ -23,7 +23,7 @@ const {
  * @param {object} client - Discord client instance
  * @returns {Promise<Array>} Array of node information with ping
  */
-async function getLavalinkNodesPing(client) {
+async function getLavalinkNodesPings(client) {
     const nodes = [];
 
     if (!client.poru) {
@@ -110,40 +110,54 @@ async function getDbPing(container) {
 }
 
 /**
- * Get Redis ping/latency information (if configured)
+ * Get Redis ping/latency information (HA-Aware)
  * @param {object} container - The bot's container
- * @returns {Promise<{ping: number, status: string, error?: string}>}
+ * @returns {Promise<Array>} Array of node information with ping
  */
-async function getRedisPing(container) {
-    // Try multiple common redis client locations (for flexibility)
-    // Must be a client compatible with .ping() that returns a latency in ms or a promise of 'PONG'
-    const redis = container.redis || container.cache || container.redisClient || null;
-    if (!redis) {
-        return { ping: -1, status: 'not_configured' };
+async function getRedisPings(container) {
+    const { models } = container;
+
+    const anyModelKey = models ? Object.keys(models)[0] : undefined;
+    const KythiaModel = anyModelKey ? Object.getPrototypeOf(models[anyModelKey]) : null;
+
+    if (!KythiaModel || !KythiaModel._redisFallbackURLs || KythiaModel._redisFallbackURLs.length === 0) {
+        return [];
     }
-    let ping = -1;
-    let status = 'unknown';
-    let errorMsg = undefined;
-    try {
-        const start = Date.now();
-        // Try modern ioredis and node-redis both
-        let pong;
-        if (typeof redis.ping === 'function') {
-            pong = await redis.ping();
+
+    const redis = KythiaModel.redis;
+    const urls = KythiaModel._redisFallbackURLs;
+    const currentIndex = KythiaModel._redisCurrentIndex;
+    const isConnected = KythiaModel.isRedisConnected;
+    const failedIndexes = KythiaModel._redisFailedIndexes || new Set();
+
+    let activePing = -1;
+    if (isConnected && redis && typeof redis.ping === 'function') {
+        try {
+            const start = Date.now();
+            await redis.ping();
+            activePing = Date.now() - start;
+        } catch (e) {
+            activePing = -2;
         }
-        // pong is sometimes 'PONG' or sometimes a number (latency)
-        ping = Date.now() - start;
-        // node-redis ping returns 'PONG', ioredis may echo latency, so just use duration
-        if (pong !== undefined) {
-            status = 'connected';
+    }
+
+    const nodes = [];
+    for (const [index, url] of urls.entries()) {
+        let name = `Kythia Redis #${index + 1}`;
+
+        if (index === currentIndex) {
+            if (isConnected) {
+                nodes.push({ name: name, status: 'active', ping: activePing });
+            } else {
+                nodes.push({ name: name, status: 'failed', ping: -1 });
+            }
+        } else if (failedIndexes.has(index)) {
+            nodes.push({ name: name, status: 'failed', ping: -1 });
         } else {
-            status = 'not_supported';
+            nodes.push({ name: name, status: 'standby', ping: -1 });
         }
-    } catch (err) {
-        status = 'error';
-        errorMsg = err.message || String(err);
     }
-    return { ping, status, error: errorMsg };
+    return nodes;
 }
 
 async function buildPingEmbed(interaction, container) {
@@ -151,37 +165,57 @@ async function buildPingEmbed(interaction, container) {
     const { convertColor } = helpers.color;
     const botLatency = Math.max(0, Date.now() - interaction.createdTimestamp);
     const apiLatency = Math.round(interaction.client.ws.ping);
-    const lavalinkNodes = await getLavalinkNodesPing(interaction.client);
+    const lavalinkNodes = await getLavalinkNodesPings(interaction.client);
     const dbPingInfo = await getDbPing(container);
-    const redisPingInfo = await getRedisPing(container);
+
+    const redisNodes = await getRedisPings(container);
 
     const embedContainer = new ContainerBuilder().setAccentColor(convertColor(kythiaConfig.bot.color, { from: 'hex', to: 'decimal' }));
 
     embedContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(await t(interaction, 'core.utils.ping.embed.title')));
     embedContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
 
-    // Bot latency
     embedContainer.addTextDisplayComponents(
         new TextDisplayBuilder().setContent(`**${await t(interaction, 'core.utils.ping.field.bot.latency')}**\n\`\`\`${botLatency}ms\`\`\``)
     );
-    // API latency
+
     embedContainer.addTextDisplayComponents(
         new TextDisplayBuilder().setContent(`**${await t(interaction, 'core.utils.ping.field.api.latency')}**\n\`\`\`${apiLatency}ms\`\`\``)
     );
-    // DB ping
+
     embedContainer.addTextDisplayComponents(
         new TextDisplayBuilder().setContent(
             `**${await t(interaction, 'core.utils.ping.field.db.latency')}**\n\`\`\`${dbPingInfo.status === 'connected' ? dbPingInfo.ping + 'ms' : dbPingInfo.status === 'not_configured' ? 'Not Configured' : dbPingInfo.status === 'error' ? 'Error' : 'Unknown'}\`\`\`` +
                 (dbPingInfo.status === 'error' && dbPingInfo.error ? `\n\`\`\`Error: ${dbPingInfo.error}\`\`\`` : '')
         )
     );
-    // Redis ping
-    embedContainer.addTextDisplayComponents(
-        new TextDisplayBuilder().setContent(
-            `**${await t(interaction, 'core.utils.ping.field.redis.latency')}**\n\`\`\`${redisPingInfo.status === 'connected' ? redisPingInfo.ping + 'ms' : redisPingInfo.status === 'not_configured' ? 'Not Configured' : redisPingInfo.status === 'not_supported' ? 'Not Supported' : redisPingInfo.status === 'error' ? 'Error' : 'Unknown'}\`\`\`` +
-                (redisPingInfo.status === 'error' && redisPingInfo.error ? `\n\`\`\`Error: ${redisPingInfo.error}\`\`\`` : '')
-        )
-    );
+
+    if (redisNodes.length > 0) {
+        embedContainer.addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(`**${await t(interaction, 'core.utils.ping.field.redis.nodes')}**`)
+        );
+        for (const node of redisNodes) {
+            let statusEmoji = '❓';
+            let pingText = 'N/A';
+
+            if (node.status === 'active') {
+                statusEmoji = '`✅`';
+                if (node.ping === -2) pingText = 'Ping Failed';
+                else if (node.ping === -1) pingText = 'Pinging...';
+                else pingText = `${node.ping}ms`;
+            } else if (node.status === 'standby') {
+                statusEmoji = '`⚪`';
+                pingText = 'Standby';
+            } else if (node.status === 'failed') {
+                statusEmoji = '`❌`';
+                pingText = 'Failed';
+            }
+
+            embedContainer.addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(`${statusEmoji} **${node.name}**\n\`\`\`${pingText}\`\`\``)
+            );
+        }
+    }
 
     if (lavalinkNodes.length > 0) {
         embedContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
@@ -216,6 +250,7 @@ async function buildPingEmbed(interaction, container) {
     }
 
     embedContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
+
     embedContainer.addActionRowComponents(
         new ActionRowBuilder().addComponents(
             new ButtonBuilder()
@@ -229,7 +264,7 @@ async function buildPingEmbed(interaction, container) {
         new TextDisplayBuilder().setContent(await t(interaction, 'common.container.footer', { username: interaction.client.user.username }))
     );
 
-    return { embedContainer, botLatency, apiLatency, lavalinkNodes, dbPingInfo, redisPingInfo };
+    return { embedContainer, botLatency, apiLatency, lavalinkNodes, dbPingInfo, redisNodes };
 }
 
 module.exports = {
@@ -253,8 +288,10 @@ module.exports = {
         });
 
         collector.on('collect', async (i) => {
+            // Defer the update so Discord knows we are processing the button interaction (like deferReply for buttons)
+            await i.deferUpdate();
             const refreshed = await buildPingEmbed(i, container);
-            await i.update({
+            await i.editReply({
                 components: [refreshed.embedContainer],
                 content: ' ',
                 flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
