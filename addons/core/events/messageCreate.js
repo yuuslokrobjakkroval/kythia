@@ -20,21 +20,21 @@ const {
     SeparatorSpacingSize,
     Collection,
 } = require('discord.js');
-const StickyMessage = require('@coreModels/StickyMessage');
 const { automodSystem } = require('../helpers/automod');
-const { formatDuration } = require('@coreHelpers/time');
-const convertColor = require('@kenndeclouv/kythia-core').utils.color;
-const { isOwner } = require('@coreHelpers/discord');
-const AFK = require('@coreModels/UserAFK');
-const { t } = require('@coreHelpers/translator');
-const logger = require('@coreHelpers/logger');
+
 const moment = require('moment');
 
 module.exports = async (bot, message) => {
     const client = bot.client;
+    const container = client.container;
+    const { logger, helpers, t, models, kythiaConfig } = container;
+    const { UserAFK, StickyMessage } = models;
+    const { isOwner } = helpers.discord;
+    const { formatDuration } = helpers.time;
+    const { convertColor } = helpers.color;
 
     const contentLower = message.content.toLowerCase();
-    const matchedPrefix = kythia.bot.prefixes.find((prefix) => contentLower.startsWith(prefix.toLowerCase()));
+    const matchedPrefix = kythiaConfig.bot.prefixes.find((prefix) => contentLower.startsWith(prefix.toLowerCase()));
     if (matchedPrefix) {
         if (message.author?.bot) return;
 
@@ -87,16 +87,16 @@ module.exports = async (bot, message) => {
             if (message.guild.members.me.permissions.missing(finalCommand.botPermissions).length > 0) return;
         }
         if (finalCommand.isInMainGuild) {
-            const mainGuild = client.guilds.cache.get(kythia.bot.mainGuildId);
+            const mainGuild = client.guilds.cache.get(kythiaConfig.bot.mainGuildId);
             if (!mainGuild) {
                 logger.error(
-                    `[isInMainGuild Check] Error: Bot is not a member of the main guild specified in config: ${kythia.bot.mainGuildId}`
+                    `[isInMainGuild Check] Error: Bot is not a member of the main guild specified in config: ${kythiaConfig.bot.mainGuildId}`
                 );
             }
             try {
                 await mainGuild.members.fetch(message.author.id);
             } catch (error) {
-                const container = new ContainerBuilder().setAccentColor(convertColor(kythia.bot.color, { from: 'hex', to: 'decimal' }));
+                const container = new ContainerBuilder().setAccentColor(convertColor(kythiaConfig.bot.color, { from: 'hex', to: 'decimal' }));
                 container.addTextDisplayComponents(
                     new TextDisplayBuilder().setContent(await t(message, 'common.error.not.in.main.guild.text', { name: mainGuild.name }))
                 );
@@ -106,7 +106,7 @@ module.exports = async (bot, message) => {
                         new ButtonBuilder()
                             .setLabel(await t(message, 'common.error.not.in.main.guild.button.join'))
                             .setStyle(ButtonStyle.Link)
-                            .setURL(kythia.settings.supportServer)
+                            .setURL(kythiaConfig.settings.supportServer)
                     )
                 );
                 container.addTextDisplayComponents(
@@ -123,7 +123,7 @@ module.exports = async (bot, message) => {
             const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
 
             if (!voter || voter.votedAt < twelveHoursAgo) {
-                const container = new ContainerBuilder().setAccentColor(convertColor(kythia.bot.color, { from: 'hex', to: 'decimal' }));
+                const container = new ContainerBuilder().setAccentColor(convertColor(kythiaConfig.bot.color, { from: 'hex', to: 'decimal' }));
                 container.addTextDisplayComponents(new TextDisplayBuilder().setContent(await t(message, 'common.error.vote.locked.text')));
                 container.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
                 container.addActionRowComponents(
@@ -135,7 +135,7 @@ module.exports = async (bot, message) => {
                                 })
                             )
                             .setStyle(ButtonStyle.Link)
-                            .setURL(`https://top.gg/bot/${kythia.bot.clientId}/vote`)
+                            .setURL(`https://top.gg/bot/${kythiaConfig.bot.clientId}/vote`)
                     )
                 );
                 container.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
@@ -148,7 +148,7 @@ module.exports = async (bot, message) => {
             }
         }
 
-        const cooldownDuration = finalCommand.cooldown ?? kythia.bot.globalCommandCooldown ?? 0;
+        const cooldownDuration = finalCommand.cooldown ?? kythiaConfig.bot.globalCommandCooldown ?? 0;
         if (cooldownDuration > 0 && !isOwner(message.author.id)) {
             const { cooldowns } = client;
             const cooldownKey = finalCommand.data?.name || finalCommandKey;
@@ -181,7 +181,7 @@ module.exports = async (bot, message) => {
                 await message.reply(helpMessage);
             }
         } catch (err) {
-            console.error(`❌ Error executing prefix command '${finalCommandKey}':`, err);
+            logger.error(`❌ Error executing prefix command '${finalCommandKey}':`, err);
             await message.reply(await t(message, 'core.events.messageCreate.error', { command: finalCommandKey })).catch(() => {});
         }
         return;
@@ -193,7 +193,7 @@ module.exports = async (bot, message) => {
             if (isFlagged) return true;
         }
 
-        const afkData = await AFK.getCache({
+        const afkData = await UserAFK.getCache({
             userId: message.author.id,
         });
 
@@ -210,7 +210,7 @@ module.exports = async (bot, message) => {
                 });
 
                 const embed = new EmbedBuilder()
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setDescription(welcomeBackMessage)
                     .setFooter({ text: await t(message, 'common.embed.footer', { username: client.user.username }) });
 
@@ -222,21 +222,21 @@ module.exports = async (bot, message) => {
                 await afkData.destroy({ individualHooks: true });
             }
         } catch (error) {
-            console.error('Error saat user kembali dari AFK:', error);
+            logger.error('Error when user returned from UserAFK:', error);
 
             try {
                 const errorMessage = await t(message, 'core.events.messageCreate.error');
                 const embed = new EmbedBuilder()
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setDescription(errorMessage)
                     .setFooter({ text: await t(message, 'common.embed.footer', { username: message.author.toString() }) });
                 await message.author.send({ embeds: [embed] });
             } catch (dmError) {
-                console.error('Gagal mengirim DM error AFK ke user:', dmError);
+                logger.error('Failed to send DM error from UserAFK to user:', dmError);
             }
 
             if (afkData) {
-                await afkData.destroy().catch((e) => console.error('Gagal menghapus data AFK setelah error:', e));
+                await afkData.destroy().catch((e) => logger.error('Failed to delete UserAFK data after error:', e));
             }
         }
 
@@ -250,7 +250,7 @@ module.exports = async (bot, message) => {
                 if (user.id === message.author.id) continue;
 
                 try {
-                    const mentionedAfkData = await AFK.getCache({ userId: user.id });
+                    const mentionedAfkData = await UserAFK.getCache({ userId: user.id });
 
                     if (mentionedAfkData) {
                         const afkSince = moment(mentionedAfkData.timestamp).fromNow();
@@ -263,18 +263,18 @@ module.exports = async (bot, message) => {
                         afkReplies.push(afkReplyLine);
                     }
                 } catch (error) {
-                    console.error("Error checking mentioned user's AFK status:", error);
+                    logger.error("Error checking mentioned user's UserAFK status:", error);
                 }
             }
 
             if (afkReplies.length > 0) {
                 const combinedReply = afkReplies.join('\n');
                 const embed = new EmbedBuilder()
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setDescription(combinedReply)
                     .setFooter({ text: await t(message, 'common.embed.footer', { username: client.user.username }) });
                 const reply = await message.reply({ embeds: [embed] });
-                setTimeout(() => reply.delete().catch(console.error), 30000);
+                setTimeout(() => reply.delete().catch(logger.error), 30000);
             }
         }
 
@@ -288,7 +288,7 @@ module.exports = async (bot, message) => {
                 const stickyEmbed = new EmbedBuilder()
                     .setTitle(await t(message, 'core.events.messageCreate.sticky.title'))
                     .setDescription(sticky.message)
-                    .setColor(kythia.bot.color)
+                    .setColor(kythiaConfig.bot.color)
                     .setFooter({ text: await t(message, 'common.embed.footer', { username: client.user.username }) });
 
                 const sent = await message.channel.send({ embeds: [stickyEmbed] });
@@ -297,7 +297,7 @@ module.exports = async (bot, message) => {
                 await sticky.saveAndUpdateCache('channelId');
             }
         } catch (err) {
-            console.error('❌ Error loading sticky:', err);
+            logger.error('❌ Error loading sticky:', err);
         }
     }
 };

@@ -7,11 +7,14 @@
  */
 
 const { AuditLogEvent, EmbedBuilder } = require('discord.js');
-const ServerSetting = require('@coreModels/ServerSetting');
-const convertColor = require('@kenndeclouv/kythia-core').utils.color;
 
 module.exports = async (bot, emoji) => {
     if (!emoji.guild) return;
+    const container = bot.client.container;
+    const { t, models, helpers } = container;
+    const { ServerSetting } = models;
+    const { convertColor } = helpers.color;
+
     try {
         const settings = await ServerSetting.getCache({ guildId: emoji.guild.id });
         if (!settings || !settings.auditLogChannelId) return;
@@ -34,7 +37,7 @@ module.exports = async (bot, emoji) => {
                 name: entry.executor?.tag || 'Unknown',
                 iconURL: entry.executor?.displayAvatarURL?.(),
             })
-            .setDescription(`😃 **Emoji Created** by <@${entry.executor?.id || 'Unknown'}>`)
+            .setDescription(`**Emoji Created** by <@${entry.executor?.id || 'Unknown'}>`)
             .addFields(
                 { name: 'Emoji', value: `<:${emoji.name}:${emoji.id}>`, inline: true },
                 { name: 'Name', value: emoji.name, inline: true },

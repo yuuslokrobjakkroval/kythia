@@ -9,14 +9,14 @@
 // addons/core/events/messageDelete.js
 
 const { AuditLogEvent, EmbedBuilder } = require('discord.js');
-const ServerSetting = require('@coreModels/ServerSetting');
-const convertColor = require('@kenndeclouv/kythia-core').utils.color;
-// Hapus require 'wait'
 
 module.exports = async (bot, message) => {
     if (!message.guild || !message.channelId) return;
-    // Abaikan bot jika message.author ada
-    // if (message.author?.bot) return;
+    if (message.author?.bot) return;
+    const container = bot.client.container;
+    const { t, models, helpers, kythiaConfig } = container;
+    const { ServerSetting } = models;
+    const { convertColor } = helpers.color;
 
     try {
         const settings = await ServerSetting.getCache({ guildId: message.guild.id });

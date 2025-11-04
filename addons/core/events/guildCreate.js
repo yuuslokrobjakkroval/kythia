@@ -7,9 +7,6 @@
  */
 
 const { Events, EmbedBuilder, WebhookClient, PermissionsBitField } = require('discord.js');
-const ServerSetting = require('@coreModels/ServerSetting');
-const { embedFooter } = require('@coreHelpers/discord');
-const { t } = require('@coreHelpers/translator');
 
 function safeWebhookClient(url) {
     if (typeof url === 'string' && url.trim().length > 0) {
@@ -59,6 +56,11 @@ async function getInviteLink(guild) {
 }
 
 module.exports = async (bot, guild) => {
+    const container = bot.client.container;
+    const { t, models, helpers, kythiaConfig } = container;
+    const { ServerSetting } = models;
+    const { embedFooter } = helpers.discord;
+
     const locale = guild.preferredLocale || 'en';
     const [setting, created] = await ServerSetting.findOrCreateWithCache({
         where: { guildId: guild.id },
@@ -72,7 +74,7 @@ module.exports = async (bot, guild) => {
         console.log(`Default bot settings created for server: ${guild.name}`);
     }
 
-    const webhookClient = safeWebhookClient(kythia.api.webhookGuildInviteLeave);
+    const webhookClient = safeWebhookClient(kythiaConfig.api.webhookGuildInviteLeave);
 
     let ownerName = 'Unknown';
     try {
@@ -94,7 +96,7 @@ module.exports = async (bot, guild) => {
     }
 
     const inviteEmbed = new EmbedBuilder()
-        .setColor(kythia.bot.color)
+        .setColor(kythiaConfig.bot.color)
         .setDescription(
             await t(guild, 'core.events.guildCreate.events.guild.create.webhook.desc', {
                 bot: guild.client.user.username,
@@ -123,7 +125,7 @@ module.exports = async (bot, guild) => {
     if (channel) {
         try {
             const welcomeEmbed = new EmbedBuilder()
-                .setColor(kythia.bot.color)
+                .setColor(kythiaConfig.bot.color)
                 .setDescription(
                     await t(guild, 'core.events.guildCreate.events.guild.create.welcome.desc', {
                         bot: guild.client.user.username,

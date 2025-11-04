@@ -37,7 +37,7 @@ const initialize = (bot) => {
     cron.schedule('0 * * * *', () => cleanupUserCache(userCache));
     summary.push('  └─ Cron: cleanup user cache (per day at 00:00)');
 
-    cron.schedule('* * * * *', () => runStatsUpdater(bot.client));
+    cron.schedule('*/5 * * * *', () => runStatsUpdater(bot.client));
     summary.push('  └─ Cron: cleanup user cache (every 5 minutes)');
 
     return summary;

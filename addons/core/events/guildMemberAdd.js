@@ -6,15 +6,17 @@
  * @version 0.9.11-beta
  */
 
-const ServerSetting = require('../database/models/ServerSetting');
-const { resolvePlaceholders, safeResolvePlaceholder } = require('@coreHelpers/stats');
+const { resolvePlaceholders, safeResolvePlaceholder } = require("../helpers/stats");
 const { generateBanner } = require('../helpers/canvas');
-const { embedFooter } = require('@coreHelpers/discord');
-const User = require('../database/models/User');
 const { EmbedBuilder } = require('discord.js');
 const { rolePrefix } = require('../helpers');
 
 module.exports = async (bot, member) => {
+    const container = bot.client.container;
+    const { t, models, helpers, kythiaConfig } = container;
+    const { ServerSetting, User } = models;
+    const { embedFooter } = helpers.discord;
+
     let user = await User.getCache({ userId: member.user.id, guildId: member.guild.id });
     if (!user) {
         user = await User.create({ userId: member.user.id, guildId: member.guild.id });
@@ -186,7 +188,7 @@ module.exports = async (bot, member) => {
     }
 
     const welcomeEmbed = new EmbedBuilder()
-        .setColor(kythia.bot.color)
+        .setColor(kythiaConfig.bot.color)
         .setDescription(safeWelcomeText)
         .setImage(embedImageUrl)
         .setFooter(await embedFooter(member));

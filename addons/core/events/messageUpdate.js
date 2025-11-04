@@ -6,10 +6,13 @@
  * @version 0.9.11-beta
  */
 
-const { isOwner } = require('@coreHelpers/discord');
 const { automodSystem } = require('../helpers/automod');
 
 module.exports = async (bot, message) => {
+    const container = bot.client.container;
+    const { helpers } = container;
+    const { isOwner } = helpers.discord;
+
     try {
         const client = bot.client;
         if (!message || !message.author || !message.guild) return;

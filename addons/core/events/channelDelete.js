@@ -6,15 +6,17 @@
  * @version 0.9.11-beta
  */
 
-const { AuditLogEvent, EmbedBuilder } = require('discord.js');
-const ServerSetting = require('@coreModels/ServerSetting');
-const { t } = require('@coreHelpers/translator');
+const { AuditLogEvent, EmbedBuilder, ChannelType } = require('discord.js');
 
 /**
  * Handle anti-nuke system for channel deletion spam.
  */
 async function handleAntiNuke(bot, channel, entry) {
     if (!entry || !entry.executor || entry.executor.bot) return;
+
+    const container = bot.client.container;
+    const { t, models } = container;
+    const { ServerSetting } = models;
 
     if (!bot.client.channelDeleteTracker) {
         bot.client.channelDeleteTracker = new Map();
@@ -66,6 +68,9 @@ async function handleAntiNuke(bot, channel, entry) {
 
 module.exports = async (bot, channel) => {
     if (!channel.guild) return;
+    const container = bot.client.container;
+    const { models } = container;
+    const { ServerSetting } = models;
 
     try {
         const audit = await channel.guild.fetchAuditLogs({

@@ -7,7 +7,6 @@
  */
 
 const { EmbedBuilder, WebhookClient } = require('discord.js');
-const { t } = require('@coreHelpers/translator');
 
 function safeWebhookClient(url) {
     if (typeof url === 'string' && url.trim().length > 0) {
@@ -17,8 +16,10 @@ function safeWebhookClient(url) {
 }
 
 module.exports = async (bot, guild) => {
-    // Webhook URL that has been set up
-    const webhookClient = safeWebhookClient(kythia.api.webhookGuildInviteLeave);
+    const container = bot.client.container;
+    const { t, kythiaConfig } = container;
+
+    const webhookClient = safeWebhookClient(kythiaConfig.api.webhookGuildInviteLeave);
 
     // Use t for all text
     const leaveEmbed = new EmbedBuilder()

@@ -7,10 +7,12 @@
  */
 
 const { AuditLogEvent, EmbedBuilder, ChannelType } = require('discord.js');
-const ServerSetting = require('@coreModels/ServerSetting');
-const { t } = require('@coreHelpers/translator');
 
 async function handleAntiNuke(bot, channel, entry) {
+    const container = bot.client.container;
+    const { t, models } = container;
+    const { ServerSetting } = models;
+
     if (!entry || !entry.executor || entry.executor.bot) return;
 
     if (!bot.client.channelCreateTracker) {
@@ -62,6 +64,10 @@ async function handleAntiNuke(bot, channel, entry) {
 }
 
 module.exports = async (bot, channel) => {
+    const container = bot.client.container;
+    const { models } = container;
+    const { ServerSetting } = models;
+
     if (!channel.guild || ![ChannelType.GuildText, ChannelType.GuildVoice, ChannelType.GuildCategory].includes(channel.type)) return;
 
     try {

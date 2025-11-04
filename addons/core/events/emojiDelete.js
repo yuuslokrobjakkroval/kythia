@@ -7,11 +7,13 @@
  */
 
 const { AuditLogEvent, EmbedBuilder } = require('discord.js');
-const ServerSetting = require('@coreModels/ServerSetting');
-const convertColor = require('@kenndeclouv/kythia-core').utils.color;
 
 module.exports = async (bot, emoji) => {
     if (!emoji.guild) return;
+    const container = bot.client.container;
+    const { t, models, helpers } = container;
+    const { ServerSetting } = models;
+    const { convertColor } = helpers.color;
 
     try {
         const settings = await ServerSetting.getCache({ guildId: emoji.guild.id });

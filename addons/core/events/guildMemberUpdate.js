@@ -7,8 +7,6 @@
  */
 
 const { AuditLogEvent, EmbedBuilder } = require('discord.js');
-const ServerSetting = require('@coreModels/ServerSetting');
-const convertColor = require('@kenndeclouv/kythia-core').utils.color;
 const { rolePrefix } = require('../helpers');
 
 function formatChanges(changes) {
@@ -26,6 +24,10 @@ function formatChanges(changes) {
 
 module.exports = async (bot, oldMember, newMember) => {
     if (!newMember.guild) return;
+    const container = bot.client.container;
+    const { t, models, helpers, kythiaConfig } = container;
+    const { ServerSetting } = models;
+    const { convertColor } = helpers.color;
 
     try {
         const setting = await ServerSetting.getCache({ guildId: newMember.guild.id });

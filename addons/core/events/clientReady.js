@@ -9,27 +9,27 @@
 const { ActivityType } = require('discord.js');
 
 function setBotPresence(client) {
-    const logger = client.container.logger;
+    const { logger, kythiaConfig } = client.container.logger;
     if (!client.user) {
         logger.error('❌ client.user is undefined, cannot set presence.');
         return;
     }
 
     try {
-        let activityType = ActivityType[kythia.bot.activityType];
+        let activityType = ActivityType[kythiaConfig.bot.activityType];
         if (activityType === undefined) {
-            logger.warn(`Invalid activityType '${kythia.bot.activityType}', defaulting to 'Playing'.`);
+            logger.warn(`Invalid activityType '${kythiaConfig.bot.activityType}', defaulting to 'Playing'.`);
             activityType = ActivityType.Playing;
         }
         client.user.setPresence({
             activities: [
                 {
-                    name: kythia.bot.activity,
+                    name: kythiaConfig.bot.activity,
                     type: activityType,
-                    url: kythia.bot.streakUrl || null,
+                    url: kythiaConfig.bot.streakUrl || null,
                 },
             ],
-            status: kythia.bot.status || 'online',
+            status: kythiaConfig.bot.status || 'online',
         });
         logger.info('✅ Bot presence has been set.');
     } catch (err) {
