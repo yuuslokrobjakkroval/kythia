@@ -118,7 +118,7 @@ function loadKythiaConfig() {
             // Optional: For MySQL/MariaDB, timezone
             timezone: '+07:00',
             // Optional: For Redis, Redis URL
-            redis: process.env.REDIS_URL || 'redis://localhost:6379',
+            redis: process.env.REDIS_URLS || 'redis://localhost:6379',
 
             // Optional: For Redis, Redis cache version
             redisCacheVersion: 'v1.0',
