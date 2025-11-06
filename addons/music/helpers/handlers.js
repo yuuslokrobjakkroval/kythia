@@ -8,7 +8,7 @@
 
 const { generateLyricsWithTranscript, formatDuration } = require('.');
 const { embedFooter, checkIsPremium, isOwner } = require('@coreHelpers/discord');
-// const nanoid = require('nanoid');
+
 const {
     EmbedBuilder,
     ContainerBuilder,
@@ -44,13 +44,11 @@ async function handlePlay(interaction) {
     await interaction.deferReply();
     const query = options.getString('search');
 
-    // Check if Spotify feature is not configured by the bot owner
     if (query.toLowerCase().includes('spotify') && (!kythia.addons.music.spotify.clientID || !kythia.addons.music.spotify.clientSecret)) {
         const embed = new EmbedBuilder().setColor('Red').setDescription(await t(interaction, 'music.helpers.handlers.music.configured'));
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Poru: Use poru.resolve for search
     let res;
     try {
         res = await client.poru.resolve({ query, requester: interaction.user });
@@ -62,16 +60,13 @@ async function handlePlay(interaction) {
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Special handling for Spotify playlist links
     const isSpotifyPlaylist = /^https?:\/\/open\.spotify\.com\/playlist\/[a-zA-Z0-9]+/i.test(query.trim());
     if (isSpotifyPlaylist) {
-        // If Poru failed to resolve as a playlist, show error
         if (!res || res.loadType !== 'PLAYLIST_LOADED' || !Array.isArray(res.tracks) || res.tracks.length === 0) {
             const embed = new EmbedBuilder().setColor('Red').setDescription(await t(interaction, 'music.helpers.handlers.music.results'));
             return interaction.editReply({ embeds: [embed] });
         }
 
-        // Poru: create connection
         const player = client.poru.createConnection({
             guildId: guild.id,
             voiceChannel: member.voice.channel.id,
@@ -99,7 +94,6 @@ async function handlePlay(interaction) {
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Filter out YouTube Shorts (<70s) for search results
     if (res.loadType === 'search') {
         const filteredTracks = res.tracks.filter((track) => !track.info.isStream && track.info.length > 70000);
         if (!filteredTracks.length) {
@@ -122,7 +116,6 @@ async function handlePlay(interaction) {
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Poru: create connection
     const player = client.poru.createConnection({
         guildId: guild.id,
         voiceChannel: member.voice.channel.id,
@@ -198,7 +191,7 @@ async function handleResume(interaction, player) {
 
 async function handlePauseResume(interaction, player) {
     player.pause(!player.isPaused);
-    // console.log(player.currentTrack)
+
     const state = player.isPaused
         ? await t(interaction, 'music.helpers.handlers.manager.paused')
         : await t(interaction, 'music.helpers.handlers.manager.resumed');
@@ -269,7 +262,6 @@ async function _createQueueEmbed(player, page = 1, interaction) {
 
     const nowPlaying = player.currentTrack;
 
-    // Navigation buttons
     const buttons = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
             .setCustomId(`queue_prev_${page}`)
@@ -283,7 +275,6 @@ async function _createQueueEmbed(player, page = 1, interaction) {
             .setDisabled(page === totalPages)
     );
 
-    // ContainerBuilder for queue display
     const container = new ContainerBuilder()
         .setAccentColor(convertColor(kythia.bot.color, { from: 'hex', to: 'decimal' }))
         .addTextDisplayComponents(
@@ -332,7 +323,6 @@ async function handleQueue(interaction, player) {
         return interaction.reply({ embeds: [embed] });
     }
 
-    // Ambil halaman awal dari opsi slash command
     let initialPage;
     if (interaction.isChatInputCommand()) {
         initialPage = interaction.options.getInteger('page') || 1;
@@ -341,13 +331,11 @@ async function handleQueue(interaction, player) {
     }
     const queueMessageOptions = await _createQueueEmbed(player, initialPage, interaction);
 
-    // Kirim pesan awal
     const message = await interaction.reply(queueMessageOptions);
 
-    // Buat collector untuk tombol navigasi
     const collector = message.createMessageComponentCollector({
         filter: (i) => i.user.id === interaction.user.id,
-        time: 5 * 60 * 1000, // 5 menit
+        time: 5 * 60 * 1000,
     });
 
     collector.on('collect', async (buttonInteraction) => {
@@ -362,15 +350,13 @@ async function handleQueue(interaction, player) {
 
         const updatedMessageOptions = await _createQueueEmbed(player, currentPage, interaction);
 
-        // Gunakan .update() untuk mengedit pesan yang sudah ada
         await buttonInteraction.update(updatedMessageOptions);
     });
 
     collector.on('end', async () => {
-        // Hapus tombol setelah collector berakhir
         if (message.editable) {
             const finalState = await _createQueueEmbed(player, 1, interaction);
-            finalState.components = []; // Hapus tombol
+            finalState.components = [];
             await message.edit(finalState).catch(() => {});
         }
     });
@@ -390,7 +376,6 @@ async function handleNowPlaying(interaction, player) {
         return interaction.reply({ embeds: [embed] });
     }
 
-    // Poru: No built-in nowPlayingMessage, so just reply with info
     const track = player.currentTrack;
     const embed = new EmbedBuilder()
         .setColor(kythia.bot.color)
@@ -415,27 +400,21 @@ async function handleNowPlaying(interaction, player) {
 async function handleLoop(interaction, player) {
     let nextMode;
 
-    // KUNCI UTAMA: Cek tipe interaksi
     if (interaction.isChatInputCommand()) {
-        // Jika dari slash command, ambil mode dari options
         nextMode = interaction.options.getString('mode');
     } else {
-        // Asumsi jika bukan, berarti dari Button
-        // Jika dari tombol, kita putar modenya: OFF -> TRACK -> QUEUE -> OFF
         if (!player.trackRepeat && !player.queueRepeat) {
-            nextMode = 'track'; // Dari mati, jadi loop lagu
+            nextMode = 'track';
         } else if (player.trackRepeat) {
-            nextMode = 'queue'; // Dari loop lagu, jadi loop antrian
+            nextMode = 'queue';
         } else {
-            // player.queueRepeat is true
-            nextMode = 'off'; // Dari loop antrian, jadi mati
+            nextMode = 'off';
         }
     }
 
     let embed;
-    let descriptionText = ''; // Variabel untuk deskripsi
+    let descriptionText = '';
 
-    // Logika switch-nya tetap sama, tapi sekarang pakai 'nextMode'
     switch (nextMode) {
         case 'track':
             player.trackRepeat = true;
@@ -447,7 +426,7 @@ async function handleLoop(interaction, player) {
             player.queueRepeat = true;
             descriptionText = await t(interaction, 'music.helpers.handlers.music.queue');
             break;
-        default: // case 'off'
+        default:
             player.trackRepeat = false;
             player.queueRepeat = false;
             descriptionText = await t(interaction, 'music.helpers.handlers.music.off');
@@ -459,7 +438,6 @@ async function handleLoop(interaction, player) {
         .setDescription(descriptionText)
         .setFooter(await embedFooter(interaction));
 
-    // Balas interaksinya. Bisa berupa reply baru atau update dari tombol.
     return interaction.reply({ embeds: [embed] });
 }
 
@@ -472,21 +450,18 @@ async function handleLoop(interaction, player) {
 async function handleAutoplay(interaction, player) {
     let nextState;
 
-    // Cek apakah interaksi dari slash command yang punya 'options'
     if (interaction.isChatInputCommand()) {
-        const status = interaction.options.getString('status'); // Asumsi ada opsi 'status'
+        const status = interaction.options.getString('status');
         nextState = status === 'enable';
     } else {
-        // Jika dari tombol, toggle state saat ini
         nextState = !player.autoplay;
     }
 
     player.autoplay = nextState;
 
-    // Jika autoplay diaktifkan, pastikan semua mode loop mati
     if (player.autoplay) {
-        player.trackRepeat = false; // <--- CARA YANG BENAR
-        player.queueRepeat = false; // <--- CARA YANG BENAR
+        player.trackRepeat = false;
+        player.queueRepeat = false;
     }
 
     const statusMessage = player.autoplay
@@ -531,7 +506,7 @@ async function handleShuffle(interaction, player) {
             .setFooter(await embedFooter(interaction));
         return interaction.editReply({ embeds: [embed] });
     }
-    // Poru: shuffle queue
+
     player.queue.shuffle();
 
     const embed = new EmbedBuilder()
@@ -548,36 +523,31 @@ async function handleShuffle(interaction, player) {
  */
 async function handleBack(interaction, player, guildStates) {
     await interaction.deferReply();
-    // 1. Ambil state (history lagu) untuk server ini
+
     const guildState = guildStates.get(interaction.guild.id);
 
-    // 2. Cek kalau nggak ada history lagu
     if (!guildState || !guildState.previousTracks || guildState.previousTracks.length === 0) {
         const embed = new EmbedBuilder()
             .setColor('Red')
-            // Jangan lupa buat terjemahan baru di file bahasamu, misal: music_music_no_previous_track: "Gak ada lagu di history."
+
             .setDescription(await t(interaction, 'music.helpers.handlers.music.no.previous.track'))
             .setFooter(await embedFooter(interaction));
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // 3. Ambil lagu terakhir dari history
-    const previousTrack = guildState.previousTracks.shift(); // .shift() ngambil elemen pertama dari array
+    const previousTrack = guildState.previousTracks.shift();
 
-    // 4. (PENTING) Taruh lagu yang lagi jalan sekarang balik ke antrian paling depan
     if (player.currentTrack) {
         player.queue.unshift(player.currentTrack);
     }
 
-    // 5. Taruh lagu dari history ke antrian paling depan (biar langsung diputar)
     player.queue.unshift(previousTrack);
 
-    // 6. Langsung skip, yang otomatis akan muter lagu paling depan (yaitu lagu 'back' tadi)
     player.skip();
 
     const embed = new EmbedBuilder()
         .setColor(kythia.bot.color)
-        // Buat terjemahan baru, misal: music_music_playing_previous: "⏮️ Memutar lagu sebelumnya: **{title}**"
+
         .setDescription(await t(interaction, 'music.helpers.handlers.music.playing.previous', { title: previousTrack.info.title }))
         .setFooter(await embedFooter(interaction));
     return interaction.editReply({ embeds: [embed] });
@@ -590,12 +560,10 @@ async function handleBack(interaction, player, guildStates) {
  * @param {object} player - The music player instance.
  */
 async function handleFilter(interaction, player) {
-    // Pastikan player.filters adalah instance customFilter
     if (!(player.filters instanceof customFilter)) {
         player.filters = new customFilter(player);
     }
 
-    // Daftar filter dan label/emoji
     const filterList = [
         { id: 'nightcore', label: 'Nightcore', emoji: '🎶' },
         { id: 'vaporwave', label: 'Vaporwave', emoji: '🌫️' },
@@ -610,14 +578,12 @@ async function handleFilter(interaction, player) {
         { id: 'soft', label: 'Soft', emoji: '🛌' },
     ];
 
-    // Tombol reset filter
     const resetButton = new ButtonBuilder()
         .setCustomId('filter_reset')
         .setLabel('Reset')
-        // .setEmoji('♻️')
+
         .setStyle(ButtonStyle.Danger);
 
-    // Bagi tombol menjadi 3 baris: 5, 5, 1
     const rows = [new ActionRowBuilder(), new ActionRowBuilder(), new ActionRowBuilder()];
 
     for (let i = 0; i < filterList.length; i++) {
@@ -625,16 +591,15 @@ async function handleFilter(interaction, player) {
         const btn = new ButtonBuilder()
             .setCustomId(`filter_${filter.id}`)
             .setLabel(filter.label)
-            // .setEmoji(filter.emoji)
+
             .setStyle(ButtonStyle.Secondary);
         if (i < 5) rows[0].addComponents(btn);
         else if (i < 10) rows[1].addComponents(btn);
         else rows[2].addComponents(btn);
     }
-    // Baris ke-3 juga tambahkan tombol reset
+
     rows[2].addComponents(resetButton);
 
-    // ContainerBuilder untuk UI filter
     const container = new ContainerBuilder()
         .setAccentColor(convertColor(kythia.bot.color, { from: 'hex', to: 'decimal' }))
         .addTextDisplayComponents(new TextDisplayBuilder().setContent(await t(interaction, 'music.helpers.handlers.filter.title')))
@@ -649,7 +614,6 @@ async function handleFilter(interaction, player) {
             )
         );
 
-    // Kirim UI filter
     let filterMsg;
     if (interaction.replied || interaction.deferred) {
         filterMsg = await interaction.editReply({
@@ -665,26 +629,22 @@ async function handleFilter(interaction, player) {
         });
     }
 
-    // Collector yang tidak mati (selama player aktif)
     if (player.filterCollector) player.filterCollector.stop();
     const collector = filterMsg.createMessageComponentCollector({
         componentType: ComponentType.Button,
-        time: 0, // Tidak pernah mati otomatis
+        time: 0,
     });
     player.filterCollector = collector;
 
     collector.on('collect', async (btnInt) => {
-        // Hanya user yang sama yang bisa tekan
         if (btnInt.user.id !== interaction.user.id) {
             return btnInt.reply({ content: await t(btnInt, 'music.helpers.musicManager.music.permission.denied'), ephemeral: true });
         }
 
-        // Pastikan player.filters masih valid
         if (!(player.filters instanceof customFilter)) {
             player.filters = new customFilter(player);
         }
 
-        // Reset
         if (btnInt.customId === 'filter_reset') {
             player.filters.clearFilters(true);
             await player.filters.updateFilters();
@@ -699,7 +659,6 @@ async function handleFilter(interaction, player) {
             return;
         }
 
-        // Cek filter yang dipilih
         const filterId = btnInt.customId.replace('filter_', '');
         let applied = false;
         switch (filterId) {
@@ -798,7 +757,6 @@ async function handleFilter(interaction, player) {
         }
     });
 
-    // Bersihkan collector jika player dihancurkan
     player.on('destroy', () => {
         if (player.filterCollector) player.filterCollector.stop();
         player.filterCollector = null;
@@ -934,7 +892,6 @@ async function handleLyrics(interaction, player) {
         titleForSearch = originalTitle;
     }
 
-    // Clean up noise
     const cleanUpRegex = /official|lyric|video|audio|mv|hd|hq|ft|feat/gi;
     artist = artist.replace(cleanUpRegex, '').trim();
     titleForSearch = titleForSearch.replace(cleanUpRegex, '').trim();
@@ -948,7 +905,6 @@ async function handleLyrics(interaction, player) {
             .trim();
     durationSec = Math.round((track.info.length || 0) / 1000);
 
-    // Fallback album if not available
     if (!album && track.info.sourceName && track.info.sourceName.toLowerCase().includes('spotify')) {
         album = track.info.album || '';
     }
@@ -960,9 +916,8 @@ async function handleLyrics(interaction, player) {
     let foundRecord = null;
 
     try {
-        // Compose query params according to /api/search spec
         const params = new URLSearchParams();
-        // At least one of track_name or q must be present
+
         if (titleForSearch) {
             params.set('track_name', titleForSearch);
         } else if (originalTitle) {
@@ -972,7 +927,6 @@ async function handleLyrics(interaction, player) {
         if (artist) params.set('artist_name', artist);
         if (album) params.set('album_name', album);
 
-        // User-Agent for LRCLIB etiquette
         const headers = {
             'User-Agent': 'KythiaBot v0.9.8-beta (https://github.com/kenndeclouv/kythia)',
         };
@@ -981,11 +935,10 @@ async function handleLyrics(interaction, player) {
         const response = await fetch(lrclibUrl, { headers });
         if (response.status === 200) {
             const list = await response.json();
-            // Find best match: try to match both artist and title, fallback to the first record
+
             if (Array.isArray(list) && list.length > 0) {
                 foundRecord =
                     list.find((record) => {
-                        // Very basic match
                         return (
                             record.trackName &&
                             record.artistName &&
@@ -1004,7 +957,6 @@ async function handleLyrics(interaction, player) {
         logger.error(`LRCLIB API request failed: ${e.stack}`);
     }
 
-    // Fallback: Try AI if enabled and LRCLIB failed
     if (!lyrics && kythia.addons.ai.geminiApiKeys && kythia.addons.music.useAI) {
         try {
             lyrics = await generateLyricsWithTranscript(artist, titleForSearch, track.info.uri);
@@ -1014,7 +966,6 @@ async function handleLyrics(interaction, player) {
         }
     }
 
-    // If still not found, show not found message
     if (!lyrics) {
         const embed = new EmbedBuilder()
             .setColor('Orange')
@@ -1023,10 +974,8 @@ async function handleLyrics(interaction, player) {
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Trim if too long
     const trimmedLyrics = lyrics.length > 4096 ? lyrics.substring(0, 4093) + '...' : lyrics;
 
-    // Footer
     let footer;
     if (usedLrclib) {
         footer = {
@@ -1042,7 +991,6 @@ async function handleLyrics(interaction, player) {
         footer = await embedFooter(interaction);
     }
 
-    // Determine what to show as title/artist for returned lyric record
     let embedArtist = artist,
         embedTitle = titleForSearch;
     if (foundRecord) {
@@ -1050,7 +998,6 @@ async function handleLyrics(interaction, player) {
         embedTitle = foundRecord.trackName || embedTitle;
     }
 
-    // Build embed
     const embed = new EmbedBuilder()
         .setColor(kythia?.bot?.color || 'Blue')
         .setTitle(`${embedArtist} - ${embedTitle}`)
@@ -1104,7 +1051,6 @@ async function _handlePlaylistSave(interaction, player) {
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Cek duplikat
     const existing = await Playlist.getCache({ userId: userId, name: playlistName });
     if (existing) {
         const embed = new EmbedBuilder()
@@ -1116,7 +1062,6 @@ async function _handlePlaylistSave(interaction, player) {
 
     const playlist = await Playlist.create({ userId, name: playlistName });
 
-    // Simpan currentTrack (jika ada) + queue
     const tracksToSave = [];
     if (player.currentTrack) {
         tracksToSave.push({
@@ -1150,7 +1095,6 @@ async function _handlePlaylistSave(interaction, player) {
     await interaction.editReply({ embeds: [embed] });
 }
 
-// Load a playlist and play it
 async function _handlePlaylistLoad(interaction, player) {
     const client = interaction.client;
     const playlistName = interaction.options.getString('name');
@@ -1178,13 +1122,10 @@ async function _handlePlaylistLoad(interaction, player) {
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Kalau sudah ada player, hapus queue lama
     if (player) {
         player.queue.clear();
-        // player.destroy();
     }
 
-    // Buat player baru jika belum ada
     const newPlayer =
         player ||
         client.poru.createConnection({
@@ -1212,7 +1153,6 @@ async function _handlePlaylistLoad(interaction, player) {
     await interaction.editReply({ embeds: [embed] });
 }
 
-// List all playlists for the user, paginated with ContainerBuilder
 async function _handlePlaylistList(interaction) {
     const client = interaction.client;
     const userId = interaction.user.id;
@@ -1231,11 +1171,9 @@ async function _handlePlaylistList(interaction) {
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Pagination setup
     const itemsPerPage = 10;
     const totalPages = Math.ceil(playlists.length / itemsPerPage) || 1;
 
-    // Helper to create the paginated container
     async function createPlaylistListContainer(page = 1) {
         page = Math.max(1, Math.min(page, totalPages));
         const start = (page - 1) * itemsPerPage;
@@ -1244,7 +1182,6 @@ async function _handlePlaylistList(interaction) {
 
         const list = currentPagePlaylists.map((p, idx) => `**${start + idx + 1}.** ${p.name}`).join('\n');
 
-        // Navigation buttons
         const buttons = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId(`playlistlist_prev_${page}`)
@@ -1258,7 +1195,6 @@ async function _handlePlaylistList(interaction) {
                 .setDisabled(page === totalPages)
         );
 
-        // ContainerBuilder for playlist list
         const container = new ContainerBuilder()
             .setAccentColor(convertColor(kythia.bot.color, { from: 'hex', to: 'decimal' }))
             .addTextDisplayComponents(
@@ -1287,7 +1223,6 @@ async function _handlePlaylistList(interaction) {
         };
     }
 
-    // Initial page
     let initialPage = 1;
     if (interaction.isChatInputCommand()) {
         initialPage = interaction.options.getInteger('page') || 1;
@@ -1296,10 +1231,9 @@ async function _handlePlaylistList(interaction) {
     const messageOptions = await createPlaylistListContainer(initialPage);
     const message = await interaction.editReply(messageOptions);
 
-    // Collector for navigation
     const collector = message.createMessageComponentCollector({
         filter: (i) => i.user.id === interaction.user.id,
-        time: 5 * 60 * 1000, // 5 minutes
+        time: 5 * 60 * 1000,
     });
 
     collector.on('collect', async (buttonInteraction) => {
@@ -1317,7 +1251,6 @@ async function _handlePlaylistList(interaction) {
     });
 
     collector.on('end', async () => {
-        // Remove buttons after collector ends
         if (message.editable) {
             const finalState = await createPlaylistListContainer(1);
             finalState.components = [];
@@ -1326,7 +1259,6 @@ async function _handlePlaylistList(interaction) {
     });
 }
 
-// Delete a playlist
 async function _handlePlaylistDelete(interaction) {
     const client = interaction.client;
     const playlistName = interaction.options.getString('name');
@@ -1355,16 +1287,14 @@ async function _handlePlaylistAppend(interaction, player) {
     const { client, user } = interaction;
     const playlistName = interaction.options.getString('name');
 
-    // Cek dulu, harus ada lagu yang jalan buat nambahin ke antriannya
     if (!player) {
         const embed = new EmbedBuilder()
             .setColor('Red')
             .setFooter(await embedFooter(interaction))
-            .setDescription(await t(interaction, 'music.helpers.handlers.music.playlist.append.no.player')); // "Nggak ada musik yang lagi jalan. Putar lagu dulu baru bisa nambahin dari playlist."
+            .setDescription(await t(interaction, 'music.helpers.handlers.music.playlist.append.no.player'));
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Ambil playlist dari database
     const playlist = await Playlist.getCache({
         userId: user.id,
         name: playlistName,
@@ -1388,7 +1318,7 @@ async function _handlePlaylistAppend(interaction, player) {
     }
 
     let addedCount = 0;
-    // Loop semua lagu di playlist, resolve, dan tambahin ke antrian
+
     for (const trackData of playlist.tracks) {
         const res = await client.poru.resolve({ query: trackData.uri, requester: user });
         if (res && res.tracks.length) {
@@ -1402,11 +1332,10 @@ async function _handlePlaylistAppend(interaction, player) {
         .setFooter(await embedFooter(interaction))
         .setDescription(
             await t(interaction, 'music.helpers.handlers.music.playlist.append.success.v2', { count: addedCount, name: playlistName })
-        ); // Buat terjemahan baru: "✅ Berhasil menambahkan **{count}** lagu dari playlist **{name}** ke antrian."
+        );
     await interaction.editReply({ embeds: [embed] });
 }
 
-// Remove a track from a playlist by its position (1-based)
 async function _handlePlaylistRemoveTrack(interaction) {
     const client = interaction.client;
     const playlistName = interaction.options.getString('name');
@@ -1453,7 +1382,6 @@ async function _handlePlaylistRemoveTrack(interaction) {
     await interaction.editReply({ embeds: [embed] });
 }
 
-// Rename a playlist
 async function _handlePlaylistRename(interaction) {
     const client = interaction.client;
     const playlistName = interaction.options.getString('name');
@@ -1469,7 +1397,6 @@ async function _handlePlaylistRename(interaction) {
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Cek duplikat nama baru
     const existing = await Playlist.getCache({ userId: userId, name: newName });
     if (existing) {
         const embed = new EmbedBuilder()
@@ -1494,7 +1421,6 @@ async function _handlePlaylistTrackList(interaction) {
     const playlistName = interaction.options.getString('name');
     const userId = interaction.user.id;
 
-    // Fetch playlist and include tracks
     const playlist = await Playlist.getCache({
         userId: userId,
         name: playlistName,
@@ -1517,11 +1443,9 @@ async function _handlePlaylistTrackList(interaction) {
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Pagination setup
     const itemsPerPage = 10;
     const totalPages = Math.ceil(playlist.tracks.length / itemsPerPage) || 1;
 
-    // Helper to create the paginated container
     async function createTrackListContainer(page = 1) {
         page = Math.max(1, Math.min(page, totalPages));
         const start = (page - 1) * itemsPerPage;
@@ -1530,7 +1454,6 @@ async function _handlePlaylistTrackList(interaction) {
 
         const trackList = currentTracks.map((t, i) => `**${start + i + 1}.** [${t.title}](${t.uri})`).join('\n');
 
-        // Navigation buttons
         const buttons = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId(`playlisttracklist_prev_${page}`)
@@ -1544,7 +1467,6 @@ async function _handlePlaylistTrackList(interaction) {
                 .setDisabled(page === totalPages)
         );
 
-        // ContainerBuilder for track list
         const container = new ContainerBuilder()
             .setAccentColor(convertColor(kythia.bot.color, { from: 'hex', to: 'decimal' }))
             .addTextDisplayComponents(
@@ -1575,17 +1497,14 @@ async function _handlePlaylistTrackList(interaction) {
         };
     }
 
-    // Initial page
     let initialPage = 1;
     const messageOptions = await createTrackListContainer(initialPage);
 
-    // Send initial message
     const message = await interaction.editReply(messageOptions);
 
-    // Collector for navigation buttons
     const collector = message.createMessageComponentCollector({
         filter: (i) => i.user.id === interaction.user.id,
-        time: 5 * 60 * 1000, // 5 minutes
+        time: 5 * 60 * 1000,
     });
 
     collector.on('collect', async (buttonInteraction) => {
@@ -1604,10 +1523,9 @@ async function _handlePlaylistTrackList(interaction) {
     });
 
     collector.on('end', async () => {
-        // Remove buttons after collector ends
         if (message.editable) {
             const finalState = await createTrackListContainer(1);
-            finalState.components = []; // Remove buttons
+            finalState.components = [];
             await message.edit(finalState).catch(() => {});
         }
     });
@@ -1618,7 +1536,6 @@ async function _handlePlaylistTrackAdd(interaction) {
     const playlistName = interaction.options.getString('name');
     const query = interaction.options.getString('search');
 
-    // 1. Cari dulu playlist-nya
     const playlist = await Playlist.getCache({ userId: user.id, name: playlistName });
     if (!playlist) {
         return interaction.editReply({
@@ -1626,7 +1543,6 @@ async function _handlePlaylistTrackAdd(interaction) {
         });
     }
 
-    // 2. Cari lagunya pake Poru
     const res = await client.poru.resolve({ query, requester: user });
     if (!res || !res.tracks || res.tracks.length === 0) {
         return interaction.editReply({ content: await t(interaction, 'music.helpers.handlers.music.play.no.results') });
@@ -1634,11 +1550,9 @@ async function _handlePlaylistTrackAdd(interaction) {
 
     const trackToAdd = res.tracks[0];
 
-    // 3. (PENTING) Cek biar lagunya nggak duplikat di dalem playlist
     const existingTrack = await PlaylistTrack.getCache({
-        // userId: user.id,
         playlistId: playlist.id,
-        // name: playlistName,
+
         identifier: trackToAdd.info.identifier,
     });
 
@@ -1651,7 +1565,6 @@ async function _handlePlaylistTrackAdd(interaction) {
         });
     }
 
-    // 4. Simpen lagu ke database
     try {
         await _saveTracksToPlaylist(playlist, [trackToAdd]);
 
@@ -1671,7 +1584,6 @@ async function _handlePlaylistShare(interaction) {
     const playlistName = interaction.options.getString('name');
     const userId = interaction.user.id;
 
-    // 1. Find user's playlist
     const playlist = await Playlist.getCache({ userId: userId, name: playlistName });
     if (!playlist) {
         const embed = new EmbedBuilder()
@@ -1688,14 +1600,12 @@ async function _handlePlaylistShare(interaction) {
 
     let shareCode = playlist.shareCode;
 
-    // 2. If playlist does not have a share code, generate one
     if (!shareCode) {
         shareCode = `KYPL-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
         playlist.shareCode = shareCode;
         await playlist.saveAndUpdateCache();
     }
 
-    // 3. Show the code to the user
     const embed = new EmbedBuilder()
         .setColor(kythia.bot.color)
         .setDescription(
@@ -1716,13 +1626,11 @@ async function _handlePlaylistImport(interaction) {
     const userId = interaction.user.id;
     const { client } = interaction;
 
-    // Check if this is a Spotify URL
     if (/^https?:\/\/open\.spotify\.com\/playlist\/[a-zA-Z0-9]+/i.test(codeOrUrl.trim())) {
         return _importFromSpotify(interaction, codeOrUrl);
     }
 
     try {
-        // 1. Find the original playlist by share code
         const originalPlaylist = await Playlist.getCache({
             shareCode: codeOrUrl,
             include: [{ model: PlaylistTrack, as: 'tracks' }],
@@ -1740,16 +1648,13 @@ async function _handlePlaylistImport(interaction) {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        // --- Copy playlist logic ---
         let newPlaylistName = originalPlaylist.name;
 
-        // Check for duplicate name for importing user
         const existing = await Playlist.getCache({ userId: userId, name: newPlaylistName });
         if (existing) {
             newPlaylistName = `${newPlaylistName} (Share)`;
         }
 
-        // Check playlist limit
         const playlistCount = await Playlist.countWithCache({ userId: userId });
         const isPremium = await checkIsPremium(userId);
         if (!isOwner(userId) && playlistCount >= kythia.addons.music.playlistLimit && !isPremium) {
@@ -1765,13 +1670,11 @@ async function _handlePlaylistImport(interaction) {
             return interaction.editReply({ embeds: [embed] });
         }
 
-        // 2. Create a new playlist for the current user
         const newPlaylist = await Playlist.create({
             userId: userId,
             name: newPlaylistName,
         });
 
-        // 3. Copy all tracks from the original playlist to the new playlist
         const tracksToCopy = originalPlaylist.tracks.map((track) => ({
             playlistId: newPlaylist.id,
             title: track.title,
@@ -1805,9 +1708,7 @@ async function _handlePlaylistImport(interaction) {
     }
 }
 
-// Pindahkan logika import Spotify ke sini agar rapi
 async function _importFromSpotify(interaction, url) {
-    // Salin logika import Spotify dari _handlePlaylistImport lama
     const { client, user } = interaction;
     const userId = user.id;
 
@@ -1825,11 +1726,9 @@ async function _importFromSpotify(interaction, url) {
     const spotifyPlaylistName = res.playlistInfo.name;
     const tracksFromSpotify = res.tracks;
 
-    // Cek duplikat nama playlist di database
     const existingPlaylist = await Playlist.getCache({ userId: userId, name: spotifyPlaylistName });
 
     if (existingPlaylist) {
-        // --- BAGIAN BARU: TAMPILKAN TOMBOL ---
         const embed = new EmbedBuilder()
             .setColor('Yellow')
             .setDescription(await t(interaction, 'music.helpers.handlers.playlist.import.duplicate.prompt', { name: spotifyPlaylistName }));
@@ -1851,7 +1750,6 @@ async function _importFromSpotify(interaction, url) {
 
         const reply = await interaction.editReply({ embeds: [embed], components: [row] });
 
-        // Tunggu interaksi tombol dari user yang sama, selama 60 detik
         const collector = reply.createMessageComponentCollector({
             filter: (i) => i.user.id === user.id,
             time: 60000,
@@ -1861,7 +1759,6 @@ async function _importFromSpotify(interaction, url) {
             await i.deferUpdate();
 
             if (i.customId === 'import_overwrite') {
-                // Hapus semua lagu lama dari playlist yang ada
                 await PlaylistTrack.destroy({ where: { playlistId: existingPlaylist.id } });
                 await _saveTracksToPlaylist(existingPlaylist, tracksFromSpotify);
 
@@ -1878,7 +1775,6 @@ async function _importFromSpotify(interaction, url) {
                 let copyNum = 1;
                 let isNameAvailable = false;
 
-                // Cari nama yang tersedia, misal "Favorites (1)", "Favorites (2)", dst.
                 while (!isNameAvailable) {
                     newName = `${spotifyPlaylistName} (${copyNum})`;
                     const check = await Playlist.getCache({ userId: userId, name: newName });
@@ -1918,8 +1814,6 @@ async function _importFromSpotify(interaction, url) {
             }
         });
     } else {
-        // --- KODE LAMA JIKA PLAYLIST BELUM ADA ---
-        // Cek limit playlist (hanya jika membuat playlist baru)
         const playlistCount = await Playlist.countWithCache({ userId: userId });
         const isPremium = await checkIsPremium(userId);
         if (!isOwner(userId) && playlistCount >= kythia.addons.music.playlistLimit && !isPremium) {
@@ -1970,7 +1864,6 @@ async function handleFavorite(interaction, player) {
     if (s === 'remove') return _handleFavoriteRemove(interaction);
 }
 
-// Play all favorites for the user (replace queue)
 async function _handleFavoritePlay(interaction, player) {
     await interaction.deferReply();
 
@@ -1978,7 +1871,6 @@ async function _handleFavoritePlay(interaction, player) {
     const client = interaction.client;
     const userId = interaction.user.id;
 
-    // Get all favorites for the user
     const favorites = await Favorite.getAllCache({
         where: { userId },
         order: [['createdAt', 'ASC']],
@@ -1994,7 +1886,6 @@ async function _handleFavoritePlay(interaction, player) {
         player.queue.clear();
     }
 
-    // Create player if not exists
     const newPlayer =
         player ||
         client.poru.createConnection({
@@ -2021,7 +1912,6 @@ async function _handleFavoritePlay(interaction, player) {
     await interaction.editReply({ embeds: [embed] });
 }
 
-// List all favorites for the user, paginated
 async function _handleFavoriteList(interaction) {
     await interaction.deferReply();
     const userId = interaction.user.id;
@@ -2037,7 +1927,6 @@ async function _handleFavoriteList(interaction) {
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Pagination setup
     const itemsPerPage = 10;
     const totalPages = Math.ceil(favorites.length / itemsPerPage) || 1;
 
@@ -2090,7 +1979,6 @@ async function _handleFavoriteList(interaction) {
         };
     }
 
-    // Initial page
     let initialPage = 1;
     if (interaction.isChatInputCommand()) {
         initialPage = interaction.options.getInteger('page') || 1;
@@ -2099,10 +1987,9 @@ async function _handleFavoriteList(interaction) {
     const messageOptions = await createFavoriteListContainer(initialPage);
     const message = await interaction.editReply(messageOptions);
 
-    // Collector for navigation
     const collector = message.createMessageComponentCollector({
         filter: (i) => i.user.id === interaction.user.id,
-        time: 5 * 60 * 1000, // 5 minutes
+        time: 5 * 60 * 1000,
     });
 
     collector.on('collect', async (buttonInteraction) => {
@@ -2120,7 +2007,6 @@ async function _handleFavoriteList(interaction) {
     });
 
     collector.on('end', async () => {
-        // Remove buttons after collector ends
         if (message.editable) {
             const finalState = await createFavoriteListContainer(1);
             finalState.components = [];
@@ -2129,7 +2015,6 @@ async function _handleFavoriteList(interaction) {
     });
 }
 
-// Add current track to favorites
 async function _handleFavoriteAdd(interaction, player) {
     await interaction.deferReply();
 
@@ -2150,7 +2035,6 @@ async function _handleFavoriteAdd(interaction, player) {
         track = player?.currentTrack;
     }
 
-    // Only allow adding if there is a current track
     if (!track) {
         const embed = new EmbedBuilder()
             .setColor('Red')
@@ -2158,7 +2042,6 @@ async function _handleFavoriteAdd(interaction, player) {
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Check for duplicate
     const existing = await Favorite.getCache({
         where: {
             userId,
@@ -2175,7 +2058,6 @@ async function _handleFavoriteAdd(interaction, player) {
         return interaction.editReply({ embeds: [embed] });
     }
 
-    // Add to favorites
     await Favorite.create({
         userId,
         identifier: track.info.identifier,
@@ -2193,14 +2075,12 @@ async function _handleFavoriteAdd(interaction, player) {
     await interaction.editReply({ embeds: [embed] });
 }
 
-// Remove a track from favorites by its position (1-based)
 async function _handleFavoriteRemove(interaction) {
     await interaction.deferReply();
 
     const userId = interaction.user.id;
     const name = interaction.options.getString('name');
 
-    // Get all favorites ordered
     const favorite = await Favorite.getCache({
         userId: userId,
         title: name,
@@ -2226,6 +2106,27 @@ async function _handleFavoriteRemove(interaction) {
     await interaction.editReply({ embeds: [embed] });
 }
 
+/**
+ * Handles the 24/7 (always-on) music mode for the player.
+ * When enabled, the bot will attempt to stay in the voice channel even when the queue is empty.
+ * @param {import('discord.js').ChatInputCommandInteraction} interaction
+ */
+async function handle247(interaction, player) {
+    await interaction.deferReply();
+
+    if (!player) {
+        const embed = new EmbedBuilder().setColor('Red').setDescription(await t(interaction, 'music.helpers.handlers.247.player.notfound'));
+        return interaction.editReply({ embeds: [embed] });
+    }
+
+    player._247 = !player._247;
+
+    let msgKey = player._247 ? 'music.helpers.handlers.247.enabled' : 'music.helpers.handlers.247.disabled';
+
+    const embed = new EmbedBuilder().setColor(kythia.bot.color).setDescription(await t(interaction, msgKey));
+    await interaction.editReply({ embeds: [embed] });
+}
+
 module.exports = {
     handlePlay,
     handlePause,
@@ -2248,4 +2149,5 @@ module.exports = {
     handleLyrics,
     handlePlaylist,
     handleFavorite,
+    handle247,
 };

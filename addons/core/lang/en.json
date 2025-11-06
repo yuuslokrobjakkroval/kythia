@@ -2065,6 +2065,13 @@
                         },
                         "success": "🗑️ Successfully removed **{title}** from your favorites."
                     }
+                },
+                "247": {
+                    "enabled": "✅ 24/7 mode enabled.",
+                    "disabled": "⏹️ 24/7 mode disabled.",
+                    "player": {
+                        "notfound": "❌ Unable to find a music player for this server."
+                    }
                 }
             },
             "musicManager": {

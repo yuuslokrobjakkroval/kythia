@@ -200,6 +200,7 @@ async function initializeMusicManager(bot) {
     client.poru.on('trackStart', async (player, track) => {
         try {
             const voiceChannel = client.channels.cache.get(player.voiceChannel);
+
             if (voiceChannel && !player._247) {
                 const realUsers = voiceChannel.members.filter((m) => !m.user.bot);
                 if (realUsers.size === 0) {
@@ -643,10 +644,12 @@ async function initializeMusicManager(bot) {
         let shouldContinue = true;
         try {
             const voiceChannel = client.channels.cache.get(player.voiceChannel);
-            if (voiceChannel && !player._247) {
+            if (voiceChannel) {
                 const realUsers = voiceChannel.members.filter((m) => !m.user.bot);
                 if (realUsers.size === 0) {
-                    shouldContinue = false;
+                    if (!player._247) {
+                        shouldContinue = false;
+                    }
                 }
             }
         } catch (err) {
@@ -677,21 +680,19 @@ async function initializeMusicManager(bot) {
         }
 
         const autoplayReference = player._autoplayReference;
-
+        let autoplaySucceeded = false;
         if (player.autoplay && autoplayReference) {
             try {
                 if (channel) {
-                    (async () => {
-                        await channel.send({
-                            embeds: [
-                                new EmbedBuilder().setColor(kythia.bot.color).setDescription(
-                                    await t(channel, 'music.helpers.musicManager.manager.searching', {
-                                        title: autoplayReference.info.title,
-                                    })
-                                ),
-                            ],
-                        });
-                    })();
+                    await channel.send({
+                        embeds: [
+                            new EmbedBuilder().setColor(kythia.bot.color).setDescription(
+                                await t(channel, 'music.helpers.musicManager.manager.searching', {
+                                    title: autoplayReference.info.title,
+                                })
+                            ),
+                        ],
+                    });
                 }
 
                 const searchUrl = `https://www.youtube.com/watch?v=${autoplayReference.info.identifier}&list=RD${autoplayReference.info.identifier}`;
@@ -709,35 +710,49 @@ async function initializeMusicManager(bot) {
 
                 if (!potentialNextTracks.length) {
                     if (channel) {
-                        (async () => {
-                            await channel.send({
-                                embeds: [
-                                    new EmbedBuilder()
-                                        .setColor('Orange')
-                                        .setDescription(await t(channel, 'music.helpers.musicManager.manager.played')),
-                                ],
-                            });
-                        })();
+                        await channel.send({
+                            embeds: [
+                                new EmbedBuilder()
+                                    .setColor('Orange')
+                                    .setDescription(await t(channel, 'music.helpers.musicManager.manager.played')),
+                            ],
+                        });
                     }
-                    return player.destroy();
+                } else {
+                    const topRecommendations = potentialNextTracks.slice(0, 5);
+                    const nextTrack = topRecommendations[Math.floor(Math.random() * topRecommendations.length)];
+
+                    player.queue.add(nextTrack);
+                    await player.play();
+                    autoplaySucceeded = true;
+                    return;
                 }
-
-                const topRecommendations = potentialNextTracks.slice(0, 5);
-                const nextTrack = topRecommendations[Math.floor(Math.random() * topRecommendations.length)];
-
-                player.queue.add(nextTrack);
-                return player.play();
             } catch (err) {
-                if (channel)
-                    channel.send({
+                if (channel) {
+                    await channel.send({
                         embeds: [
                             new EmbedBuilder()
                                 .setColor('Red')
                                 .setDescription(await t(channel, 'music.helpers.musicManager.manager.failed', { error: err.message })),
                         ],
                     });
-                return player.destroy();
+                }
             }
+        }
+
+        if (player._247) {
+            logger.info(`🎵 [24/7] Queue ended for ${player.guildId}, staying idle.`);
+            if (player.updateInterval) clearInterval(player.updateInterval);
+
+            const voiceChannel = client.channels.cache.get(player.voiceChannel);
+            try {
+                setVoiceChannelStatus(voiceChannel, 'idle');
+            } catch (e) {
+                /* ... */
+            }
+
+            let lastTrack = player.currentTrack || player._autoplayReference;
+            await shutdownPlayerUI(player, lastTrack, client);
         } else {
             if (player && !player.destroyed) {
                 player.destroy();
@@ -748,12 +763,9 @@ async function initializeMusicManager(bot) {
     /**
      * 🛑 Handles when the player is destroyed (e.g., bot leaves voice channel).
      */
-    client.poru.on('playerDestroy', async (player) => {
-        if (guildStates.has(player.guildId)) {
-            guildStates.delete(player.guildId);
-        }
-        if (player.updateInterval) clearInterval(player.updateInterval);
 
+    client.poru.on('playerDestroy', async (player) => {
+        if (player.updateInterval) clearInterval(player.updateInterval);
         if (player.buttonCollector) {
             try {
                 player.buttonCollector.stop('playerDestroy');
@@ -770,6 +782,10 @@ async function initializeMusicManager(bot) {
 
         let lastTrack = player.currentTrack || (player.queue && player.queue.length > 0 ? player.queue[0] : player._autoplayReference);
         await shutdownPlayerUI(player, lastTrack, client);
+
+        if (guildStates.has(player.guildId) && !player._247) {
+            guildStates.delete(player.guildId);
+        }
     });
 
     /**

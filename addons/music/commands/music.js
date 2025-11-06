@@ -30,6 +30,7 @@ const {
     handleLyrics,
     handleFavorite,
     handleDownload,
+    handle247,
 } = require('../helpers/handlers');
 const { formatDuration, hasControlPermission } = require('../helpers');
 const { t } = require('@coreHelpers/translator');
@@ -279,6 +280,11 @@ module.exports = {
                         )
                 )
         )
+        .addSubcommand(subcommand =>
+          subcommand
+            .setName('247')
+            .setDescription('🎧 Enable or disable 24/7 mode to keep the bot in the voice channel.')
+        )
         // .addSubcommand(subcommand =>
         //   subcommand
         //     .setName('download')
@@ -490,6 +496,7 @@ module.exports = {
             clear: handleClear,
             seek: handleSeek,
             download: handleDownload,
+            247: handle247,
         };
 
         if (originalRequesterCommandHandlers[subcommand]) {
