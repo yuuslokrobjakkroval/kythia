@@ -5,9 +5,7 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { SlashCommandBuilder, EmbedBuilder, GuildMember, PermissionFlagsBits, InteractionContextType } = require('discord.js');
-const Favorite = require('../database/models/Favorite');
-const Playlist = require('../database/models/Playlist');
+const { SlashCommandBuilder, GuildMember, PermissionFlagsBits, InteractionContextType } = require('discord.js');
 const {
     handlePlay,
     handlePause,
@@ -33,8 +31,6 @@ const {
     handle247,
 } = require('../helpers/handlers');
 const { formatDuration, hasControlPermission } = require('../helpers');
-const { t } = require('@coreHelpers/translator');
-const logger = require('@coreHelpers/logger');
 const { guildStates } = require('../helpers/musicManager');
 
 module.exports = {
@@ -280,10 +276,8 @@ module.exports = {
                         )
                 )
         )
-        .addSubcommand(subcommand =>
-          subcommand
-            .setName('247')
-            .setDescription('🎧 Enable or disable 24/7 mode to keep the bot in the voice channel.')
+        .addSubcommand((subcommand) =>
+            subcommand.setName('247').setDescription('🎧 Enable or disable 24/7 mode to keep the bot in the voice channel.')
         )
         // .addSubcommand(subcommand =>
         //   subcommand
@@ -301,6 +295,7 @@ module.exports = {
     botPermissions: [PermissionFlagsBits.Speak, PermissionFlagsBits.Connect, PermissionFlagsBits.SendMessages],
     isInMainGuild: true,
     defaultArgument: 'search',
+
     /**
      * 🔎 Handles autocomplete for the 'play' subcommand.
      * Suggests top YouTube search results based on user input.
@@ -308,7 +303,8 @@ module.exports = {
      * @param {import('discord.js').Client} client
      */
     async autocomplete(interaction, container) {
-        const { client } = container;
+        const { client, logger, t, models } = container;
+        const { Favorite, Playlist } = models;
         const focusedOption = interaction.options.getFocused(true);
         const focusedValue = focusedOption.value;
         const subcommand = interaction.options.getSubcommand(false);
@@ -432,8 +428,9 @@ module.exports = {
      * Handles permission checks and delegates to the appropriate handler.
      * @param {import('discord.js').ChatInputCommandInteraction} interaction
      */
-    async execute(interaction) {
+    async execute(interaction, container) {
         const { client, member, guild, options, channel } = interaction;
+        const { logger, t } = container;
         const subcommand = options.getSubcommand();
         const subcommandGroup = options.getSubcommandGroup(false) || false;
 
@@ -490,7 +487,7 @@ module.exports = {
             volume: handleVolume,
             shuffle: handleShuffle,
             filter: handleFilter,
-            // 'back': handleBack,
+            back: handleBack,
             remove: handleRemove,
             move: handleMove,
             clear: handleClear,
