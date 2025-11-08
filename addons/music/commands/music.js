@@ -293,7 +293,7 @@ module.exports = {
         PermissionFlagsBits.SendMessages,
     ],
     botPermissions: [PermissionFlagsBits.Speak, PermissionFlagsBits.Connect, PermissionFlagsBits.SendMessages],
-    isInMainGuild: true,
+    aliases: ['music', 'm', '🎵'],
     defaultArgument: 'search',
 
     /**
