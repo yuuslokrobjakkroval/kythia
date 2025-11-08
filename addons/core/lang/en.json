@@ -439,7 +439,7 @@
                 },
                 "error": "❌ An error occurred while trying to set your AFK status."
             },
-            "steal": {
+            "grab": {
                 "sticker": {
                     "not": {
                         "found": "😕 Oops! I couldn't find any sticker with that ID or in that message."

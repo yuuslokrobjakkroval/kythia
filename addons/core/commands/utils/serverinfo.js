@@ -7,12 +7,20 @@
  */
 const {
     SlashCommandBuilder,
-    EmbedBuilder,
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
     ChannelType,
     InteractionContextType,
+    ContainerBuilder,
+    TextDisplayBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    MessageFlags,
+    MediaGalleryItemBuilder,
+    MediaGalleryBuilder,
+    SectionBuilder,
+    ThumbnailBuilder,
 } = require('discord.js');
 
 module.exports = {
@@ -22,16 +30,15 @@ module.exports = {
         .setContexts(InteractionContextType.Guild),
     guildOnly: true,
     async execute(interaction, container) {
-        const { t, helpers } = container;
+        const { t, helpers, kythiaConfig } = container;
         const { embedFooter } = helpers.discord;
+        const { convertColor } = helpers.color;
 
         const guild = interaction.guild;
 
-        // Fetch all data to ensure up-to-date info
         await guild.fetch();
         const owner = await guild.fetchOwner().catch(() => null);
 
-        // Verification and filter levels (pakai t)
         const verificationLevels = {
             0: await t(interaction, 'core.utils.serverinfo.verification.none'),
             1: await t(interaction, 'core.utils.serverinfo.verification.low'),
@@ -61,7 +68,6 @@ module.exports = {
             3: await t(interaction, 'core.utils.serverinfo.boost.level3'),
         };
 
-        // Emojis for fields
         const emojis = {
             name: '🏷️',
             region: '🌍',
@@ -147,29 +153,24 @@ module.exports = {
             serverMaxStickers: '🏷️',
         };
 
-        // Format creation date
         const createdAt = `<t:${Math.floor(guild.createdTimestamp / 1000)}:F>`;
 
-        // Banner, splash, icon, etc
         const bannerURL = guild.bannerURL({ size: 1024 });
         const splashURL = guild.splashURL({ size: 1024 });
         const iconURL = guild.iconURL({ size: 1024, dynamic: true });
         const discoverySplashURL = guild.discoverySplashURL?.({ size: 1024 });
         const widgetURL = guild.widgetEnabled ? guild.widgetImageURL({ size: 1024 }) : null;
 
-        // Owner mention
         const ownerMention = owner
             ? `<@${owner.id}> (${owner.user.tag})`
             : guild.ownerId
               ? `<@${guild.ownerId}>`
               : await t(interaction, 'core.utils.serverinfo.unknown');
 
-        // Vanity URL
         const vanity = guild.vanityURLCode
             ? `https://discord.gg/${guild.vanityURLCode}`
             : await t(interaction, 'core.utils.serverinfo.none');
 
-        // Channels breakdown
         const allChannels = guild.channels.cache;
         const channelCounts = {
             categories: allChannels.filter((c) => c.type === ChannelType.GuildCategory).size,
@@ -183,26 +184,6 @@ module.exports = {
             news: allChannels.filter((c) => c.type === ChannelType.GuildAnnouncement).size,
         };
 
-        // Members breakdown
-        const members = await guild.members.fetch({ withPresences: false }).catch(() => null);
-        const memberCount = guild.memberCount;
-        let botCount = 0,
-            humanCount = 0,
-            onlineCount = 0,
-            offlineCount = 0,
-            dndCount = 0,
-            idleCount = 0;
-        if (members) {
-            botCount = members.filter((m) => m.user.bot).size;
-            humanCount = members.filter((m) => !m.user.bot).size;
-            // If presences are available
-            onlineCount = members.filter((m) => m.presence?.status === 'online').size;
-            idleCount = members.filter((m) => m.presence?.status === 'idle').size;
-            dndCount = members.filter((m) => m.presence?.status === 'dnd').size;
-            offlineCount = memberCount - (onlineCount + idleCount + dndCount);
-        }
-
-        // Roles
         const roles = guild.roles.cache
             .sort((a, b) => b.position - a.position)
             .map((r) => r)
@@ -214,7 +195,6 @@ module.exports = {
                 .map((r) => r.toString())
                 .join(', ') + (roleCount > 10 ? `, +${roleCount - 10} ${await t(interaction, 'core.utils.serverinfo.more')}` : '');
 
-        // Emojis and stickers
         const emojisAll = guild.emojis.cache;
         const emojiCount = emojisAll.size;
         const animatedEmojis = emojisAll.filter((e) => e.animated).size;
@@ -222,13 +202,11 @@ module.exports = {
         const stickers = guild.stickers.cache;
         const stickerCount = stickers.size;
 
-        // Features
         const features =
             guild.features.length > 0
                 ? guild.features.map((f) => `\`${f}\``).join(', ')
                 : await t(interaction, 'core.utils.serverinfo.none');
 
-        // System, rules, public updates, widget, etc
         const systemChannel = guild.systemChannel ? `<#${guild.systemChannel.id}>` : await t(interaction, 'core.utils.serverinfo.none');
         const rulesChannel = guild.rulesChannel ? `<#${guild.rulesChannel.id}>` : await t(interaction, 'core.utils.serverinfo.none');
         const publicUpdatesChannel = guild.publicUpdatesChannel
@@ -248,7 +226,6 @@ module.exports = {
         const maxStickers = guild.maximumStickers || (await t(interaction, 'core.utils.serverinfo.unknown'));
         const preferredLocale = guild.preferredLocale || (await t(interaction, 'core.utils.serverinfo.unknown'));
 
-        // Welcome screen
         let welcomeScreen = null;
         if (guild.features.includes('WELCOME_SCREEN_ENABLED')) {
             try {
@@ -256,7 +233,6 @@ module.exports = {
             } catch {}
         }
 
-        // Buttons for icon, banner, splash, widget, etc
         const row = new ActionRowBuilder().addComponents(
             ...(iconURL
                 ? [
@@ -300,7 +276,6 @@ module.exports = {
                 : [])
         );
 
-        // Compose description using foreach style
         let descLines = [];
 
         descLines.push(
@@ -308,13 +283,6 @@ module.exports = {
         );
         descLines.push(`**\`${emojis.owner}\` ${await t(interaction, 'core.utils.serverinfo.field.owner')}:** ${ownerMention}`);
         descLines.push(`**\`${emojis.created}\` ${await t(interaction, 'core.utils.serverinfo.field.created')}:** ${createdAt}`);
-
-        descLines.push(
-            `**\`${emojis.members}\` ${await t(interaction, 'core.utils.serverinfo.field.members')}:** ${await t(interaction, 'core.utils.serverinfo.members.total', { count: memberCount })} | ${await t(interaction, 'core.utils.serverinfo.members.humans', { count: humanCount })} | ${await t(interaction, 'core.utils.serverinfo.members.bots', { count: botCount })}`
-        );
-        descLines.push(
-            `  ${await t(interaction, 'core.utils.serverinfo.members.online', { count: onlineCount })} | ${await t(interaction, 'core.utils.serverinfo.members.idle', { count: idleCount })} | ${await t(interaction, 'core.utils.serverinfo.members.dnd', { count: dndCount })} | ${await t(interaction, 'core.utils.serverinfo.members.offline', { count: offlineCount })}`
-        );
 
         descLines.push(
             `**\`${emojis.roles}\` ${await t(interaction, 'core.utils.serverinfo.field.roles')}:** ${await t(interaction, 'core.utils.serverinfo.roles.total', { count: roleCount })}`
@@ -389,7 +357,6 @@ module.exports = {
             `**\`${emojis.maxVideo}\` ${await t(interaction, 'core.utils.serverinfo.field.max.video.channel.users')}:** ${maxVideoChannelUsers}`
         );
 
-        // Welcome screen info
         if (welcomeScreen) {
             descLines.push(
                 `**${emojis.welcome} ${await t(interaction, 'core.utils.serverinfo.field.welcome.screen')}:** ${welcomeScreen.description || `*${await t(interaction, 'core.utils.serverinfo.no.description')}*`}`
@@ -398,30 +365,51 @@ module.exports = {
                 descLines.push(`**${await t(interaction, 'core.utils.serverinfo.field.welcome.channels')}:**`);
                 for (const wc of welcomeScreen.welcomeChannels) {
                     descLines.push(
-                        `  ${wc.channel ? `<#${wc.channel.id}>` : await t(interaction, 'core.utils.serverinfo.unknown')}: ${wc.description || `*${await t(interaction, 'core.utils.serverinfo.no.description')}*`}`
+                        `${wc.channel ? `<#${wc.channel.id}>` : await t(interaction, 'core.utils.serverinfo.unknown')}: ${wc.description || `*${await t(interaction, 'core.utils.serverinfo.no.description')}*`}`
                     );
                 }
             }
         }
 
-        // Compose the embed
-        const serverInfoEmbed = new EmbedBuilder()
-            .setColor(kythia.bot.color)
-            .setThumbnail(iconURL)
-            .setFooter(await embedFooter(interaction))
-            .setTimestamp()
-            .setDescription(`## ${emojis.name} ${guild.name}\n` + descLines.join('\n'));
+        const mainContainer = new ContainerBuilder().setAccentColor(convertColor(kythiaConfig.bot.color, { from: 'hex', to: 'decimal' }));
 
-        // Set banner/splash if available
-        if (bannerURL) {
-            serverInfoEmbed.setImage(bannerURL);
-        } else if (splashURL) {
-            serverInfoEmbed.setImage(splashURL);
+        // let serverNameSection = new SectionBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent(`## ${emojis.name} ${guild.name}`));
+        // if (iconURL) {
+        //     serverNameSection = new SectionBuilder().addTextDisplayComponents(serverNameSection).setThumbnailAccessory(new MediaGalleryItemBuilder().setURL(iconURL).setDescription(guild.name));
+        // }
+        // mainContainer.addSectionComponents(new SectionBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent(`## ${emojis.name} ${guild.name}`)));
+
+        mainContainer.addSectionComponents(
+            new SectionBuilder()
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent(`# ${emojis.name} ${guild.name}`))
+                .setThumbnailAccessory(iconURL ? new ThumbnailBuilder().setDescription(guild.name).setURL(iconURL) : null)
+        );
+
+        mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
+
+        mainContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(descLines.join('\n')));
+
+        mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
+
+        if (row.components.length > 0) {
+            mainContainer.addActionRowComponents(row);
+
+            mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
         }
 
+        const mainImageURL = bannerURL ? bannerURL : splashURL;
+        if (mainImageURL && mainImageURL !== iconURL) {
+            mainContainer.addMediaGalleryComponents(
+                new MediaGalleryBuilder().addItems([new MediaGalleryItemBuilder().setURL(mainImageURL)])
+            );
+        }
+
+        const footerText = await t(interaction, 'common.container.footer', { username: interaction.client.user.username });
+        mainContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(`${footerText}`));
+
         return interaction.reply({
-            embeds: [serverInfoEmbed],
-            components: row.components.length > 0 ? [row] : [],
+            components: [mainContainer],
+            flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
         });
     },
 };

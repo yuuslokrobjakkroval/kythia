@@ -3,10 +3,19 @@
  * @type: Command
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
- * @version 0.9.11-beta
+ * @version 0.9.11-beta (Converted to v2 Components)
  */
-const { EmbedBuilder, version } = require('discord.js');
-const { SlashCommandBuilder } = require('discord.js');
+const {
+    version,
+    SlashCommandBuilder,
+    ContainerBuilder,
+    TextDisplayBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    MessageFlags,
+    MediaGalleryItemBuilder,
+    MediaGalleryBuilder,
+} = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -62,6 +71,7 @@ module.exports = {
         const { t, kythiaConfig, helpers, models } = container;
         const { formatDuration } = helpers.time;
         const { embedFooter } = helpers.discord;
+        const { convertColor } = helpers.color;
 
         const anyModelKey = models ? Object.keys(models)[0] : undefined;
         const KythiaModel = anyModelKey ? Object.getPrototypeOf(models[anyModelKey]) : null;
@@ -149,12 +159,26 @@ module.exports = {
             cacheMisses: cacheMisses,
         });
 
-        const embed = new EmbedBuilder()
-            .setColor(kythiaConfig.bot.color)
-            .setDescription(desc)
-            .setThumbnail(client.user.displayAvatarURL())
-            .setFooter(await embedFooter(interaction));
+        const bannerUrl = kythiaConfig.settings.statsBannerImage;
 
-        await interaction.reply({ content: null, embeds: [embed] });
+        const mainContainer = new ContainerBuilder().setAccentColor(convertColor(kythiaConfig.bot.color, { from: 'hex', to: 'decimal' }));
+
+        if (bannerUrl) {
+            mainContainer.addMediaGalleryComponents(new MediaGalleryBuilder().addItems([new MediaGalleryItemBuilder().setURL(bannerUrl)]));
+
+            mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
+        }
+
+        mainContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(desc));
+
+        mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
+
+        const footerText = await t(interaction, 'common.container.footer', { username: interaction.client.user.username });
+        mainContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(`${footerText}`));
+
+        await interaction.reply({
+            components: [mainContainer],
+            flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
+        });
     },
 };

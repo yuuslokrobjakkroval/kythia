@@ -24,7 +24,6 @@ module.exports = {
 
             logger.debug('[REDIS FLUSH] Connecting to Redis...');
 
-            // Ping Redis to ensure connection
             const pong = await redis.ping();
             logger.debug(`[REDIS FLUSH] Redis ping response: ${pong}`);
 
@@ -32,7 +31,6 @@ module.exports = {
             const result = await redis.flushall();
             logger.debug(`[REDIS FLUSH] FLUSHALL result: ${result}`);
 
-            // Confirm by checking dbsize
             const dbsize = await redis.dbsize();
             logger.debug(`[REDIS FLUSH] dbsize after FLUSHALL: ${dbsize}`);
 

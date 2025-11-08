@@ -40,7 +40,7 @@ module.exports = {
         const { t, kythiaConfig, helpers, logger, models } = container;
         const { convertColor } = helpers.color;
         const { KythiaTeam } = models;
-        
+
         await interaction.deferReply();
 
         const subcommandGroup = interaction.options.getSubcommandGroup();
@@ -62,7 +62,6 @@ module.exports = {
         const name = interaction.options.getString('name') || null;
 
         try {
-            // Check if user already exists
             const existing = await KythiaTeam.getCache({ userId: user.id });
             if (existing) {
                 return interaction.editReply({
@@ -71,7 +70,6 @@ module.exports = {
                 });
             }
 
-            // Add to team
             await KythiaTeam.create({
                 userId: user.id,
                 name: name,
@@ -102,7 +100,6 @@ module.exports = {
         const user = interaction.options.getUser('user');
 
         try {
-            // Check if user exists
             const existing = await KythiaTeam.getCache({ userId: user.id });
             if (!existing) {
                 return interaction.editReply({
@@ -111,7 +108,6 @@ module.exports = {
                 });
             }
 
-            // Remove from team
             await KythiaTeam.destroy({ where: { userId: user.id } });
 
             const embed = new EmbedBuilder()
@@ -149,7 +145,6 @@ module.exports = {
                 .setDescription(`Total members: **${teamMembers.length}**`)
                 .setTimestamp();
 
-            // Fetch user details and build field list
             const fields = [];
             for (const member of teamMembers) {
                 try {
@@ -171,9 +166,7 @@ module.exports = {
                 }
             }
 
-            // Discord embeds have a limit of 25 fields
             if (fields.length > 25) {
-                // Split into multiple embeds if needed
                 const chunks = [];
                 for (let i = 0; i < fields.length; i += 25) {
                     chunks.push(fields.slice(i, i + 25));

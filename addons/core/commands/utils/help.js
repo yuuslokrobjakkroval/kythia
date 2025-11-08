@@ -60,10 +60,8 @@ module.exports = {
             const processedCommands = new Set();
 
             commands.forEach((command) => {
-                // Skip owner-only commands
                 if (command.ownerOnly === true) return;
 
-                // Prefer .slashCommand or .data
                 const slashData = command.slashCommand || command.data;
                 let commandJSON;
                 if (slashData) {
@@ -72,12 +70,10 @@ module.exports = {
                     return;
                 }
 
-                // Build a unique key for this command to avoid double-counting
                 const uniqueKey = `slash-${commandJSON.name}`;
                 if (processedCommands.has(uniqueKey)) return;
                 processedCommands.add(uniqueKey);
 
-                // Count subcommands/subcommand groups if present
                 if (Array.isArray(commandJSON.options) && commandJSON.options.length > 0) {
                     const subcommands = commandJSON.options.filter(
                         (opt) =>
@@ -96,10 +92,9 @@ module.exports = {
                         return;
                     }
                 }
-                // If not a subcommand or subcommand group, count as 1
+
                 totalCount += 1;
 
-                // Optionally: If context menu command, also count (as getCommandsData does)
                 if (command.contextMenuCommand) {
                     const cmJSON =
                         typeof command.contextMenuCommand.toJSON === 'function'
@@ -259,7 +254,6 @@ module.exports = {
             const rowButtons = new ActionRowBuilder();
             const totalCategoryPages = Math.ceil(currentState.allCategories.length / CATEGORIES_PER_PAGE);
 
-            // Only add the home button if not on home. (selectedCategory != null)
             if (selectedCategory) {
                 const homeButtonLabel = (await t(interaction, 'core.utils.help.button.go.home')) || '🏠 Home';
                 rowButtons.addComponents(

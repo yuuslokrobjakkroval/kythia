@@ -439,7 +439,7 @@
         },
         "error": "❌ Terjadi kesalahan saat mencoba mengatur status AFK Anda."
       },
-      "steal": {
+      "grab": {
         "sticker": {
           "not": {
             "found": "😕 Ups! Saya tidak dapat menemukan stiker apa pun dengan ID tersebut atau di pesan itu."

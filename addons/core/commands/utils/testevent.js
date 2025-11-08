@@ -31,7 +31,6 @@ const ALL_EVENTS = [
     'userUpdate',
     'inviteCreate',
     'inviteDelete',
-    // Add more events as needed
 ];
 
 module.exports = {

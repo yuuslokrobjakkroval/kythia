@@ -359,6 +359,7 @@ function loadKythiaConfig() {
             bannerImage: 'https://....png',
             voteBannerImage: 'https://....png',
             gcBannerImage: 'https://....png',
+            statsBannerImage: 'https://....png',
             // link to error status page
             statusPage: 'https://status.kythia.my.id',
             // webhook notification when error on or off
