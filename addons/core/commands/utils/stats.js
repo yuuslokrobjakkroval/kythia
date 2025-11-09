@@ -3,7 +3,7 @@
  * @type: Command
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
- * @version 0.9.11-beta (Converted to v2 Components)
+ * @version 0.9.11-beta
  */
 const {
     version,

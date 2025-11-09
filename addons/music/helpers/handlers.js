@@ -7,7 +7,7 @@
  */
 
 const { generateLyricsWithTranscript, formatDuration } = require('.');
-const { embedFooter, checkIsPremium, isOwner } = require('@coreHelpers/discord');
+const { embedFooter, isPremium, isOwner } = require('@coreHelpers/discord');
 
 const {
     EmbedBuilder,
@@ -1070,7 +1070,7 @@ async function _handlePlaylistSave(interaction, player) {
     const userId = interaction.user.id;
 
     const playlistCount = await Playlist.countWithCache({ where: { userId } });
-    let isPremium = await checkIsPremium(userId);
+    let isPremium = await isPremium(userId);
 
     if (!isOwner(interaction.user.id) && playlistCount >= kythia.addons.music.playlistLimit && !isPremium) {
         const embed = new EmbedBuilder()
@@ -1695,7 +1695,7 @@ async function _handlePlaylistImport(interaction) {
         }
 
         const playlistCount = await Playlist.countWithCache({ userId: userId });
-        const isPremium = await checkIsPremium(userId);
+        const isPremium = await isPremium(userId);
         if (!isOwner(userId) && playlistCount >= kythia.addons.music.playlistLimit && !isPremium) {
             const embed = new EmbedBuilder()
                 .setColor('Red')
@@ -1854,7 +1854,7 @@ async function _importFromSpotify(interaction, url) {
         });
     } else {
         const playlistCount = await Playlist.countWithCache({ userId: userId });
-        const isPremium = await checkIsPremium(userId);
+        const isPremium = await isPremium(userId);
         if (!isOwner(userId) && playlistCount >= kythia.addons.music.playlistLimit && !isPremium) {
             const embed = new EmbedBuilder().setColor('Red').setDescription(
                 await t(interaction, 'music.helpers.handlers.music.playlist.save.limit.desc', {

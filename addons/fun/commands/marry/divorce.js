@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/fun/commands/marry.js
+ * @namespace: addons/fun/commands/marry/divorce.js
  * @type: Command
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

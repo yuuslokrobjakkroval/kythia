@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/commands/embed/embed.js
+ * @namespace: addons/core/commands/embed/_embed.js
  * @type: Command
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

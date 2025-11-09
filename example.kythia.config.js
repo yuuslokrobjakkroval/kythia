@@ -295,6 +295,29 @@ function loadKythiaConfig() {
                 useCooldown: 28800, // 8 hours
                 gachaCooldown: 3600, // 1 hours
             },
+            pro: {
+                cloudflare: {
+                    /**
+                     * API Token created from the Cloudflare dashboard.
+                     * REQUIRED: Use "Create Token", DO NOT use "Global API Key".
+                     * Taken from .env
+                     */
+                    token: process.env.CLOUDFLARE_API_TOKEN,
+
+                    /**
+                     * Zone ID of your domain in Cloudflare.
+                     * Taken from .env
+                     */
+                    zoneId: process.env.CLOUDFLARE_ZONE_ID,
+
+                    /**
+                     * Primary domain name used for this feature
+                     * (e.g., 'kyth.me')
+                     */
+                    domain: process.env.CLOUDFLARE_DOMAIN || 'kyth.me',
+                },
+                maxSubdomains: 5,
+            },
             pterodactyl: {
                 active: true,
             },

@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/commands/premium/delete.js
+ * @namespace: addons/core/commands/premium/edit.js
  * @type: Command
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

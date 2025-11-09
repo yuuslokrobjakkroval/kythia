@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/commands/premium/_command.js
+ * @namespace: addons/core/commands/moderation/_command.js
  * @type: Command Group Definition
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

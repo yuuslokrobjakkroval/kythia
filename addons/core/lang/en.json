@@ -4620,5 +4620,60 @@
                 "desc": "This is your new global chat channel! Interact with users from other servers."
             }
         }
+    },
+    "pro": {
+        "claim": {
+            "subdomain": {
+                "error": {
+                    "mustHaveAccount": "You need to have a Kythia account first. Try `/eco profile`!",
+                    "proOrVoterRequired": "Only active \"Kythia Pro 💎\" users can claim subdomains. Please `/vote` first!",
+                    "maxReached": "You have reached the maximum limit of **{max}** subdomains. Delete an old subdomain to claim a new one.",
+                    "invalidName": "Invalid subdomain name. Only letters (a-z), numbers (0-9), hyphens (-), 3-32 characters long are allowed.",
+                    "forbidden": "The subdomain name `{name}` is not allowed. Please try a different name.",
+                    "taken": "Oops, the name `{name}` has already been taken. 😭 Try another name!",
+                    "technical": "Oops, a technical error occurred while claiming."
+                },
+                "success": {
+                    "title": "Subdomain Successfully Claimed!",
+                    "desc": "🎉 Congratulations! The subdomain **{subdomain}.{domain}** is now officially yours!\n\nYou now have **{used}/{max}** subdomain slots used.\nNext, set up your DNS record using `/pro dns set`."
+                }
+            }
+        },
+        "dns": {
+            "set": {
+                "need_account": "You need a Kythia account first. Try `/eco profile`!",
+                "need_premium_or_vote": "Only active \"Kythia Pro 💎\" users or voters can manage DNS. Please `/vote` first!",
+                "subdomain_not_found": "Subdomain `{subdomain}` not found or not owned by you.",
+                "success_title_created": "DNS Record Successfully Created!",
+                "success_title_updated": "DNS Record Successfully Updated!",
+                "action_created": "created",
+                "action_updated": "updated",
+                "success_desc": "Your record was **{action}**.\n\n**Type:** `{type}`\n**Name:** `{fqdn}`\n**Value:** `{value}`",
+                "fail_title": "Failed to Create Record",
+                "fail_desc": "Uh-oh, failed to create record. 😭\n**Error:** `{error}`"
+            },
+            "delete": {
+                "error": {
+                    "notPremium": "Only users with active \"Kythia Pro 💎\" or active voter status can delete DNS records. Please `/vote` first!",
+                    "notFound": "No DNS record found in the database with ID `{id}`.",
+                    "notOwner": "You do not have permission to delete record ID `{id}`. This isn’t yours! 😠",
+                    "failedTitle": "Failed to Delete Record",
+                    "failedDesc": "Unfortunately, failed to delete the record. 😭\n**Error:** `{error}`"
+                },
+                "success": {
+                    "title": "DNS Record Deleted!",
+                    "desc": "Your record (ID: {id}) has been successfully deleted.\n\n**Type:** `{type}`\n**Name:** `{name}`\n**Value:** `{value}`"
+                }
+            },
+            "list": {
+                "not_allowed": "Only active Kythia Pro 💎 users or recent voters can view DNS. Please `/vote` first!",
+                "not_found": "Subdomain `{subdomain}` not found or not owned by you.",
+                "title": "DNS Records for `{fqdn}`",
+                "no_record": "You don't have any DNS records yet for this subdomain. 😥\nUse `/pro dns set` to create one.",
+                "field_name": "ID: {id}  |  {type} Record",
+                "field_value": "**{name}** → `{value}`",
+                "has_record": "You have **{count}** DNS records on this subdomain.\nUse `/pro dns delete id:<id>` to delete."
+            }
+        }
     }
 }

@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/commands/moderation/fullsetup.js
+ * @namespace: addons/core/commands/moderation/autosetup.js
  * @type: Command
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

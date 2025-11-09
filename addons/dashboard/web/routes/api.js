@@ -136,18 +136,31 @@ router.post('/api/topgg-webhook', async (req, res) => {
         let dmEmbed;
 
         if (!voterUser) {
+            voterUser = await KythiaUser.create({
+                userId: userId,
+                kythiaCoin: 1000,
+                isVoted: true,
+                voteExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
+                votePoints: 1,
+            });
+            await voterUser.saveAndUpdateCache();
+
             dmEmbed = new EmbedBuilder()
                 .setColor(kythia.bot.color)
-                .setTitle('👤 Create Your Kythia Account')
                 .setDescription(
-                    `You just voted for **${kythia.bot.name}** on Top.gg, thank you!\n\n` +
-                        `To receive your **1,000 Kythia Coin** reward, please create an account on the bot first:\n\n` +
-                        `> Use the command \`/eco account create\` on Discord.`
+                    `## 👤 Account Automatically Created!` +
+                        `Thank you for voting for **${kythia.bot.name}** on Top.gg!\n\n` +
+                        `We've automatically created a Kythia account for you, and credited your **1,000 Kythia Coin** reward.\n\n` +
+                        `Ready to play? If you want to personalize your account or start earning more, use Discord and type:\n` +
+                        `> \`/eco profile\``
                 )
                 .setThumbnail(client.user.displayAvatarURL())
                 .setFooter({ text: `© ${kythia.bot.name} by ${kythia.owner.names}` });
         } else {
             voterUser.kythiaCoin = (voterUser.kythiaCoin || 0) + 1000;
+            voterUser.isVoted = true;
+            voterUser.voteExpiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours
+            voterUser.votePoints = (voterUser.votePoints || 0) + 1;
             await voterUser.saveAndUpdateCache();
 
             dmEmbed = new EmbedBuilder()

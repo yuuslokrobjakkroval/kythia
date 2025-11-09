@@ -80,7 +80,7 @@ const embedFooter = async (source) => {
  * @param {string} userId - Discord user ID.
  * @returns {Promise<boolean>} True if premium is active.
  */
-async function checkIsPremium(userId) {
+async function isPremium(userId) {
     if (isOwner(userId)) return true;
     const premium = await KythiaUser.getCache({ userId: userId });
     if (!premium) return false;
@@ -112,4 +112,17 @@ async function setVoiceChannelStatus(channel, status) {
     }
 }
 
-module.exports = { isOwner, isTeam, embedFooter, checkIsPremium, setVoiceChannelStatus };
+/**
+ * Checks whether the user has an active Top.gg vote (i.e., isVoted && not expired).
+ * @param {string} userId - Discord user ID.
+ * @returns {Promise<boolean>} True if the user has an active vote.
+ */
+async function isVoterActive(userId) {
+    const user = await KythiaUser.getCache({ userId });
+    if (!user) return false;
+    if (!user.isVoted || !user.voteExpiresAt || new Date() > user.voteExpiresAt) return false;
+    return true;
+}
+
+
+module.exports = { isOwner, isTeam, embedFooter, isPremium, setVoiceChannelStatus, isVoterActive };

@@ -4,9 +4,6 @@
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
  * @version 0.9.11-beta
- *
- * Attempts to automatically fix broken webhooks for guilds that failed delivery.
- * Also updates the new webhook info on the local database, not just the API.
  */
 
 const fetch = require('node-fetch');

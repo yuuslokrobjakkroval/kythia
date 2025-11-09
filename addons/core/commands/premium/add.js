@@ -1,5 +1,5 @@
 /**
- * @namespace: addons/core/commands/premium/premium.js
+ * @namespace: addons/core/commands/premium/add.js
  * @type: Command
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa

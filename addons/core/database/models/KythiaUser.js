@@ -36,6 +36,10 @@ class KythiaUser extends KythiaModel {
                 lastWork: { type: DataTypes.DATE, defaultValue: null },
                 lastRob: { type: DataTypes.DATE, defaultValue: null },
                 lastHack: { type: DataTypes.DATE, defaultValue: null },
+
+                votePoints: { type: DataTypes.BIGINT, defaultValue: 0 },
+                isVoted: { type: DataTypes.BOOLEAN, defaultValue: false },
+                voteExpiresAt: { type: DataTypes.DATE, defaultValue: null },
             },
             {
                 sequelize,
