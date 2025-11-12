@@ -27,6 +27,15 @@ class TempVoiceChannel extends KythiaModel {
                     type: DataTypes.STRING,
                     allowNull: false,
                 },
+                waitingRoomChannelId: {
+                    type: DataTypes.STRING,
+                    allowNull: true,
+                },
+                pendingJoinRequests: {
+                    type: DataTypes.JSON,
+                    allowNull: true,
+                    defaultValue: {},
+                },
             },
             {
                 sequelize,

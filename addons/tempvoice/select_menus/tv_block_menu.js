@@ -11,15 +11,16 @@ module.exports = {
     execute: async (interaction, container) => {
         const { models, client, t, helpers } = container;
         const { simpleContainer } = helpers.discord;
+        const { TempVoiceChannel } = models;
         const channelId = interaction.customId.split(':')[1];
 
-        // 1. Cek & Fetch (Copy-paste dari trust_menu)
         if (!channelId)
             return interaction.update({
                 components: await simpleContainer(interaction, await t(interaction, 'tempvoice.common.no_channel_id'), { color: 'Red' }),
             });
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { channelId: channelId, ownerId: interaction.user.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            channelId: channelId,
+            ownerId: interaction.user.id,
         });
         if (!activeChannel)
             return interaction.update({
@@ -40,7 +41,6 @@ module.exports = {
             for (const userId of userIdsToBlock) {
                 const member = await interaction.guild.members.fetch(userId).catch(() => null);
                 if (member) {
-                    // 4. [LOGIKA UTAMA] Kasih permission DENY
                     await channel.permissionOverwrites.edit(member, {
                         [PermissionsBitField.Flags.ViewChannel]: false,
                         [PermissionsBitField.Flags.Connect]: false,
@@ -49,7 +49,6 @@ module.exports = {
                 }
             }
 
-            // 5. Balasan sukses
             await interaction.update({
                 components: await simpleContainer(
                     interaction,

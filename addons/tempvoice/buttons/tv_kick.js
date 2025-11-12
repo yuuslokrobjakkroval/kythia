@@ -10,12 +10,15 @@ const { ActionRowBuilder, UserSelectMenuBuilder, ContainerBuilder, TextDisplayBu
 module.exports = {
     execute: async (interaction, container) => {
         const { models, t, helpers, kythiaConfig } = container;
+        const { TempVoiceChannel } = models;
         const { convertColor } = helpers.color;
+        const { simpleContainer } = helpers.discord;
 
-        // 1. Cek kepemilikan
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { ownerId: interaction.user.id, guildId: interaction.guild.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            ownerId: interaction.user.id,
+            guildId: interaction.guild.id,
         });
+
         if (!activeChannel) {
             return interaction.reply({
                 content: await t(interaction, 'tempvoice.kick.no_active_channel'),
@@ -23,16 +26,14 @@ module.exports = {
             });
         }
 
-        // 2. Buat User Select Menu
         const selectMenu = new UserSelectMenuBuilder()
             .setCustomId(`tv_kick_menu:${activeChannel.channelId}`)
             .setPlaceholder(await t(interaction, 'tempvoice.kick.menu.placeholder'))
             .setMinValues(1)
-            .setMaxValues(1); // Satu user per kick
+            .setMaxValues(1);
 
         const row = new ActionRowBuilder().addComponents(selectMenu);
 
-        // 3. Build Container (ala tv_privacy)
         const containerComponent = new ContainerBuilder()
             .setAccentColor(convertColor(kythiaConfig.bot.color, { from: 'hex', to: 'decimal' }))
             .addTextDisplayComponents(new TextDisplayBuilder().setContent(await t(interaction, 'tempvoice.kick.menu.content')))

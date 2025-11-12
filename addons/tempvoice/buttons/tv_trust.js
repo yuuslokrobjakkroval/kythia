@@ -11,9 +11,11 @@ module.exports = {
     execute: async (interaction, container) => {
         const { models, t, helpers, kythiaConfig } = container;
         const { convertColor } = helpers.color;
+        const { TempVoiceChannel } = models;
 
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { ownerId: interaction.user.id, guildId: interaction.guild.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            ownerId: interaction.user.id,
+            guildId: interaction.guild.id,
         });
         if (!activeChannel) {
             return interaction.reply({

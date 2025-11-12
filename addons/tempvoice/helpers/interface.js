@@ -28,7 +28,7 @@ async function buildInterface(interaction) {
     const { kythiaConfig, helpers, t } = container;
     const { convertColor } = helpers.color;
 
-    const bannerUrl = kythiaConfig?.settings?.bannerImage;
+    const bannerUrl = kythiaConfig?.settings?.tempvoiceBannerImage;
 
     const header = new TextDisplayBuilder().setContent(`${await t(interaction, 'tempvoice.interface.header')}`);
     const banner = new MediaGalleryBuilder().addItems([new MediaGalleryItemBuilder().setURL(bannerUrl)]);
@@ -57,10 +57,10 @@ async function buildInterface(interaction) {
             .setStyle(ButtonStyle.Secondary)
             .setEmoji('⏲️'),
         new ButtonBuilder()
-            .setCustomId('tv_chat')
-            .setLabel(await t(interaction, 'tempvoice.interface.buttons.chat'))
+            .setCustomId('tv_stage')
+            .setLabel(await t(interaction, 'tempvoice.interface.buttons.stage'))
             .setStyle(ButtonStyle.Secondary)
-            .setEmoji('💬')
+            .setEmoji('🎙️')
     );
 
     const row2_static = new ActionRowBuilder().addComponents(

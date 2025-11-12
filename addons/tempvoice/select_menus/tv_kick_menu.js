@@ -11,9 +11,9 @@ module.exports = {
     execute: async (interaction, container) => {
         const { models, client, t, helpers } = container;
         const { simpleContainer } = helpers.discord;
+        const { TempVoiceChannel } = models;
 
-        // 1. Ambil data
-        const userIdToKick = interaction.values[0]; // ID user yang dipilih
+        const userIdToKick = interaction.values[0];
         const channelId = interaction.customId.split(':')[1];
 
         if (!channelId) {
@@ -22,9 +22,9 @@ module.exports = {
             });
         }
 
-        // 2. Cek kepemilikan
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { channelId: channelId, ownerId: interaction.user.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            channelId: channelId,
+            ownerId: interaction.user.id,
         });
         if (!activeChannel) {
             return interaction.update({
@@ -32,7 +32,6 @@ module.exports = {
             });
         }
 
-        // 3. Fetch channel (pake force!)
         const channel = await client.channels.fetch(channelId, { force: true }).catch(() => null);
         if (!channel) {
             return interaction.update({
@@ -42,7 +41,6 @@ module.exports = {
             });
         }
 
-        // 4. Ambil member yang mau di-kick
         const memberToKick = await interaction.guild.members.fetch(userIdToKick).catch(() => null);
         if (!memberToKick) {
             return interaction.update({
@@ -52,7 +50,6 @@ module.exports = {
             });
         }
 
-        // 5. Cek kalo user-nya emang di channel itu
         if (memberToKick.voice.channelId !== channelId) {
             return interaction.update({
                 components: await simpleContainer(
@@ -63,7 +60,6 @@ module.exports = {
             });
         }
 
-        // 6. KICK! (Disconnect dari voice)
         try {
             await memberToKick.voice.disconnect(await t(interaction, 'tempvoice.kick.menu.kick_reason'));
 

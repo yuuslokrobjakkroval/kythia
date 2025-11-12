@@ -9,11 +9,14 @@ const { ActionRowBuilder, StringSelectMenuBuilder, ContainerBuilder, TextDisplay
 
 module.exports = {
     execute: async (interaction, container) => {
-        const { models, client, t, helpers } = container;
-        const { convertColor } = helpers?.color ?? {};
+        const { client, models, t, helpers, kythiaConfig } = container;
+        const { TempVoiceChannel } = models;
+        const { simpleContainer } = helpers.discord;
+        const { convertColor } = helpers.color;
 
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { ownerId: interaction.user.id, guildId: interaction.guild.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            ownerId: interaction.user.id,
+            guildId: interaction.guild.id,
         });
         if (!activeChannel) {
             return interaction.reply({ content: await t(interaction, 'tempvoice.privacy.no_active_channel'), ephemeral: true });
@@ -24,7 +27,6 @@ module.exports = {
             return interaction.reply({ content: await t(interaction, 'tempvoice.privacy.channel_not_found'), ephemeral: true });
         }
 
-        // Build the string select menu for privacy options
         const menu = new StringSelectMenuBuilder()
             .setCustomId(`tv_privacy_menu:${channelId}`)
             .setPlaceholder(await t(interaction, 'tempvoice.privacy.menu.placeholder'))

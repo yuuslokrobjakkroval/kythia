@@ -7,7 +7,6 @@
  */
 const { ActionRowBuilder, StringSelectMenuBuilder, ContainerBuilder, TextDisplayBuilder, MessageFlags } = require('discord.js');
 
-// Daftar region (bisa kamu tambahin/kurangin)
 const REGIONS = [
     { label: 'Automatic', value: 'auto', emoji: '🤖' },
     { label: 'Brazil', value: 'brazil', emoji: '🇧🇷' },
@@ -28,9 +27,11 @@ module.exports = {
     execute: async (interaction, container) => {
         const { models, t, helpers, kythiaConfig } = container;
         const { convertColor } = helpers.color;
+        const { TempVoiceChannel } = models;
 
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { ownerId: interaction.user.id, guildId: interaction.guild.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            ownerId: interaction.user.id,
+            guildId: interaction.guild.id,
         });
         if (!activeChannel) {
             return interaction.reply({ content: await t(interaction, 'tempvoice.region.no_active_channel'), ephemeral: true });

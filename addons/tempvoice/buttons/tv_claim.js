@@ -10,6 +10,7 @@ const { PermissionsBitField, MessageFlags } = require('discord.js');
 module.exports = {
     execute: async (interaction, container) => {
         const { models, client, t, helpers } = container;
+        const { TempVoiceChannel } = models;
         const { simpleContainer } = helpers.discord;
 
         const userVoiceState = interaction.member.voice;
@@ -20,8 +21,9 @@ module.exports = {
             });
         }
 
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { channelId: userVoiceState.channelId, guildId: interaction.guild.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            channelId: userVoiceState.channelId,
+            guildId: interaction.guild.id,
         });
         if (!activeChannel) {
             return interaction.reply({

@@ -10,11 +10,12 @@ const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = req
 module.exports = {
     execute: async (interaction, container) => {
         const { models, t } = container;
-
+        const { TempVoiceChannel } = models;
         const ownerId = interaction.user.id;
 
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { ownerId: ownerId, guildId: interaction.guild.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            ownerId: ownerId,
+            guildId: interaction.guild.id,
         });
 
         if (!activeChannel) {

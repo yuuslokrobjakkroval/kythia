@@ -9,6 +9,7 @@ module.exports = {
     execute: async (interaction, container) => {
         const { models, client, t, helpers } = container;
         const { simpleContainer } = helpers.discord;
+        const { TempVoiceChannel } = models;
         const channelId = interaction.customId.split(':')[1];
         const newRegion = interaction.values[0] === 'auto' ? null : interaction.values[0]; // 'auto' = null
 
@@ -16,8 +17,9 @@ module.exports = {
             return interaction.update({
                 components: await simpleContainer(interaction, await t(interaction, 'tempvoice.common.no_channel_id'), { color: 'Red' }),
             });
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { channelId: channelId, ownerId: interaction.user.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            channelId: channelId,
+            ownerId: interaction.user.id,
         });
         if (!activeChannel)
             return interaction.update({
@@ -34,10 +36,6 @@ module.exports = {
 
         try {
             await channel.setRTCRegion(newRegion);
-
-            // Simpen di DB (kalo kamu nambahin kolomnya)
-            // activeChannel.rtcRegion = newRegion;
-            // await activeChannel.saveAndUpdateCache();
 
             await interaction.update({
                 components: await simpleContainer(

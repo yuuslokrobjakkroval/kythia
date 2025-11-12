@@ -10,10 +10,12 @@ const { ActionRowBuilder, UserSelectMenuBuilder, ContainerBuilder, TextDisplayBu
 module.exports = {
     execute: async (interaction, container) => {
         const { models, t, helpers, kythiaConfig } = container;
+        const { TempVoiceChannel } = models;
         const { convertColor } = helpers.color;
 
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { ownerId: interaction.user.id, guildId: interaction.guild.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            ownerId: interaction.user.id,
+            guildId: interaction.guild.id,
         });
         if (!activeChannel) {
             return interaction.reply({ content: await t(interaction, 'tempvoice.transfer.no_active_channel'), ephemeral: true });
@@ -23,7 +25,7 @@ module.exports = {
             .setCustomId(`tv_transfer_menu:${activeChannel.channelId}`)
             .setPlaceholder(await t(interaction, 'tempvoice.transfer.menu.placeholder'))
             .setMinValues(1)
-            .setMaxValues(1); // [PENTING] Cuma boleh 1
+            .setMaxValues(1);
 
         const row = new ActionRowBuilder().addComponents(selectMenu);
         const accentColor = convertColor(kythiaConfig.bot.color, { from: 'hex', to: 'decimal' });

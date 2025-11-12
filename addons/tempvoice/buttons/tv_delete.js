@@ -1,25 +1,18 @@
 /**
  * @namespace: addons/tempvoice/buttons/tv_delete.js
- * @type: Module
+ * @type: Button Handler
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
 
-const {
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    ComponentType,
-    ContainerBuilder,
-    TextDisplayBuilder,
-    MessageFlags,
-} = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, MessageFlags } = require('discord.js');
 
 module.exports = {
     execute: async (interaction, container) => {
-        const { models, client, t } = container;
+        const { models, client, t, helpers } = container;
         const { TempVoiceChannel } = models;
+        const { simpleContainer } = helpers.discord;
 
         const ownerId = interaction.user.id;
         const activeChannel = await TempVoiceChannel.getCache({
@@ -28,11 +21,8 @@ module.exports = {
         });
 
         if (!activeChannel) {
-            const errorContainer = new ContainerBuilder().addTextDisplayComponents(
-                new TextDisplayBuilder().setContent(await t(interaction, 'tempvoice.tv_delete.no_active'))
-            );
             return interaction.reply({
-                components: [errorContainer],
+                components: await simpleContainer(interaction, await t(interaction, 'tempvoice.tv_delete.no_active'), { color: 'Red' }),
                 flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2,
             });
         }
@@ -41,16 +31,12 @@ module.exports = {
         const channel = await client.channels.fetch(channelId, { force: true }).catch(() => null);
 
         if (!channel) {
-            const notfoundContainer = new ContainerBuilder().addTextDisplayComponents(
-                new TextDisplayBuilder().setContent(await t(interaction, 'tempvoice.tv_delete.not_found'))
-            );
             return interaction.reply({
-                components: [notfoundContainer],
+                components: await simpleContainer(interaction, await t(interaction, 'tempvoice.tv_delete.not_found'), { color: 'Red' }),
                 flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2,
             });
         }
 
-        const confirmText = new TextDisplayBuilder().setContent(await t(interaction, 'tempvoice.tv_delete.confirm'));
         const rowBtns = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId('tv_delete_confirm')
@@ -62,11 +48,18 @@ module.exports = {
                 .setLabel(await t(interaction, 'tempvoice.tv_delete.cancel_btn'))
                 .setStyle(ButtonStyle.Secondary)
         );
-        const confirmContainer = new ContainerBuilder().addTextDisplayComponents(confirmText).addActionRowComponents(rowBtns);
+
+        const confirmText = await t(interaction, 'tempvoice.tv_delete.confirm');
+
+        let confirmComponents = await simpleContainer(interaction, confirmText);
+
+        if (Array.isArray(confirmComponents) && confirmComponents[0]?.addActionRowComponents) {
+            confirmComponents[0].addActionRowComponents(rowBtns);
+        }
 
         await interaction.reply({
-            components: [confirmContainer],
-            flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
+            components: confirmComponents,
+            flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2,
         });
 
         const msg = await interaction.fetchReply();
@@ -81,32 +74,30 @@ module.exports = {
         });
 
         collector.on('collect', async (btnInteraction) => {
-            let resultContainer;
+            let message, color;
 
             if (btnInteraction.customId === 'tv_delete_confirm') {
                 await channel.delete(await t(btnInteraction, 'tempvoice.tv_delete.deleted_reason'));
-                const confirmDeletedText = new TextDisplayBuilder().setContent(await t(btnInteraction, 'tempvoice.tv_delete.deleted'));
-                resultContainer = new ContainerBuilder().addTextDisplayComponents(confirmDeletedText);
+                message = await t(btnInteraction, 'tempvoice.tv_delete.deleted');
+                color = 'Green';
             } else {
-                const cancelText = new TextDisplayBuilder().setContent(await t(btnInteraction, 'tempvoice.tv_delete.cancelled'));
-                resultContainer = new ContainerBuilder().addTextDisplayComponents(cancelText);
+                message = await t(btnInteraction, 'tempvoice.tv_delete.cancelled');
+                color = 'Red';
             }
 
             await btnInteraction.update({
-                components: [resultContainer],
-                flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
+                components: await simpleContainer(btnInteraction, message, { color }),
+                flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2,
             });
         });
 
         collector.on('end', async (_collected, reason) => {
             if (reason === 'time' && msg.editable) {
-                const expiredContainer = new ContainerBuilder().addTextDisplayComponents(
-                    new TextDisplayBuilder().setContent(await t(interaction, 'tempvoice.tv_delete.expired'))
-                );
+                const expiredMsg = await t(interaction, 'tempvoice.tv_delete.expired');
                 await msg
                     .edit({
-                        components: [expiredContainer],
-                        flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
+                        components: await simpleContainer(interaction, expiredMsg, { color: 'Grey' }),
+                        flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2,
                         embeds: [],
                     })
                     .catch(() => {});

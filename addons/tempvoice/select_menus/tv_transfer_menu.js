@@ -5,28 +5,29 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { PermissionsBitField } = require('discord.js');
+const { PermissionsBitField, MessageFlags } = require('discord.js');
 
 module.exports = {
     execute: async (interaction, container) => {
-        const { models, client, t, helpers } = container;
+        const { models, client, t, helpers, logger } = container;
         const { simpleContainer } = helpers.discord;
+        const { TempVoiceChannel } = models;
+
         const channelId = interaction.customId.split(':')[1];
 
-        // 1. Cek channel & kepemilikan
         if (!channelId)
             return interaction.update({
                 components: await simpleContainer(interaction, await t(interaction, 'tempvoice.common.no_channel_id'), { color: 'Red' }),
             });
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { channelId: channelId, ownerId: interaction.user.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            channelId: channelId,
+            ownerId: interaction.user.id,
         });
         if (!activeChannel)
             return interaction.update({
                 components: await simpleContainer(interaction, await t(interaction, 'tempvoice.common.not_owner'), { color: 'Red' }),
             });
 
-        // 2. Fetch channel
         const channel = await client.channels.fetch(channelId, { force: true }).catch(() => null);
         if (!channel)
             return interaction.update({
@@ -53,10 +54,8 @@ module.exports = {
             });
 
         try {
-            // 3. Hapus perm owner lama (dirimu sendiri)
             await channel.permissionOverwrites.delete(interaction.member);
 
-            // 4. Kasih perm owner baru
             await channel.permissionOverwrites.edit(newOwnerMember, {
                 [PermissionsBitField.Flags.ManageChannels]: true,
                 [PermissionsBitField.Flags.MoveMembers]: true,
@@ -64,11 +63,10 @@ module.exports = {
                 [PermissionsBitField.Flags.Connect]: true,
             });
 
-            // 5. Update DB
             activeChannel.ownerId = newOwnerId;
-            await activeChannel.saveAndUpdateCache(); // Pake fungsi KythiaModel-mu
+            await activeChannel.saveAndUpdateCache();
 
-            // 6. Balasan sukses
+            // This message informs the previous owner (interaction.user) the transfer was successful.
             await interaction.update({
                 components: await simpleContainer(
                     interaction,
@@ -78,6 +76,18 @@ module.exports = {
                     { color: 'Green' }
                 ),
             });
+            try {
+                const newOwnerMsgContent = await t(interaction, 'tempvoice.transfer.newowner', {
+                    user: `<@${newOwnerId}>`,
+                });
+
+                await channel.send({
+                    components: await simpleContainer(interaction, newOwnerMsgContent, { color: 'Green' }),
+                    flags: MessageFlags.IsComponentsV2, // Pastiin pake V2
+                });
+            } catch (sendErr) {
+                logger.error(`[TempVoice] Gagal kirim notif transfer ke channel: ${sendErr.message}`);
+            }
         } catch (err) {
             await interaction.update({
                 components: await simpleContainer(interaction, await t(interaction, 'tempvoice.common.fail'), { color: 'Red' }),

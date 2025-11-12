@@ -7,13 +7,15 @@ const { ActionRowBuilder, UserSelectMenuBuilder, ContainerBuilder, TextDisplayBu
 module.exports = {
     execute: async (interaction, container) => {
         const { models, t, helpers, kythiaConfig } = container;
+        const { TempVoiceChannel } = models;
         const { convertColor } = helpers.color;
-        const { simpleContainer } = helpers.discord; // Asumsi helper-mu
+        const { simpleContainer } = helpers.discord;
 
-        // 1. Cek kepemilikan
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { ownerId: interaction.user.id, guildId: interaction.guild.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            ownerId: interaction.user.id,
+            guildId: interaction.guild.id,
         });
+
         if (!activeChannel) {
             return interaction.reply({
                 components: await simpleContainer(interaction, await t(interaction, 'tempvoice.invite.no_active_channel'), {
@@ -23,17 +25,15 @@ module.exports = {
             });
         }
 
-        // 2. Buat User Select Menu
         const selectMenu = new UserSelectMenuBuilder()
             .setCustomId(`tv_invite_menu:${activeChannel.channelId}`)
             .setPlaceholder(await t(interaction, 'tempvoice.invite.menu.placeholder'))
             .setMinValues(1)
-            .setMaxValues(10); // Biar bisa ngundang banyak
+            .setMaxValues(10);
 
         const row = new ActionRowBuilder().addComponents(selectMenu);
         const accentColor = convertColor(kythiaConfig.bot.color, { from: 'hex', to: 'decimal' });
 
-        // 3. Bales pake container
         const containerComponent = new ContainerBuilder()
             .setAccentColor(accentColor)
             .addTextDisplayComponents(new TextDisplayBuilder().setContent(await t(interaction, 'tempvoice.invite.menu.content')))

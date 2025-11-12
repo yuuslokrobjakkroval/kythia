@@ -8,22 +8,22 @@ module.exports = {
     execute: async (interaction, container) => {
         const { models, client, t, helpers, logger } = container;
         const { simpleContainer } = helpers.discord;
+        const { TempVoiceChannel } = models;
         const channelId = interaction.customId.split(':')[1];
 
-        // 1. Cek channel & kepemilikan
         if (!channelId)
             return interaction.update({
                 components: await simpleContainer(interaction, await t(interaction, 'tempvoice.common.no_channel_id'), { color: 'Red' }),
             });
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { channelId: channelId, ownerId: interaction.user.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            channelId: channelId,
+            ownerId: interaction.user.id,
         });
         if (!activeChannel)
             return interaction.update({
                 components: await simpleContainer(interaction, await t(interaction, 'tempvoice.common.not_owner'), { color: 'Red' }),
             });
 
-        // 2. Fetch channel
         const channel = await client.channels.fetch(channelId, { force: true }).catch(() => null);
         if (!channel)
             return interaction.update({
@@ -32,17 +32,16 @@ module.exports = {
                 }),
             });
 
-        const userIdsToInvite = interaction.values; // Array user ID
+        const userIdsToInvite = interaction.values;
         const successNames = [];
         const failNames = [];
         let inviteUrl = '';
 
-        // 3. Buat SATU invite link
         try {
             const inviteReason = await t(interaction, 'tempvoice.invite.invite_reason');
             const invite = await channel.createInvite({
-                maxAge: 3600, // 1 jam
-                maxUses: userIdsToInvite.length + 1, // Cukup buat semua
+                maxAge: 3600,
+                maxUses: userIdsToInvite.length + 1,
                 reason: inviteReason,
             });
             inviteUrl = invite.url;
@@ -53,7 +52,6 @@ module.exports = {
             });
         }
 
-        // 4. Siapin konten DM
         const dmContent = await t(interaction, 'tempvoice.invite.dm_message', {
             user: interaction.user.globalName || interaction.user.username,
             guild: interaction.guild.name,
@@ -61,7 +59,6 @@ module.exports = {
             inviteUrl: inviteUrl,
         });
 
-        // 5. Loop & kirim DM pakai simpleContainer
         for (const userId of userIdsToInvite) {
             const user = await client.users.fetch(userId).catch(() => null);
             if (user) {
@@ -78,7 +75,6 @@ module.exports = {
             }
         }
 
-        // 6. Bikin balasan summary
         let summaryContent = '';
         if (successNames.length > 0) {
             summaryContent += (await t(interaction, 'tempvoice.invite.success_dm', { users: successNames.join(', ') })) + '\n';

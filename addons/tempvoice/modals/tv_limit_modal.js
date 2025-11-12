@@ -8,7 +8,7 @@
 module.exports = {
     execute: async (interaction, container) => {
         const { models, t, client } = container;
-
+        const { TempVoiceChannel } = models;
         const newLimitStr = interaction.fields.getTextInputValue('user_limit');
         const newLimit = parseInt(newLimitStr, 10);
         const channelId = interaction.customId.split(':')[1];
@@ -20,8 +20,9 @@ module.exports = {
             return interaction.reply({ content: await t(interaction, 'tempvoice.limit.modal.channel_id_not_found'), ephemeral: true });
         }
 
-        const activeChannel = await models.TempVoiceChannel.findOne({
-            where: { channelId: channelId, ownerId: interaction.user.id },
+        const activeChannel = await TempVoiceChannel.getCache({
+            channelId: channelId,
+            ownerId: interaction.user.id,
         });
         if (!activeChannel) {
             return interaction.reply({ content: await t(interaction, 'tempvoice.limit.modal.not_owner'), ephemeral: true });

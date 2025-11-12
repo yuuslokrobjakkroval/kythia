@@ -4779,7 +4779,7 @@
                 "limit": "LIMIT",
                 "privacy": "PRIVACY",
                 "waiting": "WAITING R.",
-                "chat": "CHAT",
+                "stage": "STAGE",
                 "trust": "TRUST",
                 "untrust": "UNTRUST",
                 "invite": "INVITE",
@@ -4834,7 +4834,8 @@
             },
             "transfer_to_self": "ℹ️ You are already the owner.",
             "user_not_found": "❌ That user was not found in this server.",
-            "success": "👑 Successfully transferred ownership to **{user}**!"
+            "success": "👑 Successfully transferred ownership to **{user}**!",
+            "newowner": "👑 {user} is now the new channel owner."
         },
         "region": {
             "no_active_channel": "You do not have an active tempvoice channel!",
@@ -4871,6 +4872,25 @@
                 "placeholder": "Select user(s) to invite...",
                 "content": "Please select the user(s) you want to DM an invite to:"
             }
+        },
+        "waiting": {
+            "no_active_channel": "❌ You do not have an active tempvoice channel!",
+            "disabled": "✅ **Waiting Room Disabled.** Your main channel is now unlocked.",
+            "enabled": "✅ **Waiting Room Enabled!**\nA new channel <#{channel}> has been created. Non-trusted users will be sent there to wait for your approval.",
+            "wr_closed_reason": "Waiting room closed by owner.",
+            "wr_channel_name": "{name} waiting r.",
+            "join_request": "{owner}, user {user} wants to join your channel!",
+            "allow_btn": "Allow",
+            "deny_btn": "Deny",
+            "user_or_channel_gone": "❌ User or channel not found. (Maybe they left?)",
+            "move_fail": "❌ Failed to move user. (Maybe they left?)",
+            "deny_reason": "Denied entry by channel owner.",
+            "kick_fail": "❌ Failed to kick user. (Maybe they left?)"
+        },
+        "stage": {
+            "no_active_channel": "❌ You do not have an active tempvoice channel!",
+            "enabled": "## 🎙️ **Stage Mode Enabled!**\nOnly you and trusted users can speak now.",
+            "disabled": "## 🎙️ **Stage Mode Disabled.**\nEveryone can speak again."
         }
     }
 }

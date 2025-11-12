@@ -379,12 +379,13 @@ function loadKythiaConfig() {
             // Banner image URL for embeds or dashboard
             // you can host it on your own server
             // or you can use a CDN like Cloudflare Images/ imagekit/ etc
-            bannerImage: 'https://....png',
-            voteBannerImage: 'https://....png',
-            gcBannerImage: 'https://....png',
-            statsBannerImage: 'https://....png',
-            helpBannerImage: 'https://....png',
-            aboutBannerImage: 'https://....png',
+            bannerImage: 'https://placehold.co/800x300',
+            voteBannerImage: 'https://placehold.co/800x300',
+            gcBannerImage: 'https://placehold.co/800x300',
+            statsBannerImage: 'https://placehold.co/800x300',
+            helpBannerImage: 'https://placehold.co/800x300',
+            aboutBannerImage: 'https://placehold.co/800x300',
+            tempvoiceBannerImage: 'https://placehold.co/800x300',
             // link to error status page
             statusPage: 'https://status.kythia.my.id',
             // webhook notification when error on or off
