@@ -47,6 +47,9 @@ const guildStates = new Map();
 
 module.exports.guildStates = guildStates;
 
+const MASTER_TITLE_CLEAN_REGEX =
+    /[\[\]\(\)]|(?:\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])|\s{2,}/g;
+
 /**
  * Helper to edit the Now Playing message with an "ended" container.
  * Used in ALL ended track scenarios.
@@ -61,16 +64,26 @@ async function shutdownPlayerUI(player, track, client, channel) {
         channel = channel || player.nowPlayingMessage.channel || (client && client.channels.cache.get(player.textChannel));
         let endedText, artistText, requestedByText, artworkUrl, title, url;
         if (track && track.info) {
+            const cleanTitle = track.info.title.replace(MASTER_TITLE_CLEAN_REGEX, '');
             endedText = await t(channel, 'music.helpers.musicManager.manager.now.ended', {
-                title: track.info.title,
+                title: cleanTitle,
                 url: track.info.uri,
             });
             artistText = await t(channel, 'music.helpers.musicManager.manager.channel', { author: track.info.author });
-            requestedByText = await t(channel, 'music.helpers.musicManager.manager.requested.by', {
-                user: track.info.requester?.username
+
+            let userString;
+            if (track.info.isAutoplay) {
+                const username = track.info.requester?.username || 'User';
+                userString = `Autoplay (${username})`;
+            } else {
+                userString = track.info.requester?.username
                     ? `${track.info.requester} (${track.info.requester.username})`
-                    : `${track.info.requester}`,
+                    : `${track.info.requester}`;
+            }
+            requestedByText = await t(channel, 'music.helpers.musicManager.manager.requested.by', {
+                user: userString,
             });
+
             artworkUrl = track.info.artworkUrl || track.info.image || null;
             title = track.info.title;
             url = track.info.uri;
@@ -89,6 +102,7 @@ async function shutdownPlayerUI(player, track, client, channel) {
             container.addMediaGalleryComponents(
                 new MediaGalleryBuilder().addItems([artworkUrl ? new MediaGalleryItemBuilder().setURL(artworkUrl) : null])
             );
+            container.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
             container.addTextDisplayComponents(new TextDisplayBuilder().setContent(endedText));
         } else {
             container.addSectionComponents(
@@ -96,6 +110,7 @@ async function shutdownPlayerUI(player, track, client, channel) {
                     .addTextDisplayComponents(new TextDisplayBuilder().setContent(endedText))
                     .setThumbnailAccessory(artworkUrl ? new ThumbnailBuilder().setDescription(title).setURL(artworkUrl) : null)
             );
+            container.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
         }
         if (artistText) container.addTextDisplayComponents(new TextDisplayBuilder().setContent(artistText));
         if (requestedByText) container.addTextDisplayComponents(new TextDisplayBuilder().setContent(requestedByText));
@@ -223,16 +238,25 @@ async function updateNowPlayingUI(player) {
         const updatedFirstControlButtonRow = getFirstControlButtonRow(player.isPaused, false);
         const updatedSecondControlButtonRow = getSecondControlButtonRow(false);
 
+        const cleanTitle = currentTrack.info.title.replace(MASTER_TITLE_CLEAN_REGEX, '');
         const updatedNowPlayingText = await t(channel, 'music.helpers.musicManager.manager.playing', {
-            title: currentTrack.info.title.replace(/[\[\]\(\)]/g, ''),
+            title: cleanTitle,
             url: currentTrack.info.uri,
         });
         const updatedProgress = createProgressBar(player);
         const updatedArtistText = await t(channel, 'music.helpers.musicManager.manager.channel', { author: currentTrack.info.author });
-        const updatedRequestedByText = await t(channel, 'music.helpers.musicManager.manager.requested.by', {
-            user: currentTrack.info.requester?.username
+
+        let userString;
+        if (currentTrack.info.isAutoplay) {
+            const username = currentTrack.info.requester?.username || 'User';
+            userString = `Autoplay (${username})`;
+        } else {
+            userString = currentTrack.info.requester?.username
                 ? `${currentTrack.info.requester} (${currentTrack.info.requester.username})`
-                : `${currentTrack.info.requester}`,
+                : `${currentTrack.info.requester}`;
+        }
+        const updatedRequestedByText = await t(channel, 'music.helpers.musicManager.manager.requested.by', {
+            user: userString,
         });
 
         let updatedSuggestionRow = null;
@@ -252,6 +276,7 @@ async function updateNowPlayingUI(player) {
                     ])
                 );
             }
+            updatedContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
             updatedContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(updatedNowPlayingText));
         } else {
             updatedContainer.addSectionComponents(
@@ -265,6 +290,7 @@ async function updateNowPlayingUI(player) {
                             : null
                     )
             );
+            updatedContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
         }
 
         updatedContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(updatedProgress));
@@ -453,16 +479,26 @@ async function initializeMusicManager(bot) {
 
         player.playedTrackIdentifiers.add(track.info.identifier);
 
+        const cleanTitle = track.info.title.replace(MASTER_TITLE_CLEAN_REGEX, '');
         const nowPlayingText = await t(channel, 'music.helpers.musicManager.manager.playing', {
-            title: track.info.title,
+            title: cleanTitle,
             url: track.info.uri,
         });
         const progress = createProgressBar(player);
 
         const artistText = await t(channel, 'music.helpers.musicManager.manager.channel', { author: track.info.author });
 
+        let userString;
+        if (track.info.isAutoplay) {
+            const username = track.info.requester?.username || 'User';
+            userString = `Autoplay (${username})`;
+        } else {
+            userString = track.info.requester?.username
+                ? `${track.info.requester} (${track.info.requester.username})`
+                : `${track.info.requester}`;
+        }
         const requestedByText = await t(channel, 'music.helpers.musicManager.manager.requested.by', {
-            user: track.info.requester?.username ? `${track.info.requester} (${track.info.requester.username})` : `${track.info.requester}`,
+            user: userString,
         });
 
         let suggestionRow = null;
@@ -495,6 +531,7 @@ async function initializeMusicManager(bot) {
                     new MediaGalleryBuilder().addItems([new MediaGalleryItemBuilder().setURL(track.info.artworkUrl || track.info.image)])
                 );
             }
+            container.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
             container.addTextDisplayComponents(new TextDisplayBuilder().setContent(nowPlayingText));
         } else {
             container.addSectionComponents(
@@ -506,6 +543,7 @@ async function initializeMusicManager(bot) {
                             : null
                     )
             );
+            container.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
         }
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(progress));
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(artistText));
@@ -690,9 +728,11 @@ async function initializeMusicManager(bot) {
         const autoplayReference = player._autoplayReference;
         let autoplaySucceeded = false;
         if (player.autoplay && autoplayReference) {
+            let searchingMessage = null;
+
             try {
                 if (channel) {
-                    await channel.send({
+                    searchingMessage = await channel.send({
                         embeds: [
                             new EmbedBuilder().setColor(kythia.bot.color).setDescription(
                                 await t(channel, 'music.helpers.musicManager.manager.searching', {
@@ -718,37 +758,48 @@ async function initializeMusicManager(bot) {
 
                 if (!potentialNextTracks.length) {
                     if (channel) {
-                        await channel.send({
-                            embeds: [
-                                new EmbedBuilder()
-                                    .setColor('Orange')
-                                    .setDescription(await t(channel, 'music.helpers.musicManager.manager.played')),
-                            ],
-                        });
+                        const embed = new EmbedBuilder()
+                            .setColor('Orange')
+                            .setDescription(await t(channel, 'music.helpers.musicManager.manager.played'));
+
+                        if (searchingMessage && searchingMessage.editable) {
+                            await searchingMessage.edit({ embeds: [embed] });
+                        } else {
+                            await channel.send({ embeds: [embed] });
+                        }
                     }
                 } else {
                     const topRecommendations = potentialNextTracks.slice(0, 5);
                     const nextTrack = topRecommendations[Math.floor(Math.random() * topRecommendations.length)];
 
+                    nextTrack.info.isAutoplay = true;
+
                     player.queue.add(nextTrack);
                     await player.play();
                     autoplaySucceeded = true;
+
+                    if (searchingMessage && searchingMessage.deletable) {
+                        await searchingMessage.delete().catch(() => {});
+                    }
+
                     return;
                 }
             } catch (err) {
                 if (channel) {
-                    await channel.send({
-                        embeds: [
-                            new EmbedBuilder()
-                                .setColor('Red')
-                                .setDescription(await t(channel, 'music.helpers.musicManager.manager.failed', { error: err.message })),
-                        ],
-                    });
+                    const embed = new EmbedBuilder()
+                        .setColor('Red')
+                        .setDescription(await t(channel, 'music.helpers.musicManager.manager.failed', { error: err.message }));
+
+                    if (searchingMessage && searchingMessage.editable) {
+                        await searchingMessage.edit({ embeds: [embed] });
+                    } else {
+                        await channel.send({ embeds: [embed] });
+                    }
                 }
             }
         }
 
-        if (autoplaySucceeded) return; 
+        if (autoplaySucceeded) return;
 
         if (player._247) {
             logger.info(`🎵 [24/7] Queue ended for ${player.guildId}, staying idle.`);
@@ -778,11 +829,13 @@ async function initializeMusicManager(bot) {
                 }
 
                 if (channel) {
-                     await channel.send({
+                    await channel.send({
                         embeds: [
-                            new EmbedBuilder()
-                                .setColor('Orange')
-                                .setDescription(await t(channel, 'music.helpers.musicManager.manager.idleDisconnect', { seconds: IDLE_TIMEOUT_MS / 1000 }))
+                            new EmbedBuilder().setColor('Orange').setDescription(
+                                await t(channel, 'music.helpers.musicManager.manager.idleDisconnect', {
+                                    seconds: IDLE_TIMEOUT_MS / 1000,
+                                })
+                            ),
                         ],
                     });
                 }
