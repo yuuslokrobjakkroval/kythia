@@ -1,6 +1,9 @@
 /**
  * @namespace: addons/tempvoice/select_menus/tv_invite_menu.js
- * @type: Select Menu Handler
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.11-beta
  */
 const { MessageFlags } = require('discord.js');
 

@@ -5,7 +5,7 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { EmbedBuilder } = require('discord.js');
+const { MessageFlags } = require('discord.js');
 
 module.exports = {
     subcommand: true,
@@ -47,11 +47,11 @@ module.exports = {
         const { Subdomain } = models;
         const focusedValue = interaction.options.getFocused();
 
-        const userSubdomains = await Subdomain.findAll({
+        const userSubdomains = await Subdomain.getAllCache({
             where: {
                 userId: interaction.user.id,
             },
-            limit: 10,
+            limit: 25,
         });
 
         const filtered = userSubdomains.filter((s) => s.name.startsWith(focusedValue));
@@ -63,31 +63,29 @@ module.exports = {
         const { t, logger, kythiaConfig, models, helpers } = container;
         const cloudflareApi = container.services.cloudflare;
         const { KythiaUser, Subdomain, DnsRecord } = models;
-        const { embedFooter, isPremium, isVoterActive } = helpers.discord;
+        const { simpleContainer, isPremium, isVoterActive } = helpers.discord;
 
         await interaction.deferReply({ ephemeral: true });
 
         const user = await KythiaUser.getCache({ userId: interaction.user.id });
 
         if (!user) {
-            const desc = await t(interaction, 'pro.dns.set.need_account');
-            const embed = new EmbedBuilder()
-                .setColor(kythiaConfig.bot.color)
-                .setDescription(desc)
-                .setFooter(await embedFooter(interaction));
-            return interaction.editReply({ embeds: [embed] });
+            const desc = await t(interaction, 'pro.dns.set.error_need_account');
+            return interaction.editReply({
+                components: await simpleContainer(interaction, desc, { color: 'Red' }),
+                flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+            });
         }
 
         const isPremiumDonatur = await isPremium(interaction.user.id);
         const isVoter = await isVoterActive(interaction.user.id);
 
         if (!isPremiumDonatur && !isVoter) {
-            const desc = await t(interaction, 'pro.dns.set.need_premium_or_vote');
-            const embed = new EmbedBuilder()
-                .setColor(kythiaConfig.bot.color)
-                .setDescription(desc)
-                .setFooter(await embedFooter(interaction));
-            return interaction.editReply({ embeds: [embed] });
+            const desc = await t(interaction, 'pro.dns.set.error_need_premium_or_vote');
+            return interaction.editReply({
+                components: await simpleContainer(interaction, desc, { color: 'Red' }),
+                flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+            });
         }
 
         const subdomainName = interaction.options.getString('subdomain');
@@ -97,12 +95,11 @@ module.exports = {
         });
 
         if (!targetSubdomain) {
-            const desc = await t(interaction, 'pro.dns.set.subdomain_not_found', { subdomain: subdomainName });
-            const embed = new EmbedBuilder()
-                .setColor(kythiaConfig.bot.color)
-                .setDescription(desc)
-                .setFooter(await embedFooter(interaction));
-            return interaction.editReply({ embeds: [embed] });
+            const desc = await t(interaction, 'pro.dns.set.error_subdomain_not_found', { subdomain: subdomainName });
+            return interaction.editReply({
+                components: await simpleContainer(interaction, desc, { color: 'Red' }),
+                flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+            });
         }
 
         const type = interaction.options.getString('type');
@@ -141,27 +138,27 @@ module.exports = {
                 action === 'created' ? 'pro.dns.set.success_title_created' : 'pro.dns.set.success_title_updated'
             );
             const desc = await t(interaction, 'pro.dns.set.success_desc', {
-                action: await t(interaction, action === 'created' ? 'pro.dns.set.action_created' : 'pro.dns.set.action_updated'),
+                action_past: await t(
+                    interaction,
+                    action === 'created' ? 'pro.dns.set.action_created_past' : 'pro.dns.set.action_updated_past'
+                ),
                 type,
                 fqdn,
                 value,
             });
 
-            const embed = new EmbedBuilder()
-                .setColor('Green')
-                .setTitle(title)
-                .setDescription(desc)
-                .setFooter(await embedFooter(interaction));
-            return interaction.editReply({ embeds: [embed] });
+            return interaction.editReply({
+                components: await simpleContainer(interaction, desc, { title: title, color: 'Green' }),
+                flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+            });
         } else {
-            const title = await t(interaction, 'pro.dns.set.fail_title');
-            const desc = await t(interaction, 'pro.dns.set.fail_desc', { error: result.error });
-            const embed = new EmbedBuilder()
-                .setColor('Red')
-                .setTitle(title)
-                .setDescription(desc)
-                .setFooter(await embedFooter(interaction));
-            return interaction.editReply({ embeds: [embed] });
+            const title = await t(interaction, 'pro.dns.set.error_fail_title');
+            const desc = await t(interaction, 'pro.dns.set.error_fail_desc', { error: result.error });
+
+            return interaction.editReply({
+                components: await simpleContainer(interaction, desc, { title: title, color: 'Red' }),
+                flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+            });
         }
     },
 };

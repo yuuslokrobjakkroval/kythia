@@ -1,6 +1,9 @@
 /**
- * @namespace: addons/tempvoice/buttons/tv_deny.js
- * @type: Button Handler
+ * @namespace: addons/tempvoice/buttons/tv_waiting_deny.js
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.11-beta
  */
 module.exports = {
     execute: async (interaction, container) => {

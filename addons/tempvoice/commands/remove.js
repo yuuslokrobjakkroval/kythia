@@ -5,7 +5,7 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { MessageFlags } = require('discord.js');
+const { MessageFlags, ChannelType } = require('discord.js');
 
 module.exports = {
     subcommand: true,
@@ -33,46 +33,73 @@ module.exports = {
         const deleteReasonCategory = await t(interaction, 'tempvoice.unset.delete_reason_category');
 
         const activeChannels = await TempVoiceChannel.getAllCache({ where: { guildId: guildId } });
+        let tempvoiceChannelIds = new Set(activeChannels.map((ac) => ac.channelId));
+
+        if (config.triggerChannelId) tempvoiceChannelIds.add(config.triggerChannelId);
+        if (config.controlPanelChannelId) tempvoiceChannelIds.add(config.controlPanelChannelId);
+
+        let shouldDeleteCategory = false;
+        let category = null;
+        let triggerChannel = null;
+        let controlPanelChannel = null;
+
+        if (config.categoryId) {
+            try {
+                category = await client.channels.fetch(config.categoryId, { force: true }).catch(() => null);
+
+                if (category && category.type === ChannelType.GuildCategory) {
+                    let channelsInCategory = (await interaction.guild.channels.fetch()).filter((c) => c.parentId === category.id);
+
+                    let nonTempvoiceChannels = [];
+                    for (const ch of channelsInCategory.values()) {
+                        if (!tempvoiceChannelIds.has(ch.id)) {
+                            nonTempvoiceChannels.push(ch);
+                        }
+                    }
+
+                    if (nonTempvoiceChannels.length === 0) {
+                        shouldDeleteCategory = true;
+                        logger.info(`[TempVoice] Category will be deleted (no foreign channels found).`);
+                    } else {
+                        logger.info(`[TempVoice] Category NOT deleted: ${nonTempvoiceChannels.length} foreign channel(s) found.`);
+                    }
+                }
+            } catch (e) {
+                logger.warn(`[TempVoice] Failed while checking category: ${e.message}`);
+            }
+        }
+
         for (const ac of activeChannels) {
             const tempChannel = await client.channels.fetch(ac.channelId, { force: true }).catch(() => null);
-            if (tempChannel) {
-                try {
-                    await tempChannel.delete(deleteReason);
-                } catch (e) {
-                    logger.warn(`[TempVoice] Failed to delete temp channel: ${e.message}`);
-                }
-            }
+            if (tempChannel)
+                await tempChannel.delete(deleteReason).catch((e) => logger.warn(`[TempVoice] Failed to delete temp channel: ${e.message}`));
             await ac.destroy();
         }
 
         if (config.controlPanelChannelId) {
-            try {
-                const channel = await client.channels.fetch(config.controlPanelChannelId, { force: true }).catch(() => null);
-                if (channel) {
-                    if (config.interfaceMessageId) {
-                        const msg = await channel.messages.fetch(config.interfaceMessageId).catch(() => null);
-                        if (msg) await msg.delete();
-                    }
-                    await channel.delete(deleteReasonPanel);
+            controlPanelChannel = await client.channels.fetch(config.controlPanelChannelId, { force: true }).catch(() => null);
+            if (controlPanelChannel) {
+                if (!shouldDeleteCategory || (category && controlPanelChannel.parentId !== category.id)) {
+                    await controlPanelChannel
+                        .delete(deleteReasonPanel)
+                        .catch((e) => logger.warn(`[TempVoice] Failed to delete control panel: ${e.message}`));
                 }
-            } catch (e) {
-                logger.warn(`[TempVoice] Failed to delete control panel/channel: ${e.message}`);
             }
         }
 
-        if (config.categoryId) {
-            try {
-                const category = await client.channels.fetch(config.categoryId, { force: true }).catch(() => null);
-                const triggerChannel = await client.channels.fetch(config.triggerChannelId, { force: true }).catch(() => null);
-                if (triggerChannel && triggerChannel.parentId === category.id) {
-                    await triggerChannel.delete(deleteReasonTrigger);
+        if (config.triggerChannelId) {
+            triggerChannel = await client.channels.fetch(config.triggerChannelId, { force: true }).catch(() => null);
+            if (triggerChannel) {
+                if (!shouldDeleteCategory || (category && triggerChannel.parentId !== category.id)) {
+                    await triggerChannel
+                        .delete(deleteReasonTrigger)
+                        .catch((e) => logger.warn(`[TempVoice] Failed to delete trigger: ${e.message}`));
                 }
-                if (category) {
-                    await category.delete(deleteReasonCategory);
-                }
-            } catch (e) {
-                logger.warn(`[TempVoice] Failed to delete TempVoice category: ${e.message}`);
             }
+        }
+
+        if (category && shouldDeleteCategory) {
+            await category.delete(deleteReasonCategory).catch((e) => logger.warn(`[TempVoice] Failed to delete category: ${e.message}`));
         }
 
         await config.destroy();

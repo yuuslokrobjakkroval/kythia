@@ -1,6 +1,9 @@
 /**
  * @namespace: addons/tempvoice/buttons/tv_invite.js
- * @type: Button Handler
+ * @type: Module
+ * @copyright © 2025 kenndeclouv
+ * @assistant chaa & graa
+ * @version 0.9.11-beta
  */
 const { ActionRowBuilder, UserSelectMenuBuilder, ContainerBuilder, TextDisplayBuilder, MessageFlags } = require('discord.js');
 

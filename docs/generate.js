@@ -354,7 +354,18 @@ function runGenerator() {
 
                     if (!commandBuilder) continue;
 
-                    const commandJSON = commandBuilder.toJSON();
+                    // Fix: Check if toJSON exists and is a function before calling it
+                    let commandJSON;
+                    if (typeof commandBuilder.toJSON === 'function') {
+                        commandJSON = commandBuilder.toJSON();
+                    } else if (typeof commandBuilder === 'object') {
+                        // try to use the plain object directly
+                        commandJSON = commandBuilder;
+                        console.warn(`⚠️ Command builder for '${file}' in '${categoryName}' does not have toJSON(), using as-is.`);
+                    } else {
+                        throw new Error("Command builder is not valid or missing toJSON()");
+                    }
+                    
                     const markdown = generateCommandMarkdown(commandJSON, commandModule);
 
                     if (!markdownBuffers[categoryName]) {
@@ -362,7 +373,11 @@ function runGenerator() {
                             `## 📁 Command Category: ${categoryName.charAt(0).toUpperCase() + categoryName.slice(1)}\n\n`;
                     }
                     markdownBuffers[categoryName] += markdown + '\n\n';
-                    console.log(`[${categoryName.toUpperCase()}] Added '${commandJSON.name}' to buffer`);
+                    if (commandJSON && commandJSON.name) {
+                        console.log(`[${categoryName.toUpperCase()}] Added '${commandJSON.name}' to buffer`);
+                    } else {
+                        console.log(`[${categoryName.toUpperCase()}] Added command from '${file}' to buffer`);
+                    }
                 } catch (e) {
                     console.error(`❌ Failed to process file ${file} in category ${categoryName}: ${e.message}`);
                 }

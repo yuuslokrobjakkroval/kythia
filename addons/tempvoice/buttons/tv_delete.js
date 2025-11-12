@@ -1,6 +1,6 @@
 /**
  * @namespace: addons/tempvoice/buttons/tv_delete.js
- * @type: Button Handler
+ * @type: Module
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
  * @version 0.9.11-beta

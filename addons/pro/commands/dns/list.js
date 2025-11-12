@@ -5,7 +5,8 @@
  * @assistant chaa & graa
  * @version 0.9.11-beta
  */
-const { EmbedBuilder } = require('discord.js');
+
+const { MessageFlags, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SeparatorSpacingSize } = require('discord.js');
 
 module.exports = {
     subcommand: true,
@@ -20,13 +21,12 @@ module.exports = {
                     .setRequired(true)
                     .setAutocomplete(true)
             ),
-
     async autocomplete(interaction, container) {
         const { models } = container;
         const { Subdomain } = models;
         const focusedValue = interaction.options.getFocused();
 
-        const userSubdomains = await Subdomain.findAll({
+        const userSubdomains = await Subdomain.getAllCache({
             where: { userId: interaction.user.id },
             limit: 10,
         });
@@ -39,20 +39,20 @@ module.exports = {
     async execute(interaction, container) {
         const { logger, kythiaConfig, models, helpers, t } = container;
         const { KythiaUser, Subdomain, DnsRecord } = models;
-        const { embedFooter, isPremium, isVoterActive } = helpers.discord;
+        const { simpleContainer, isPremium, isVoterActive } = helpers.discord;
+        const { convertColor } = helpers.color;
 
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const isPremiumDonor = await isPremium(interaction.user.id);
         const isVoter = await isVoterActive(interaction.user.id);
 
         if (!isPremiumDonor && !isVoter) {
             const desc = await t(interaction, 'pro.dns.list.not_allowed');
-            const embed = new EmbedBuilder()
-                .setColor(kythiaConfig.bot.color)
-                .setDescription(desc)
-                .setFooter(await embedFooter(interaction));
-            return interaction.editReply({ embeds: [embed] });
+            return interaction.editReply({
+                components: await simpleContainer(interaction, desc, { color: 'Red' }),
+                flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+            });
         }
 
         const subdomainName = interaction.options.getString('subdomain');
@@ -63,57 +63,59 @@ module.exports = {
 
         if (!targetSubdomain) {
             const desc = await t(interaction, 'pro.dns.list.not_found', { subdomain: subdomainName });
-            const embed = new EmbedBuilder()
-                .setColor(kythiaConfig.bot.color)
-                .setDescription(desc)
-                .setFooter(await embedFooter(interaction));
-            return interaction.editReply({ embeds: [embed] });
+            return interaction.editReply({
+                components: await simpleContainer(interaction, desc, { color: 'Red' }),
+                flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+            });
         }
 
-        const records = await DnsRecord.findAll({
+        const records = await DnsRecord.getAllCache({
             where: { subdomainId: targetSubdomain.id },
         });
 
         const domainName = kythiaConfig.addons.pro.cloudflare.domain;
+        const fqdn = `${targetSubdomain.name}.${domainName}`;
 
-        const embed = new EmbedBuilder()
-            .setColor('Blue')
-            .setTitle(
-                await t(interaction, 'pro.dns.list.title', {
-                    fqdn: `${targetSubdomain.name}.${domainName}`,
-                })
-            )
-            .setFooter(await embedFooter(interaction));
+        const accentColor = convertColor(kythiaConfig.bot.color, { from: 'hex', to: 'decimal' });
+        const mainContainer = new ContainerBuilder().setAccentColor(accentColor);
+
+        const title = await t(interaction, 'pro.dns.list.title', { fqdn: fqdn });
+        let description;
 
         if (records.length === 0) {
-            embed.setDescription(await t(interaction, 'pro.dns.list.no_record'));
-            return interaction.editReply({ embeds: [embed] });
+            description = await t(interaction, 'pro.dns.list.no_record');
+        } else {
+            description = await t(interaction, 'pro.dns.list.has_record', { count: records.length });
         }
 
-        const recordFields = records.map(async (record) => {
-            const fqdn =
-                record.name === '@' ? `${targetSubdomain.name}.${domainName}` : `${record.name}.${targetSubdomain.name}.${domainName}`;
+        mainContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(`## ${title}\n${description}`));
 
-            return {
-                name: await t(interaction, 'pro.dns.list.field_name', {
-                    id: record.id,
-                    type: record.type,
-                }),
-                value: await t(interaction, 'pro.dns.list.field_value', {
-                    name: record.name,
-                    value: record.value,
-                }),
-                inline: false,
-            };
+        for (const record of records) {
+            mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
+
+            const fieldTitle = await t(interaction, 'pro.dns.list.record_title', {
+                id: record.id,
+                type: record.type,
+            });
+            const fieldValue = await t(interaction, 'pro.dns.list.record_value', {
+                name: record.name,
+                value: record.value,
+            });
+
+            mainContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**${fieldTitle}**\n${fieldValue}`));
+        }
+
+        mainContainer
+            .addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true))
+            .addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(
+                    await t(interaction, 'common.container.footer', { username: interaction.client.user.username })
+                )
+            );
+
+        return interaction.editReply({
+            components: [mainContainer],
+            flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
         });
-
-        embed.addFields(await Promise.all(recordFields));
-        embed.setDescription(
-            await t(interaction, 'pro.dns.list.has_record', {
-                count: records.length,
-            })
-        );
-
-        return interaction.editReply({ embeds: [embed] });
     },
 };
