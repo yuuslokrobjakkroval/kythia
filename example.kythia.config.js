@@ -255,7 +255,7 @@ function loadKythiaConfig() {
                  * - youtube-plugin-1.16.0 (with yt-cipher)
                  * - lavasearch-plugin-1.0.0
                  * - sponsorblock-plugin-3.0.1
-                 * 
+                 *
                  * OR you can just join kythia's server, there's many updates and free lavalink too
                  * https://discord.com/invite/RK6WYM2GAq
                  * https://discord.com/users/1158654757183959091
@@ -338,6 +338,10 @@ function loadKythiaConfig() {
             },
             ticket: {
                 active: true,
+            },
+            quest: {
+                active: true,
+                apiUrls: 'http://.../quests,http://...', // seperate with comma
             },
         },
 

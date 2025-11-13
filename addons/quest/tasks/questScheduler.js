@@ -9,28 +9,88 @@ const cron = require('node-cron');
 const { buildQuestNotification } = require('../helpers/questHelper');
 const { Op } = require('sequelize');
 
+/**
+ * Try a list of API URLs and return the first successful quests response.
+ * @param {string[]} urls
+ * @param {object} logger
+ * @returns {Promise<null|Array>} - API Quests array, or null if all fail
+ */
+
+async function fetchQuestsFromAny(urls, logger) {
+    const TIMEOUT_MS = 5000;
+
+    for (let url of urls) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            logger.warn(`[QuestNotifier] API timeout (5s) for ${url}. Aborting...`);
+            controller.abort();
+        }, TIMEOUT_MS);
+
+        try {
+            logger.info(`[QuestNotifier] Trying quest API: ${url}`);
+
+            const response = await fetch(url, {
+                signal: controller.signal,
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                logger.warn(`[QuestNotifier] API fetch failed with status ${response.status} for ${url}`);
+                continue;
+            }
+
+            const apiQuests = await response.json();
+            logger.info(`[QuestNotifier] Got quest data from: ${url}`);
+            return apiQuests;
+        } catch (e) {
+            clearTimeout(timeoutId);
+
+            if (e.name === 'AbortError') {
+                continue;
+            } else {
+                logger.warn(`[QuestNotifier] Error fetching from ${url}: ${e.message}`);
+            }
+        }
+    }
+
+    return null;
+}
+
 async function checkQuests(container) {
     const { models, logger, client, t, kythiaConfig } = container;
     const { QuestConfig, QuestGuildLog } = models;
     logger.info('[QuestNotifier] Running cron job...');
 
+    const apiUrlsConfig = kythiaConfig.addons.quest.apiUrls || '';
+
+    const apiUrls = apiUrlsConfig
+        .split(',')
+        .map((v) => v.trim())
+        .filter((v) => v.length > 0);
+
+    if (apiUrls.length === 0) {
+        logger.error('[QuestNotifier] No API URLs configured!');
+        return;
+    }
+
     try {
-        const response = await fetch(kythiaConfig.addons.quest.apiUrl);
-        if (!response.ok) {
-            logger.error(`[QuestNotifier] API fetch failed with status ${response.status}`);
+        const apiQuests = await fetchQuestsFromAny(apiUrls, logger);
+
+        if (!apiQuests) {
+            logger.error('[QuestNotifier] All API quest endpoints failed. No quests retrieved.');
             return;
         }
-        const apiQuests = await response.json();
 
         const now = new Date();
-        const twentyFourHoursAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+        const TwodayAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
 
         const validQuests = apiQuests.filter((quest) => {
             const startsAt = new Date(quest.config.starts_at);
             const expiresAt = new Date(quest.config.expires_at);
 
             const isExpired = expiresAt < now;
-            const isTooOld = startsAt < twentyFourHoursAgo;
+            const isTooOld = startsAt < TwodayAgo;
 
             return !isExpired && !isTooOld;
         });
