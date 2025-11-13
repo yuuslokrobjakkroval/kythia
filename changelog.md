@@ -2,6 +2,69 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.12-beta](https://github.com/kythia/kythia/compare/v0.9.11-beta...v0.9.12-beta) (2025-11-13)
+
+
+### 🔧 Changed
+
+* **afk command:** rename AFK model to UserAFK for clarity and consistency; update related cache and creation logic ([8634f68](https://github.com/kythia/kythia/commit/8634f68c03d2d1488520cf6838b2d9ab70c4b651))
+* **ai:** enhance message handling in AI events to consolidate user message history; improve string handling consistency and update stats command to reflect server boosts (not tested yet) ([a2d8a5c](https://github.com/kythia/kythia/commit/a2d8a5c24e0117533d4947747ab92b8d15dcd9e9))
+* **commands:** remove commented-out code and streamline command logic across multiple files; update language keys for consistency ([5b6695a](https://github.com/kythia/kythia/commit/5b6695a598dc420b1252d8bf5ed3a6169dc740d6))
+* **commands:** update command aliases and improve parameter names for clarity; remove unused donate command ([7fff5b4](https://github.com/kythia/kythia/commit/7fff5b419d1e5115d151311f9aa92de2a74741ff))
+* **core events:** streamline role and guild member update handling by consolidating settings retrieval and adding role prefix functionality ([9ac5dcc](https://github.com/kythia/kythia/commit/9ac5dccac5d2cbaf40d6cc177ed2b9324e23f143))
+* **dependencies:** replace @kenndeclouv/kythia-core with kythia-core; update package-lock.json and package.json accordingly, make core addon events all using DI ([4a67e8e](https://github.com/kythia/kythia/commit/4a67e8e5e0014c7dd0920c5fce82fa2339d8cc48))
+* **dependencies:** update all references from @kenndeclouv/kythia-core to kythia-core across the codebase ([441572c](https://github.com/kythia/kythia/commit/441572cf729de6db85e0f53b1b73dc44ebcedf8c))
+* **economy:** enhance command structure by implementing dependency injection for models and helpers; update color handling for embeds ([25abe33](https://github.com/kythia/kythia/commit/25abe33379c2d0b8f881c8a9e93919d388f1b2df))
+* **index:** add formatDuration to time container dependencies ([b9d6501](https://github.com/kythia/kythia/commit/b9d6501ec7fc47d79971147dd83d84d582fb2329))
+* **index:** update Redis dependency injection to use configuration options instead of client instance ([020205f](https://github.com/kythia/kythia/commit/020205f8f40399ad7efe82ae854c5fb9900fb93b))
+* **moderation:** moderation commands to use new command structure, /mod kick /mod ban etc, and improve error handling ([2f32b61](https://github.com/kythia/kythia/commit/2f32b612c5483e20a4719a5bcc21fd686af4e62d))
+* **music:** clean up imports and streamline command structure; enhance autocomplete and execution handling with container integration ([71250d8](https://github.com/kythia/kythia/commit/71250d8c507a43de932671a00fc4d1477028310e))
+* **musicManager:** streamline error handling for Lavalink node connections and update voice channel status management ([578d648](https://github.com/kythia/kythia/commit/578d648600b219d89729de4377a8e4255fa5a482))
+* **ping command:** enhance buildPingEmbed function to accept initial latencies and improve loading state handling; update language file for loading message ([770544e](https://github.com/kythia/kythia/commit/770544e6a57909bab97ef8dcb7607cfea31e7413))
+* **premium:** refactor premium command to use seperate file for each subcommand ([73d76d3](https://github.com/kythia/kythia/commit/73d76d3c4b29d16df6901ab325c4e3dc229aa44b))
+* **settings:** implement dependency injection for settings command; ([15388b6](https://github.com/kythia/kythia/commit/15388b6682c6705f6fe3d459c71288b48412cb93))
+* **slots:** update result key format for slot machine outcomes to use dot notation for consistency ([5f45b9e](https://github.com/kythia/kythia/commit/5f45b9e55b5dc24321f1c578fe1b5a1ee47c795f))
+* **tools:** implement dependency injection for command execution ([f5e464f](https://github.com/kythia/kythia/commit/f5e464fb6aff5ed2fcdd965b0403a27cec4b7c3f))
+* **utils:** implement dependency injection and remove spam feature ([7f494b7](https://github.com/kythia/kythia/commit/7f494b71f41d633a70fab532a12f668d706e88b9))
+
+
+### 🔨 Fixed
+
+* **clientReady event:** fixing typo ([acda42c](https://github.com/kythia/kythia/commit/acda42ccc4305685030fc1ecf0e0b137de278904))
+* **config example:** update environment variable from REDIS_URL to REDIS_URLS for consistency in kythia config ([f2b3383](https://github.com/kythia/kythia/commit/f2b3383ead8041bca2cc921b76222074b0065149))
+* **musicManager:** simplify now playing check by removing redundant player state condition ([6d2fea6](https://github.com/kythia/kythia/commit/6d2fea613b7224a26722441f7f62d1af4f2d95e3))
+* **music:** update seek command to accept string input for time; enhance track title handling and user display in Now Playing and ended messages ([105550e](https://github.com/kythia/kythia/commit/105550ebe6f0b2e90dea5a77a0144f7733e0cbf3))
+* **ping command:** ensure deferUpdate is called after collecting interaction to maintain proper loading state ([65db269](https://github.com/kythia/kythia/commit/65db2691651048e3eb646ae788822e1be360ea36))
+
+
+### ✨ Added
+
+* **about, help:** add new banner images to about and help commands; update configuration to support additional images ([ae6ccb4](https://github.com/kythia/kythia/commit/ae6ccb46dce4a014f4235a4e01192bdc30aea1d4))
+* **act:** implement new action command with diverse user interactions and self-referential actions; enhance language support for various actions ([ef633df](https://github.com/kythia/kythia/commit/ef633df5698d188d3e46fbda817da28ac623784b))
+* add new script for Bun support in package.json; enhance message handling in AI events for better text extraction and error handling; update stats command to include Kythia Core version ([1f6d721](https://github.com/kythia/kythia/commit/1f6d721c7df0fb019e218b28a609e8db8b638242))
+* add Top.gg auto-poster integration and command alias support; update package dependencies ([8ea29bd](https://github.com/kythia/kythia/commit/8ea29bd7b2498fd373fb684c57eecbf2fff2f175))
+* **assets:** update Kythia banner images for dashboard; replace existing logo files with new versions ([2271b38](https://github.com/kythia/kythia/commit/2271b38f8500ba39be2983028aff2da05d7c0d86))
+* **config:** update Kythia configuration with new Discord support links; enhance music addon documentation and update banner image references ([22b1fa5](https://github.com/kythia/kythia/commit/22b1fa53515663095e165eb93b63604c96fc87c5))
+* **dashboard:** update example.env with detailed DASHBOARD_URL instructions for Discord OAuth2; enhance logging in server.js for clarity; fixing music 24/7 feature ([c95a4f4](https://github.com/kythia/kythia/commit/c95a4f487073fd399940fed66b8137ac74d0b28b))
+* **discord:** add premium and voting status checks to Discord helper functions; update KythiaUser model to track voting information; enhance account creation flow for voters in API ([0d9c049](https://github.com/kythia/kythia/commit/0d9c049a6136ab69dc4c65414bc879e6c05cdde3))
+* **docs:** adding new command and edit the docs for help and websites ([5a5e12f](https://github.com/kythia/kythia/commit/5a5e12f7a891a3fab3dc9211f26d0b4db7bb717c))
+* **globalchat:** add API key support for global chat; refactor webhook health check and command handling to utilize new configuration; enhance error handling and database synchronization for webhook management ([36c4b5d](https://github.com/kythia/kythia/commit/36c4b5d877dbaca5eb9851b0e50d802cb5082328))
+* **help:** enhance help command UI by adding banner image support and refining button visibility logic ([91d10e9](https://github.com/kythia/kythia/commit/91d10e94c1bb20d48c36cc6cc125e2f871939954))
+* **image:** adding tempvoice banner image ([0c83b76](https://github.com/kythia/kythia/commit/0c83b76f95d1c7030b6a7463acf6b9b8ed8f1b2f))
+* **lang:** adding auto translation by google api, add id and mandarin ([84bea79](https://github.com/kythia/kythia/commit/84bea79ec50cefb3679148c13bb4752f30ebb0a9))
+* **music:** add 24/7 mode functionality to keep the bot active in voice channel; update language file for related messages ([346dbff](https://github.com/kythia/kythia/commit/346dbff3bfe0c102d459dc6df79fdc083f512dc6))
+* **music:** enhance seek command to support multiple time formats and improve idle disconnect messaging ([af1e5f5](https://github.com/kythia/kythia/commit/af1e5f59233607bb65641f57cec30958116d4b03))
+* **music:** implement 24/7 session restoration and enhance interaction handling for persistent music playback ([9c5f516](https://github.com/kythia/kythia/commit/9c5f51607eae3439b5cf8c35d77b8bbd209112d7))
+* **music:** implement error suppression for Lavalink node connection issues; enhance logging to warn for connection problems while allowing normal error handling for other cases ([d94212b](https://github.com/kythia/kythia/commit/d94212b07e0e9fd434373898ca8ed0fc1fa524fa))
+* **musicManager:** enhance music control UI with new button rows and update now playing functionality for better user interaction ([ee63756](https://github.com/kythia/kythia/commit/ee63756efeea150c9eb532555c2c891ca276b409))
+* **quest:** implement quest fetching from multiple API URLs with timeout handling; update quest configuration structure ([67cb668](https://github.com/kythia/kythia/commit/67cb668cb82d7902ba6b0288ae971081009cc0eb))
+* **questnotifier:** add quest notifier setup and trigger messages to language file; enhance user notifications ([8f2a2ff](https://github.com/kythia/kythia/commit/8f2a2ffa3a9ba6f16bbc38d35ac2ebb5b10aea01))
+* **tempvoice:** adding foundation of tempvoice feature,  intervace in progress ([231885c](https://github.com/kythia/kythia/commit/231885c66e9ccd4e71f867c0badd4f5beb77cfa6))
+* **tempvoice:** adding new tempvoice features, await (waiting room and chat ) ([7ef8929](https://github.com/kythia/kythia/commit/7ef8929314613586c621b17f31faf279fd170c17))
+* **tempvoice:** enhance DNS management commands with improved error handling, user feedback, and language support; refactor to use new component structures for replies ([4187f4c](https://github.com/kythia/kythia/commit/4187f4c289aa81358dead381c97c2d175b250d8b))
+* **tempvoice:** update tempvoice configuration and add new waiting room features; replace banner images and enhance language support ([d48994a](https://github.com/kythia/kythia/commit/d48994a5a5265f4d86d265c3c439a89bb9f126a6))
+* **tiktok command:** adding new core tools command, to allow tiktok url convert to video that can watch in discord ([b5e048f](https://github.com/kythia/kythia/commit/b5e048f5da75a14956b9bb4c08284e80a6c70816))
+
 ### [0.9.11-beta](https://github.com/kythia/kythia/compare/v0.9.10-beta...v0.9.11-beta) (2025-10-28)
 
 
