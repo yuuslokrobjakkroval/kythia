@@ -819,7 +819,7 @@ async function initializeMusicManager(bot) {
             await shutdownPlayerUI(player, lastTrack, client);
             player.nowPlayingMessage = null;
 
-            const IDLE_TIMEOUT_MS = 15000;
+            const IDLE_TIMEOUT_MS = 5 * 60 * 1000;
 
             if (player.disconnectTimeout) clearTimeout(player.disconnectTimeout);
 

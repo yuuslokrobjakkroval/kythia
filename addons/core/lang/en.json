@@ -1532,7 +1532,7 @@
                     "guild": {
                         "delete": {
                             "webhook": {
-                                "desc": "## **❌ {bot}** OUT FROM SERVER\n**{bot}** has left the server:\n• Server Name: **{guild}**\n• Server ID: `{guildId}`\n• Server Owner: <@{ownerId}> ({ownerId})\n• Member Count: {memberCount}\n• Invite Link: {invite}\n• Server Created At: {createdAt}"
+                                "desc": "## **❌ {bot}** OUT FROM SERVER\n**{bot}** has left the server:\n• Server Name: **{guild}**\n• Server ID: `{guildId}`\n• Server Owner: <@{ownerId}> ({ownerId})\n• Member Count: {memberCount}\n• Server Created At: {createdAt}"
                             },
                             "no": {
                                 "invite": "No Invite Link"
