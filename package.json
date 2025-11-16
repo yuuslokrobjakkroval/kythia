@@ -5,7 +5,7 @@
     "main": "index.js",
     "author": {
         "name": "kenndeclouv",
-        "mail": "kenndeclouv@gmail.com"
+        "email": "kenndeclouv@gmail.com"
     },
     "license": "EULA",
     "bin": {

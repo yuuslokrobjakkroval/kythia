@@ -1776,78 +1776,72 @@
         }
     },
     "ticket": {
-        "helpers": {
-            "index": {
-                "found": "❌ Transcript channel not found. Please contact an admin.",
-                "seconds": "⏳ Closing this ticket in 5 seconds...",
-                "created": "🎫 Your ticket has been created: {ticketChannel}",
-                "sent": "📝 Here is your ticket transcript from **{guildName}**.",
-                "closed": "🎫 Ticket closed by {username}.",
-                "setTimeout": "❌ An error occurred while closing the ticket. Please try again or contact an admin.",
-                "open": "❌ You already have an open ticket: <#{channel}>.",
-                "description": "Hello {username}, thank you for opening a ticket! Please describe your issue and our staff will assist you shortly.",
-                "button": "Close Ticket",
-                "createTicket": "❌ An error occurred while creating your ticket. Please try again later."
-            }
-        },
         "ticket": {
-            "description": "Hello {user}! Your ticket has been created! Please wait for staff {staffRole} to assist you.",
-            "default": "Create Ticket",
-            "success": "📜 | The transcript for this ticket has been sent to {channel}.",
-            "channel": "❌ | This channel is not associated with an open ticket.",
-            "dm": "## Added To Ticket\nYou have been added to a ticket: ${channel} in **${guild}**\nPlease check the channel to help or discuss.",
-            "content": "Transcript for ticket #{ticketNumber} created by <@{userId}>.",
-            "log": "📝 | Ticket opened by <@{userId}> was closed by {closer} and the transcript was saved.",
-            "error": "❌ | An error occurred while executing this command. Please try again."
+            "dm": "## Added To Ticket\nYou have been added to a ticket: ${channel} in **${guild}**\nPlease check the channel to help or discuss."
         },
         "util": {
-            "remove_success": "✅ Removed {userTag} from this ticket.",
-            "add_success": "✅ Added {userTag} to this ticket.",
-            "transcript_success": "✅ Transcript sent to {channel}."
+            "remove_success": "## ✅ Success\nRemoved {userTag} from this ticket.",
+            "add_success": "## ✅ Success\nAdded {userTag} to this ticket.",
+            "transcript_success": "## ✅ Success\nTranscript sent to {channel}."
         },
         "errors": {
-            "modal_show_failed_mega": "❌ Failed to display the ticket type creation modal.",
-            "mega_modal_missing": "❌ Role Staff, Log, and Transcript channels are required.",
-            "no_panels_found": "❌ You haven't created any V2 panels yet. Please create a panel first using `/ticket panel create`.",
-            "not_a_ticket": "This is not an active ticket channel.",
-            "config_missing": "Configuration for this ticket type could not be found (it may have been deleted).",
-            "transcript_channel_missing": "❌ Transcript channel ({channelId}) not found. Closing failed.",
-            "transcript_channel_missing_cmd": "❌ Transcript channel ({channelId}) not found.",
-            "transcript_failed": "❌ Failed to create transcript.",
-            "close_failed": "❌ Failed to close the ticket.",
-            "unknown_subcommand": "❌ Unknown utility subcommand.",
-            "generic": "❌ An error occurred while handling the command.",
-            "missing_config_id": "❌ Ticket configuration ID not found.",
-            "invalid_config": "❌ This ticket configuration is no longer valid.",
-            "already_open": "You already have an open ticket for this type: <#{channelId}>",
-            "create_failed": "❌ An error occurred while creating your ticket.",
-            "modal_show_failed_panel": "❌ Failed to display the panel creation modal.",
-            "modal_show_failed_type": "❌ Failed to display the ticket type creation modal.",
-            "panel_channel_required": "❌ You must select a channel.",
-            "panel_channel_invalid": "❌ The selected channel is invalid or not a text channel.",
-            "no_panel_id": "❌ Panel ID not found."
+            "mega_modal_missing": "## ❌ Error\nRole Staff, Log, and Transcript channels are required.",
+            "no_panels_found": "## ❌ Error\nYou haven't created any V2 panels yet. Please create a panel first using `/ticket panel create`.",
+            "not_a_ticket": "## ❌ Error\nThis is not an active ticket channel.",
+            "config_missing": "## ❌ Error\nConfiguration for this ticket type could not be found (it may have been deleted).",
+            "transcript_channel_missing": "## ❌ Error\nTranscript channel ({channelId}) not found. Closing failed.",
+            "transcript_channel_missing_cmd": "## ❌ Error\nTranscript channel ({channelId}) not found.",
+            "transcript_failed": "## ❌ Error\nFailed to create transcript.",
+            "close_failed": "## ❌ Error\nFailed to close the ticket.",
+            "unknown_subcommand": "## ❌ Error\nUnknown utility subcommand.",
+            "generic": "## ❌ Error\nAn error occurred while handling the command.",
+            "missing_config_id": "## ❌ Error\nTicket configuration ID not found.",
+            "invalid_config": "## ❌ Error\nThis ticket configuration is no longer valid.",
+            "already_open": "## ❌ Error\nYou already have an open ticket for this type: <#{channelId}>",
+            "create_failed": "## ❌ Error\nAn error occurred while creating your ticket.",
+            "modal_show_failed_panel": "## ❌ Error\nFailed to display the panel creation modal.",
+            "modal_show_failed_type": "## ❌ Error\nFailed to display the ticket type creation modal.",
+            "panel_channel_required": "## ❌ Error\nYou must select a channel.",
+            "panel_channel_invalid": "## ❌ Error\nThe selected channel is invalid or not a text channel.",
+            "modal_show_failed": "## ❌ Error\nFailed to display the setup modal. Please try again.",
+            "no_message_id": "## ❌ Error\nCould not find the original setup message. Please restart the setup.",
+            "setup_expired": "## ❌ Error\nYour setup session has expired. Please restart the setup.",
+            "invalid_selection": "## ❌ Error\nInvalid ticket selection. Please try again."
         },
         "create": {
-            "success": "✅ Your ticket has been successfully created: {ticketChannel}"
+            "success": "## ✅ Ticket Created\nYour ticket has been successfully created: {ticketChannel}"
         },
         "close": {
-            "thinking": "Preparing transcript and closing the ticket..."
+            "thinking": "## ⏳ Please Wait\nPreparing transcript and closing the ticket..."
         },
         "panel": {
             "start_button": "Start Panel Setup",
             "start_title": "## Kythia Ticket System",
             "start_desc": "Welcome to the Panel Setup Wizard! This process will help you create a new Ticket Panel, where users can open support tickets easily. You'll be able to choose where the panel is posted, give it a custom name, and add an optional description or image.\n\nClick the **Start Panel Setup** button below to open the setup modal and begin configuring your new Ticket Panel.",
             "no_types": "Use `/ticket type create` to add options to this panel.",
-            "create_success": "✅ Panel V2 created successfully in {channel}. Use `/ticket type create` to add ticket types to it."
+            "create_success": "## ✅ Success\nPanel V2 created successfully in {channel}. Use `/ticket type create` to add ticket types to it.",
+            "select_placeholder": "Select a ticket type...",
+            "default_desc": "Please select the type of ticket you need below."
         },
         "type": {
             "start_title": "## 🎟️ Create Ticket Type (Step 1/2)",
-            "start_desc": "Please select which **Panel** you want to add this new ticket type to.",
-            "select_panel_placeholder": "Select a panel..."
+            "start_desc": "Welcome to the Ticket Type Setup Wizard! This step will help you choose which **Panel** you want to add your new ticket type to. Select a panel from the options below to continue. Once selected, you'll be guided to configure the details for your new ticket type.",
+            "start_button": "Start Setup (Step 1/2)",
+            "step2_title": "## 🎟️ Create Ticket Type (Step 2/2)",
+            "step2_desc": "Step 1 complete. Click the button below to configure staff roles and log channels.",
+            "next_button": "Continue Setup (Step 2/2)"
         },
         "transcript": {
             "title": "## Ticket Transcript #{ticketId} ({typeName})",
             "user": "User: <@{userId}>"
+        },
+        "type_create": {
+            "success": "## ✅ Success\nSuccessfully created the ticket type: {typeName}"
+        },
+        "v2": {
+            "open_message_default": "Hello {user}, staff <@&{staffRoleId}> will be with you shortly.",
+            "close_button": "Close Ticket",
+            "log_message": "## 🔒 Ticket #{ticketId} Closed\n**Ticket Type:** {typeName}\n**Opened By:** <@{userId}>\n**Opened At:** {openedAt}\n**Closed By:** <@{closerId}>."
         }
     },
     "music": {

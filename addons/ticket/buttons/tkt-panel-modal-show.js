@@ -20,15 +20,16 @@ module.exports = {
     execute: async (interaction, container) => {
         const { t, helpers } = container;
         const { simpleContainer } = helpers.discord;
+        const originalMessageId = interaction.message.id;
 
         try {
             const modal = new ModalBuilder()
-                .setCustomId('tkt-panel-create')
+                .setCustomId(`tkt-panel-create:${originalMessageId}`)
                 .setTitle('Create New Panel')
                 .addLabelComponents(
                     new LabelBuilder()
                         .setLabel('Panel Channel')
-                        .setDescription('Select the channel where this V2 panel will be sent.')
+                        .setDescription('Select the channel where this panel will be sent.')
                         .setChannelSelectMenuComponent(
                             new ChannelSelectMenuBuilder()
                                 .setCustomId('channelId')
@@ -62,7 +63,7 @@ module.exports = {
                             new TextInputBuilder()
                                 .setCustomId('image')
                                 .setStyle(TextInputStyle.Short)
-                                .setPlaceholder('https://... (Image URL for V2)')
+                                .setPlaceholder('https://... (Image URL for panel)')
                                 .setRequired(false)
                         )
                 );

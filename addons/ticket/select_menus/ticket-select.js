@@ -3,27 +3,35 @@
  * @type: Module
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
- * @version 0.9.12-beta
+ * @version 1.0.0 (t-helper updated)
  */
 const { createTicketChannel } = require('../helpers');
+const { MessageFlags } = require('discord.js');
 
 module.exports = {
     execute: async (interaction, container) => {
-        const { models } = container;
+        const { models, t, helpers } = container;
         const { TicketConfig } = models;
+        const { simpleContainer } = helpers.discord;
 
-        // Ambil ID Config dari value select menu
         const configId = interaction.values[0];
         if (!configId) {
-            return interaction.reply({ content: '❌ Pilihan tiket tidak valid.', ephemeral: true });
+            const desc = await t(interaction, 'ticket.errors.invalid_selection', '❌ Invalid ticket selection.');
+            return interaction.reply({
+                components: await simpleContainer(interaction, desc, { color: 'Red' }),
+                flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+            });
         }
 
         const ticketConfig = await TicketConfig.getCache({ id: configId });
         if (!ticketConfig) {
-            return interaction.reply({ content: '❌ Konfigurasi tiket ini sudah tidak valid.', ephemeral: true });
+            const desc = await t(interaction, 'ticket.errors.invalid_config');
+            return interaction.reply({
+                components: await simpleContainer(interaction, desc, { color: 'Red' }),
+                flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+            });
         }
-        
-        // Panggil helper universal
+
         await createTicketChannel(interaction, ticketConfig, container);
     },
 };
