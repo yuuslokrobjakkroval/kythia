@@ -2,7 +2,8 @@
  * @namespace: addons/ticket/buttons/ticket-close-with-reason.js
  * @type: Module
  * @copyright © 2025 kenndeclouv
- * @version: 1.0.0
+ * @assistant chaa & graa
+ * @version 0.9.12-beta
  */
 const { ModalBuilder, LabelBuilder, TextInputBuilder, TextInputStyle, MessageFlags } = require('discord.js');
 

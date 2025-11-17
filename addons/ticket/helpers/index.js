@@ -170,7 +170,7 @@ async function createTicketChannel(interaction, ticketConfig, container, reason 
             mainContainer.addMediaGalleryComponents(
                 new MediaGalleryBuilder().addItems(new MediaGalleryItemBuilder().setURL(ticketConfig.ticketOpenImage))
             );
-            mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small));
+            mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
         }
 
         const closeButton = new ActionRowBuilder().addComponents(
@@ -179,11 +179,6 @@ async function createTicketChannel(interaction, ticketConfig, container, reason 
                 .setLabel(await t(interaction, 'ticket.v2.close_button'))
                 .setStyle(ButtonStyle.Secondary)
                 .setEmoji('🔒'),
-            new ButtonBuilder()
-                .setCustomId('ticket-close-with-reason')
-                .setLabel(await t(interaction, 'ticket.v2.close_with_reason_button'))
-                .setStyle(ButtonStyle.Secondary)
-                .setEmoji('🔏'),
             new ButtonBuilder()
                 .setCustomId('ticket-claim')
                 .setLabel(await t(interaction, 'ticket.v2.claim_button'))
@@ -199,11 +194,10 @@ async function createTicketChannel(interaction, ticketConfig, container, reason 
             mainContainer.addTextDisplayComponents(
                 new TextDisplayBuilder().setContent(await t(interaction, 'ticket.v2.reason_field', { reason: reason }))
             );
-            mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small));
+            mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
         }
-        mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
         mainContainer.addActionRowComponents(closeButton);
-        mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small));
+        mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true));
         mainContainer.addTextDisplayComponents(new TextDisplayBuilder().setContent(footerText));
 
         await ticketChannel.send({

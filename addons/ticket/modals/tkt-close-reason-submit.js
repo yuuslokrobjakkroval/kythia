@@ -1,8 +1,9 @@
 /**
- * @namespace: addons/ticket/modals/tkt-submit-close-reason.js
+ * @namespace: addons/ticket/modals/tkt-close-reason-submit.js
  * @type: Module
  * @copyright © 2025 kenndeclouv
- * @version: 1.0.0
+ * @assistant chaa & graa
+ * @version 0.9.12-beta
  */
 const { closeTicket } = require('../helpers');
 const { MessageFlags } = require('discord.js');
@@ -13,13 +14,6 @@ module.exports = {
         const { simpleContainer } = helpers.discord;
 
         try {
-            // 1. Defer modalnya dulu, karena helper closeTicket butuh waktu
-            const thinkingDesc = await t(interaction, 'ticket.close.thinking');
-            await interaction.reply({
-                content: thinkingDesc,
-                ephemeral: true,
-            });
-
             const reason = interaction.fields.getTextInputValue('reason');
 
             await closeTicket(interaction, container, reason);

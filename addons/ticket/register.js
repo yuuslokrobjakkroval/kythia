@@ -18,6 +18,13 @@ const tktTypeStep1Submit = require('./modals/tkt-type-step1-submit.js');
 const tktTypeStep2Show = require('./buttons/tkt-type-step2-show.js');
 const tktTypeStep2Submit = require('./modals/tkt-type-step2-submit.js');
 
+const ticketCloseWithReason = require('./buttons/ticket-close-with-reason.js');
+const tktCloseReasonSubmit = require('./modals/tkt-close-reason-submit.js');
+const tktOpenReason = require('./modals/tkt-open-reason.js');
+const ticketClaim = require('./buttons/ticket-claim.js');
+const ticketConfirmClose = require('./buttons/ticket-confirm-close.js');
+const ticketCancelClose = require('./buttons/ticket-cancel-close.js');
+
 const initialize = (bot) => {
     const summary = [];
     try {
@@ -38,10 +45,12 @@ const initialize = (bot) => {
             "  └─ Type Setup: 'tkt-type-step1-show', 'tkt-type-step1-submit', 'tkt-type-step2-show', 'tkt-type-step2-submit' (Multi-Modal Flow)"
         );
 
-        bot.registerButtonHandler('ticket-close-with-reason', require('./buttons/ticket-close-with-reason.js').execute);
-        bot.registerModalHandler('tkt-close-reason-submit', require('./modals/tkt-close-reason-submit.js').execute);
-        bot.registerModalHandler('tkt-open-reason', require('./modals/tkt-open-reason.js').execute);
-        bot.registerButtonHandler('ticket-claim', require('./buttons/ticket-claim.js').execute);
+        bot.registerButtonHandler('ticket-close-with-reason', ticketCloseWithReason.execute);
+        bot.registerModalHandler('tkt-close-reason-submit', tktCloseReasonSubmit.execute);
+        bot.registerModalHandler('tkt-open-reason', tktOpenReason.execute);
+        bot.registerButtonHandler('ticket-claim', ticketClaim.execute);
+        bot.registerButtonHandler('ticket-confirm-close', ticketConfirmClose.execute);
+        bot.registerButtonHandler('ticket-cancel-close', ticketCancelClose.execute);
         summary.push("  └─ Interaction: 'ticket-close-with-reason', 'tkt-close-reason-submit', 'ticket-claim' (Staff Facing)");
     } catch (error) {
         console.error('Failed to register ticket handlers:', error);

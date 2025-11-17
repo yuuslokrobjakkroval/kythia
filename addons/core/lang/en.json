@@ -1813,7 +1813,11 @@
             "success": "## ✅ Ticket Created\nYour ticket has been successfully created: {ticketChannel}"
         },
         "close": {
-            "thinking": "## ⏳ Please Wait\nPreparing transcript and closing the ticket..."
+            "confirm_title": "## ⚠️ Close Ticket?",
+            "confirm_desc": "Are you sure you want to close this ticket? This action cannot be undone.",
+            "confirm_button": "Yes, Close",
+            "cancel_button": "Cancel",
+            "thinking": "### ⏳ Please Wait\nPreparing transcript and closing the ticket..."
         },
         "panel": {
             "start_button": "Start Panel Setup",

@@ -2,7 +2,8 @@
  * @namespace: addons/ticket/buttons/ticket-claim.js
  * @type: Module
  * @copyright © 2025 kenndeclouv
- * @version: 1.1.0 (Rebuild Container Fix)
+ * @assistant chaa & graa
+ * @version 0.9.12-beta
  */
 
 const {
@@ -51,7 +52,6 @@ module.exports = {
             const isAdmin = interaction.member.permissions.has(PermissionsBitField.Flags.Administrator);
 
             if (!isStaff && !isAdmin) {
-                // Kalo bukan staff DAN bukan admin
                 const desc = await t(interaction, 'ticket.errors.only_staff');
                 return interaction.followUp({
                     components: await simpleContainer(interaction, desc, { color: 'Red' }),
@@ -95,26 +95,19 @@ module.exports = {
                 mainContainer.addSeparatorComponents(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small));
             }
 
-            const closeButton = new ButtonBuilder()
-                .setCustomId('ticket-close')
-                .setLabel(await t(interaction, 'ticket.v2.close_button'))
-                .setStyle(ButtonStyle.Secondary)
-                .setEmoji('🔒');
-
-            const closeWithReasonButton = new ButtonBuilder()
-                .setCustomId('ticket-close-with-reason')
-                .setLabel(await t(interaction, 'ticket.v2.close_with_reason_button'))
-                .setStyle(ButtonStyle.Secondary)
-                .setEmoji('🔏');
-
-            const claimButton = new ButtonBuilder()
-                .setCustomId('ticket-claim')
-                .setLabel(await t(interaction, 'ticket.v2.claim_button'))
-                .setStyle(ButtonStyle.Secondary)
-                .setEmoji('🛄')
-                .setDisabled(true);
-
-            const updatedRow = new ActionRowBuilder().addComponents(closeButton, closeWithReasonButton, claimButton);
+            const updatedRow = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId('ticket-close')
+                    .setLabel(await t(interaction, 'ticket.v2.close_button'))
+                    .setStyle(ButtonStyle.Secondary)
+                    .setEmoji('🔒'),
+                new ButtonBuilder()
+                    .setCustomId('ticket-claim')
+                    .setLabel(await t(interaction, 'ticket.v2.claim_button'))
+                    .setStyle(ButtonStyle.Secondary)
+                    .setEmoji('🛄')
+                    .setDisabled(true)
+            );
 
             const footerText = await t(interaction, 'common.container.footer', {
                 username: interaction.client.user.username,

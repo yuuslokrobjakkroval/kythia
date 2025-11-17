@@ -2,7 +2,8 @@
  * @namespace: addons/ticket/modals/tkt-open-reason.js
  * @type: Module
  * @copyright © 2025 kenndeclouv
- * @version: 1.0.0 (Reason Modal)
+ * @assistant chaa & graa
+ * @version 0.9.12-beta
  */
 
 const { createTicketChannel } = require('../helpers');
