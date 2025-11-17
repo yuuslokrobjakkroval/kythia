@@ -24,11 +24,37 @@ const {
     MediaGalleryItemBuilder,
 } = require('discord.js');
 
+function getSafeEmoji(emoji, fallback = '🎫') {
+    if (!emoji || typeof emoji !== 'string') return fallback;
+
+    const cleanEmoji = emoji.trim();
+    if (cleanEmoji.length === 0) return fallback;
+
+    const customEmojiRegex = /^<a?:.+?:\d{17,20}>$/;
+    if (customEmojiRegex.test(cleanEmoji)) {
+        return cleanEmoji;
+    }
+
+    try {
+        const unicodeEmojiRegex = /\p{Extended_Pictographic}/u;
+        if (unicodeEmojiRegex.test(cleanEmoji)) {
+            return cleanEmoji;
+        }
+    } catch (e) {
+        const oldSchoolRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/;
+        if (oldSchoolRegex.test(cleanEmoji)) {
+            return cleanEmoji;
+        }
+    }
+    return fallback;
+}
+
 /**
  * Refreshes the ticket panel message with current ticket types and translations.
  * @param {string} panelMessageId
  * @param {object} container - Dependency injection container (models, config, helpers, etc)
  */
+
 async function refreshTicketPanel(panelMessageId, container) {
     const { models, kythiaConfig, helpers, t } = container;
     const { TicketPanel, TicketConfig } = models;
@@ -65,19 +91,22 @@ async function refreshTicketPanel(panelMessageId, container) {
             let actionRow;
             if (allTypes.length === 1) {
                 const type = allTypes[0];
+                const safeEmoji = getSafeEmoji(type.typeEmoji);
+
                 actionRow = new ActionRowBuilder().addComponents(
                     new ButtonBuilder()
                         .setCustomId(`ticket-create:${type.id}`)
                         .setLabel(type.typeName)
                         .setStyle(ButtonStyle.Secondary)
-                        .setEmoji(type.typeEmoji || '🎫')
+                        .setEmoji(safeEmoji)
                 );
             } else {
                 const options = allTypes.map((type) => ({
                     label: type.typeName,
                     value: type.id.toString(),
-                    emoji: type.typeEmoji || '🎫',
+                    emoji: getSafeEmoji(type.typeEmoji),
                 }));
+
                 actionRow = new ActionRowBuilder().addComponents(
                     new StringSelectMenuBuilder().setCustomId('ticket-select').setPlaceholder(placeholder).setOptions(options)
                 );
@@ -242,6 +271,7 @@ async function createTicketChannel(interaction, ticketConfig, container, reason 
 
 /**
  * Generates a transcript text file for a ticket channel.
+ * Fetches all messages using pagination logic.
  * @param {object} channel - Discord channel object
  * @param {object} container - Dependency injection (for config)
  * @returns {Promise<string>}
@@ -251,12 +281,60 @@ async function createTicketTranscript(channel, container) {
     const locale = kythiaConfig.bot.locale || 'en-US';
     const timezone = kythiaConfig.bot.timezone || 'UTC';
 
-    const messages = await channel.messages.fetch();
+    let collection = [];
+    let lastId = null;
+    let loop = true;
+    const MAX_MESSAGES = 5000;
+
+    while (loop) {
+        const options = { limit: 100 };
+        if (lastId) {
+            options.before = lastId;
+        }
+
+        const messages = await channel.messages.fetch(options);
+
+        if (messages.size === 0) {
+            loop = false;
+            break;
+        }
+
+        collection.push(...messages.values());
+        lastId = messages.last().id;
+
+        if (collection.length >= MAX_MESSAGES) {
+            loop = false;
+        }
+    }
+
+    const sortedMessages = collection.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+
     let transcriptText = '';
 
-    messages.reverse().forEach((msg) => {
+    transcriptText += `TRANSCRIPT FOR: ${channel.name}\n`;
+    transcriptText += `SERVER: ${channel.guild.name}\n`;
+    transcriptText += `GENERATED AT: ${new Date().toLocaleString(locale, { timeZone: timezone })}\n`;
+    transcriptText += `TOTAL MESSAGES: ${sortedMessages.length}\n`;
+    transcriptText += `=======================================================\n\n`;
+
+    sortedMessages.forEach((msg) => {
         const time = msg.createdAt.toLocaleString(locale, { timeZone: timezone });
-        transcriptText += `${time} - ${msg.author.tag}: ${msg.content}\n`;
+        const author = msg.author.tag;
+
+        let content = msg.content;
+
+        if (msg.attachments.size > 0) {
+            const attachmentUrls = msg.attachments.map((a) => `[Attachment: ${a.url}]`).join(' ');
+            content = content ? `${content} ${attachmentUrls}` : attachmentUrls;
+        }
+
+        if (!content && msg.embeds.length > 0) {
+            content = '[Message contains Embeds]';
+        }
+
+        if (!content) content = '[System Message/Sticker]';
+
+        transcriptText += `[${time}] ${author}: ${content}\n`;
     });
 
     return transcriptText;

@@ -51,7 +51,7 @@ module.exports = {
             const panel = await TicketPanel.getCache({ messageId: panelMessageId });
 
             if (!panel) {
-                const desc = await t(interaction, 'ticket.errors.no_panel_id');
+                const desc = await t(interaction, 'ticket.errors.no_panels_found');
                 return interaction.editReply({
                     components: await simpleContainer(interaction, desc, { color: 'Red' }),
                 });
