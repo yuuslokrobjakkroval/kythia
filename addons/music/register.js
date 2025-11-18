@@ -6,14 +6,17 @@
  * @version 0.9.12-beta
  */
 
-const { initializeMusicManager } = require('./helpers/musicManager');
+const MusicManager = require('./helpers/MusicManager');
 
 module.exports = {
     async initialize(bot) {
         const container = bot.client.container;
         const { logger, models } = container;
         const summary = [];
-        await initializeMusicManager(bot);
+        
+        container.music = new MusicManager(container);
+        await container.music.init();
+        
         summary.push('   └─ 🎵 Initialize Music Manager');
 
         bot.addDbReadyHook((sequelize) => {

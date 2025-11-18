@@ -32,7 +32,6 @@ const {
     handleRadio,
 } = require('../helpers/handlers');
 const { formatDuration, hasControlPermission } = require('../helpers');
-const { guildStates } = require('../helpers/musicManager');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -480,7 +479,7 @@ module.exports = {
      */
     async execute(interaction, container) {
         const { client, member, guild, options, channel } = interaction;
-        const { logger, t } = container;
+        const { logger, t, music } = container;
         const subcommand = options.getSubcommand();
         const subcommandGroup = options.getSubcommandGroup(false) || false;
 
@@ -550,7 +549,7 @@ module.exports = {
         if (originalRequesterCommandHandlers[subcommand]) {
             return originalRequesterCommandHandlers[subcommand](interaction, player);
         } else if (subcommand == 'back') {
-            return handleBack(interaction, player, guildStates);
+            return handleBack(interaction, player, music.guildStates);
         } else {
             return interaction.reply({ content: await t(interaction, 'music.music.subcommand.not.found'), ephemeral: true });
         }
