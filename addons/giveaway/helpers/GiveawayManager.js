@@ -1,8 +1,9 @@
 /**
  * @namespace: addons/giveaway/helpers/GiveawayManager.js
- * @type: Service/Manager
+ * @type: Helper Script
  * @copyright © 2025 kenndeclouv
- * @version 0.9.17-beta (UI CONSISTENCY & DM)
+ * @assistant chaa & graa
+ * @version 0.9.12-beta
  */
 
 const {

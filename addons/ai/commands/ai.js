@@ -41,6 +41,7 @@ module.exports = {
 		const setting = await ServerSetting.getCache({
 			guildId: interaction.guild.id,
 		});
+
 		const aiChannelIds = Array.isArray(setting?.aiChannelIds)
 			? [...setting.aiChannelIds]
 			: [];
@@ -57,6 +58,7 @@ module.exports = {
 
 			aiChannelIds.push(channelId);
 			setting.aiChannelIds = aiChannelIds;
+
 			setting.changed("aiChannelIds", true);
 			await setting.save();
 			const embed = new EmbedBuilder()

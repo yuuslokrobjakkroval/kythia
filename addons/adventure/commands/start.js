@@ -34,8 +34,9 @@ module.exports = {
 					),
 			);
 	},
-	async execute(interaction, container) {
+	async execute(interaction) {
 		// Dependency
+		const container = interaction.client.container;
 		const { t, models, kythiaConfig, helpers } = container;
 		const { UserAdventure } = models;
 		const { embedFooter } = helpers.discord;

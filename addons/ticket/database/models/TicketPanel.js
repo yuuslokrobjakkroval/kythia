@@ -6,29 +6,15 @@
  * @version 0.9.12-beta
  */
 
-const { DataTypes } = require("sequelize");
 const { KythiaModel } = require("kythia-core");
 
 class TicketPanel extends KythiaModel {
-	static init(sequelize) {
-		KythiaModel.init(
-			{
-				guildId: { type: DataTypes.STRING, allowNull: false },
-				channelId: { type: DataTypes.STRING, allowNull: false },
-				messageId: { type: DataTypes.STRING, allowNull: false, unique: true },
-				title: { type: DataTypes.STRING, allowNull: false },
-				description: { type: DataTypes.TEXT, allowNull: true },
-				image: { type: DataTypes.STRING, allowNull: true },
-			},
-			{
-				sequelize,
-				modelName: "TicketPanel",
-				tableName: "ticket_panels",
-				timestamps: true,
-			},
-		);
+	static guarded = ["id"];
 
-		return TicketPanel;
+	static get structure() {
+		return {
+			options: { timestamps: true },
+		};
 	}
 }
 

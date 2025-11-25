@@ -2,56 +2,59 @@
 
 ### 💾 `/giveaway`
 
-**Description:** 🎉 Create a giveaway event to your members
+**Description:** 🎉 Create a giveaway event
 
 ### 💻 Usage
 
-`/giveaway start <duration> <winners> <prize> [color] [role]`
-`/giveaway end <message_id>`
-`/giveaway cancel <message_id>`
-`/giveaway reroll <message_id>`
+`/giveaway start <duration> <winners> <prize> [description] [color] [role]`
+`/giveaway end <giveaway>`
+`/giveaway cancel <giveaway>`
+`/giveaway reroll <giveaway>`
 
 ### 🔧 Subcommands
 
-**`/giveaway start <duration> <winners> <prize> [<color>] [<role>]`**
+**`/giveaway start <duration> <winners> <prize> [<description>] [<color>] [<role>]`**
 > Start a giveaway
 
 **Options for this subcommand:**
 - **`duration*`**
-  - **Description:** Duration (e.g. 1 week 4 days 12 minutes)
+  - **Description:** Duration (1d 2h)
   - **Type:** Text
 - **`winners*`**
-  - **Description:** Number of winners
+  - **Description:** Count
   - **Type:** Integer
 - **`prize*`**
-  - **Description:** Prize for the giveaway
+  - **Description:** Prize
+  - **Type:** Text
+- **`description`**
+  - **Description:** Description for the giveaway
   - **Type:** Text
 - **`color`**
-  - **Description:** Embed color (hex code or color name)
+  - **Description:** Hex Color
   - **Type:** Text
 - **`role`**
-  - **Description:** Role required to join
+  - **Description:** Req Role
   - **Type:** Role
-**`/giveaway end <message_id>`**
-> End a giveaway
+**`/giveaway end <giveaway>`**
+> End a giveaway manually
 
 **Options for this subcommand:**
-- **`message_id*`**
-  - **Description:** Message ID of the giveaway
+- **`giveaway*`**
+  - **Description:** Search active giveaway
   - **Type:** Text
-**`/giveaway cancel <message_id>`**
-> Cancel a giveaway
+**`/giveaway cancel <giveaway>`**
+> Cancel a running giveaway
 
 **Options for this subcommand:**
-- **`message_id*`**
-  - **Description:** Message ID of the giveaway
+- **`giveaway*`**
+  - **Description:** Search active giveaway
   - **Type:** Text
-**`/giveaway reroll <message_id>`**
-> Reroll giveaway winners
+**`/giveaway reroll <giveaway>`**
+> Reroll winners for a finished giveaway
 
 **Options for this subcommand:**
-- **`message_id*`**
-  - **Description:** Message ID of the giveaway
+- **`giveaway*`**
+  - **Description:** Search ended giveaway
   - **Type:** Text
 
 

@@ -6,31 +6,16 @@
  * @version 0.9.12-beta
  */
 
-const { DataTypes } = require("sequelize");
-
 const { KythiaModel } = require("kythia-core");
 
 class GlobalChat extends KythiaModel {
-	static init(sequelize) {
-		KythiaModel.init(
-			{
-				guildId: { type: DataTypes.STRING, allowNull: false, primaryKey: true },
-				globalChannelId: { type: DataTypes.STRING, allowNull: true },
-				webhookId: { type: DataTypes.STRING, allowNull: true },
-				webhookToken: { type: DataTypes.STRING, allowNull: true },
-			},
-			{
-				sequelize,
-				modelName: "GlobalChat",
-				tableName: "global_chats",
-				timestamps: true,
-			},
-		);
+	static guarded = [];
 
-		return GlobalChat;
+	static get structure() {
+		return {
+			options: { timestamps: true },
+		};
 	}
 }
-
-// GlobalChat.init(sequelize);
 
 module.exports = GlobalChat;

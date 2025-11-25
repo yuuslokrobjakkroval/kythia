@@ -6,29 +6,12 @@
  * @version 0.9.12-beta
  */
 
-const { DataTypes } = require("sequelize");
+// const { DataTypes } = require("sequelize");
 
 const { KythiaModel } = require("kythia-core");
 
 class KythiaTeam extends KythiaModel {
-	static init(sequelize) {
-		KythiaModel.init(
-			{
-				userId: { type: DataTypes.STRING, allowNull: false },
-				name: { type: DataTypes.STRING, allowNull: true },
-			},
-			{
-				sequelize,
-				modelName: "KythiaTeam",
-				tableName: "kythia_teams",
-				timestamps: false,
-			},
-		);
-
-		return KythiaTeam;
-	}
+	static guarded = [];
 }
-
-// KythiaTeam.init(sequelize);
 
 module.exports = KythiaTeam;

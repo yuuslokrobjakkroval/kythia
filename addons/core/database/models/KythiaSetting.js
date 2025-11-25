@@ -9,22 +9,9 @@
 const { KythiaModel } = require("kythia-core");
 
 class KythiaSetting extends KythiaModel {
-	static CACHE_KEYS = [["guildId"]];
-	static init(sequelize) {
-		KythiaModel.init(
-			{},
-			{
-				sequelize,
-				modelName: "KythiaSetting",
-				tableName: "kythia_settings",
-				timestamps: false,
-			},
-		);
+	static cacheKeys = [["guildId"]];
 
-		return KythiaSetting;
-	}
+	static guarded = [];
 }
-
-// KythiaSetting.init(sequelize);
 
 module.exports = KythiaSetting;

@@ -5,35 +5,17 @@
  * @assistant chaa & graa
  * @version 0.9.12-beta
  */
-
-const { DataTypes } = require("sequelize");
-
 const { KythiaModel } = require("kythia-core");
 
 class Session extends KythiaModel {
-	static init(sequelize) {
-		KythiaModel.init(
-			{
-				sid: {
-					type: DataTypes.STRING,
-					primaryKey: true,
-				},
-				expires: DataTypes.DATE,
-				data: DataTypes.TEXT,
-			},
-			{
-				sequelize,
-				modelName: "Session",
-				tableName: "sessions",
-				timestamps: true,
-			},
-		);
+	static guarded = [];
 
-		return Session;
+	static get structure() {
+		return {
+			attributes: {},
+			options: { timestamps: true },
+		};
 	}
 }
-
-// Session.init(sequelize);
-// Session.initializeCacheHooks();
 
 module.exports = Session;

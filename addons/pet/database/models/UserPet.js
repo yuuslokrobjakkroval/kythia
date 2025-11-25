@@ -6,41 +6,29 @@
  * @version 0.9.12-beta
  */
 
-const { DataTypes } = require("sequelize");
-
 const { KythiaModel } = require("kythia-core");
 
 class UserPet extends KythiaModel {
 	static customInvalidationTags = ["UserPet:leaderboard"];
-	static init(sequelizeInstance) {
-		KythiaModel.init(
-			{
-				userId: { type: DataTypes.STRING, allowNull: false },
-				petId: { type: DataTypes.INTEGER, allowNull: false },
-				level: { type: DataTypes.INTEGER, defaultValue: 1 },
-				petName: { type: DataTypes.STRING, allowNull: false },
-				hunger: { type: DataTypes.INTEGER, defaultValue: 100 },
-				happiness: { type: DataTypes.INTEGER, defaultValue: 100 },
-				lastUse: { type: DataTypes.DATE, defaultValue: null },
-				lastGacha: { type: DataTypes.DATE, defaultValue: null },
-				isDead: { type: DataTypes.BOOLEAN, defaultValue: false },
-			},
-			{
-				sequelize: sequelizeInstance,
-				modelName: "UserPet",
-				tableName: "user_pets",
-				timestamps: false,
-			},
-		);
+	static guarded = [];
 
-		return UserPet;
+	static get structure() {
+		return {
+			options: { timestamps: false },
+		};
 	}
 
-	// static associate(models) {
-	//     this.belongsTo(models.Pet, { foreignKey: 'petId', as: 'pet' });
-	// }
-}
+	static associate(models) {
+		this.belongsTo(models.KythiaUser, {
+			foreignKey: "userId",
+			as: "user",
+		});
 
-// UserPet.init(sequelize);
+		this.belongsTo(models.Pet, {
+			foreignKey: "petId",
+			as: "pet",
+		});
+	}
+}
 
 module.exports = UserPet;

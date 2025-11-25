@@ -25,6 +25,7 @@ module.exports = {
 		await interaction.deferReply();
 
 		const user = await KythiaUser.getCache({ userId: interaction.user.id });
+
 		if (!user) {
 			const embed = new EmbedBuilder()
 				.setColor(kythiaConfig.bot.color)

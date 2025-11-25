@@ -46,6 +46,7 @@
 `/music favorite add <search>`
 `/music favorite remove <name>`
 `/music 247`
+`/music radio <search>`
 
 ### 🔧 Subcommands
 
@@ -259,5 +260,12 @@
 > 🎧 Enable or disable 24/7 mode to keep the bot in the voice channel.
 
 
+**`/music radio <search>`**
+> 📻 Search and play live radio stations worldwide
+
+**Options for this subcommand:**
+- **`search*`**
+  - **Description:** Name of the radio station (e.g., Prambors, BBC, Lofi)
+  - **Type:** Text
 
 

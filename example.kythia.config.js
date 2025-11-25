@@ -108,7 +108,7 @@ function loadKythiaConfig() {
 			// Database username
 			user: process.env.DB_USER,
 			// Database password
-			password: process.env.DB_PASSWORD,
+			pass: process.env.DB_PASSWORD,
 			// Optional: For SQLite, path to storage file
 			storagePath: process.env.DB_STORAGE_PATH,
 			// Optional: For MySQL/MariaDB, Unix socket path

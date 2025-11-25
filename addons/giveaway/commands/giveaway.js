@@ -3,7 +3,7 @@
  * @type: Command
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
- * @version 0.9.16-beta (UX IMPROVEMENT)
+ * @version 0.9.12-beta
  */
 
 const {

@@ -6,31 +6,10 @@
  * @version 0.9.12-beta
  */
 
-const { DataTypes } = require("sequelize");
-
 const { KythiaModel } = require("kythia-core");
 
 class Password extends KythiaModel {
-	static init(sequelize) {
-		KythiaModel.init(
-			{
-				guildId: { type: DataTypes.STRING, allowNull: false },
-				channelId: { type: DataTypes.STRING, allowNull: false, unique: true },
-				roleId: { type: DataTypes.STRING, allowNull: false, unique: true },
-				password: { type: DataTypes.STRING, allowNull: false },
-			},
-			{
-				sequelize,
-				modelName: "Password",
-				tableName: "passwords",
-				timestamps: false,
-			},
-		);
-
-		return Password;
-	}
+	static guarded = [];
 }
-
-// Password.init(sequelize);
 
 module.exports = Password;

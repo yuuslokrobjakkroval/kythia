@@ -6,11 +6,7 @@
  * @version 0.9.12-beta
  */
 
-const {
-	generateLyricsWithTranscript,
-	formatTrackDuration,
-	isPremium,
-} = require(".");
+const { generateLyricsWithTranscript, formatTrackDuration } = require(".");
 
 const {
 	EmbedBuilder,
@@ -55,7 +51,7 @@ const axios = require("axios");
 class MusicHandlers {
 	constructor(container) {
 		// 1. Destructure dependencies from container
-		const { client, logger, t, kythiaConfig, helpers, models } = container;
+		const { client, logger, t, kythiaConfig, helpers } = container;
 
 		// 2. Attach to instance
 		this.container = container;
@@ -64,20 +60,14 @@ class MusicHandlers {
 		this.t = t;
 		this.config = kythiaConfig;
 
-		// 3. Models (Destructure untuk akses singkat pada instance)
-		const { Favorite, Playlist, PlaylistTrack, Music247 } = models;
-		this.Favorite = Favorite;
-		this.Playlist = Playlist;
-		this.PlaylistTrack = PlaylistTrack;
-		this.Music247 = Music247;
-
-		// 4. Helpers
+		// 3. Helpers
 		this.setVoiceChannelStatus = helpers.discord.setVoiceChannelStatus;
 		this.convertColor = helpers.color.convertColor;
 		this.isOwner = helpers.discord.isOwner;
 		this.embedFooter = helpers.discord.embedFooter;
+		this.isPremium = helpers.discord.isPremium;
 
-		// 5. State & Config Internal
+		// 4. State & Config Internal
 		this.guildStates = new Map();
 		this.TICKER_INTERVAL = 5000;
 
@@ -87,6 +77,19 @@ class MusicHandlers {
 				this[method] = this[method].bind(this);
 			}
 		}
+	}
+
+	get Favorite() {
+		return this.container.models.Favorite;
+	}
+	get Playlist() {
+		return this.container.models.Playlist;
+	}
+	get PlaylistTrack() {
+		return this.container.models.PlaylistTrack;
+	}
+	get Music247() {
+		return this.container.models.Music247;
 	}
 
 	/**
@@ -102,8 +105,8 @@ class MusicHandlers {
 
 		if (
 			query.toLowerCase().includes("spotify") &&
-			(!kythia.addons.music.spotify.clientID ||
-				!kythia.addons.music.spotify.clientSecret)
+			(!this.config.addons.music.spotify.clientID ||
+				!this.config.addons.music.spotify.clientSecret)
 		) {
 			const embed = new EmbedBuilder()
 				.setColor("Red")
@@ -160,7 +163,7 @@ class MusicHandlers {
 			if (!player.isPlaying && player.isConnected) player.play();
 
 			const embed = new EmbedBuilder()
-				.setColor(kythia.bot.color)
+				.setColor(this.config.bot.color)
 				.setThumbnail(res.playlistInfo?.image)
 				.setFooter(await this.embedFooter(interaction))
 				.setDescription(
@@ -228,7 +231,7 @@ class MusicHandlers {
 
 		if (!player.isPlaying && player.isConnected) player.play();
 
-		const embed = new EmbedBuilder().setColor(kythia.bot.color);
+		const embed = new EmbedBuilder().setColor(this.config.bot.color);
 		if (res.loadType === "playlist" || res.loadType === "PLAYLIST_LOADED") {
 			embed.setDescription(
 				await this.t(
@@ -262,7 +265,7 @@ class MusicHandlers {
 	async handlePause(interaction, player) {
 		if (player.isPaused) {
 			const embed = new EmbedBuilder()
-				.setColor(kythia.bot.color)
+				.setColor(this.config.bot.color)
 				.setDescription(
 					await this.t(interaction, "music.helpers.handlers.music.paused"),
 				);
@@ -270,7 +273,7 @@ class MusicHandlers {
 		}
 		player.pause(true);
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				await this.t(interaction, "music.helpers.handlers.music.paused"),
 			);
@@ -286,7 +289,7 @@ class MusicHandlers {
 	async handleResume(interaction, player) {
 		if (!player.isPaused) {
 			const embed = new EmbedBuilder()
-				.setColor(kythia.bot.color)
+				.setColor(this.config.bot.color)
 				.setDescription(
 					await this.t(
 						interaction,
@@ -297,7 +300,7 @@ class MusicHandlers {
 		}
 		player.pause(false);
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				await this.t(interaction, "music.helpers.handlers.music.resume"),
 			);
@@ -312,7 +315,7 @@ class MusicHandlers {
 			: await this.t(interaction, "music.helpers.handlers.manager.resumed");
 		await interaction.reply({
 			embeds: [
-				new EmbedBuilder().setColor(kythia.bot.color).setDescription(
+				new EmbedBuilder().setColor(this.config.bot.color).setDescription(
 					await this.t(interaction, "music.helpers.handlers.manager.reply", {
 						state,
 					}),
@@ -338,7 +341,7 @@ class MusicHandlers {
 		}
 		player.skip();
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				await this.t(interaction, "music.helpers.handlers.music.skipped"),
 			);
@@ -414,7 +417,10 @@ class MusicHandlers {
 
 		const container = new ContainerBuilder()
 			.setAccentColor(
-				this.convertColor(kythia.bot.color, { from: "hex", to: "decimal" }),
+				this.convertColor(this.config.bot.color, {
+					from: "hex",
+					to: "decimal",
+				}),
 			)
 			.addTextDisplayComponents(
 				new TextDisplayBuilder().setContent(
@@ -467,7 +473,7 @@ class MusicHandlers {
 
 		if (!nowPlaying) {
 			const embed = new EmbedBuilder()
-				.setColor(kythia.bot.color)
+				.setColor(this.config.bot.color)
 				.setFooter(await this.embedFooter(interaction))
 				.setDescription(
 					await this.t(interaction, "music.helpers.handlers.music.empty"),
@@ -481,7 +487,7 @@ class MusicHandlers {
 		} else {
 			initialPage = 1;
 		}
-		const queueMessageOptions = await _createQueueEmbed(
+		const queueMessageOptions = await this._createQueueEmbed(
 			player,
 			initialPage,
 			interaction,
@@ -506,7 +512,7 @@ class MusicHandlers {
 				currentPage--;
 			}
 
-			const updatedMessageOptions = await _createQueueEmbed(
+			const updatedMessageOptions = await this._createQueueEmbed(
 				player,
 				currentPage,
 				interaction,
@@ -517,7 +523,7 @@ class MusicHandlers {
 
 		collector.on("end", async () => {
 			if (message.editable) {
-				const finalState = await _createQueueEmbed(player, 1, interaction);
+				const finalState = await this._createQueueEmbed(player, 1, interaction);
 				finalState.components = [];
 				await message.edit(finalState).catch(() => {});
 			}
@@ -545,7 +551,7 @@ class MusicHandlers {
 
 		const track = player.currentTrack;
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setURL(track.info.uri)
 			.setThumbnail(track.info.thumbnail)
 			.setDescription(
@@ -613,7 +619,7 @@ class MusicHandlers {
 		}
 
 		const embed = new EmbedBuilder()
-			.setColor(nextMode === "off" ? "Red" : kythia.bot.color)
+			.setColor(nextMode === "off" ? "Red" : this.config.bot.color)
 			.setDescription(descriptionText)
 			.setFooter(await this.embedFooter(interaction));
 
@@ -654,7 +660,7 @@ class MusicHandlers {
 				);
 
 		const embed = new EmbedBuilder()
-			.setColor(player.autoplay ? kythia.bot.color : "Red")
+			.setColor(player.autoplay ? this.config.bot.color : "Red")
 			.setDescription(
 				await this.t(
 					interaction,
@@ -676,7 +682,7 @@ class MusicHandlers {
 		const level = interaction.options.getInteger("level");
 		player.setVolume(level);
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				await this.t(interaction, "music.helpers.handlers.music.set", {
 					level,
@@ -707,7 +713,7 @@ class MusicHandlers {
 		player.queue.shuffle();
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				await this.t(interaction, "music.helpers.handlers.music.shuffled"),
 			)
@@ -756,7 +762,7 @@ class MusicHandlers {
 			player.skip();
 
 			const embed = new EmbedBuilder()
-				.setColor(kythia.bot.color)
+				.setColor(this.config.bot.color)
 				.setDescription(
 					await this.t(
 						interaction,
@@ -828,7 +834,10 @@ class MusicHandlers {
 
 		const container = new ContainerBuilder()
 			.setAccentColor(
-				this.convertColor(kythia.bot.color, { from: "hex", to: "decimal" }),
+				this.convertColor(this.config.bot.color, {
+					from: "hex",
+					to: "decimal",
+				}),
 			)
 			.addTextDisplayComponents(
 				new TextDisplayBuilder().setContent(
@@ -899,7 +908,7 @@ class MusicHandlers {
 				await btnInt.reply({
 					embeds: [
 						new EmbedBuilder()
-							.setColor(kythia.bot.color)
+							.setColor(this.config.bot.color)
 							.setDescription(
 								await this.t(
 									btnInt,
@@ -993,7 +1002,7 @@ class MusicHandlers {
 				await btnInt.reply({
 					embeds: [
 						new EmbedBuilder()
-							.setColor(kythia.bot.color)
+							.setColor(this.config.bot.color)
 							.setDescription(
 								await this.t(
 									btnInt,
@@ -1063,7 +1072,7 @@ class MusicHandlers {
 		}
 		const track = removed[0];
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				await this.t(interaction, "music.helpers.handlers.music.removed", {
 					title: track.info.title,
@@ -1128,7 +1137,7 @@ class MusicHandlers {
 		player.queue.splice(to - 1, 0, track);
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				await this.t(interaction, "music.helpers.handlers.music.moved", {
 					title: track.info.title,
@@ -1144,7 +1153,7 @@ class MusicHandlers {
 	async handleClear(interaction, player) {
 		player.queue.clear();
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				await this.t(interaction, "music.helpers.handlers.music.clear"),
 			)
@@ -1188,7 +1197,7 @@ class MusicHandlers {
 
 		player.seekTo(seconds * 1000);
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				await this.t(interaction, "music.helpers.handlers.music.seeked", {
 					time: seconds,
@@ -1277,8 +1286,7 @@ class MusicHandlers {
 			if (album) params.set("album_name", album);
 
 			const headers = {
-				"User-Agent":
-					"KythiaBot v0.9.8-beta (https://github.com/kenndeclouv/kythia)",
+				"User-Agent": "KythiaBot (https://github.com/kythia/kythia)",
 			};
 
 			const lrclibUrl = `https://lrclib.net/api/search?${params.toString()}`;
@@ -1314,8 +1322,8 @@ class MusicHandlers {
 
 		if (
 			!lyrics &&
-			kythia.addons.ai.geminiApiKeys &&
-			kythia.addons.music.useAI
+			this.config.addons.ai.geminiApiKeys &&
+			this.config.addons.music.useAI
 		) {
 			try {
 				lyrics = await generateLyricsWithTranscript(
@@ -1333,7 +1341,10 @@ class MusicHandlers {
 		if (!lyrics) {
 			const container = new ContainerBuilder()
 				.setAccentColor(
-					this.convertColor(kythia.bot.color, { from: "hex", to: "decimal" }),
+					this.convertColor(this.config.bot.color, {
+						from: "hex",
+						to: "decimal",
+					}),
 				)
 				.addTextDisplayComponents(
 					new TextDisplayBuilder().setContent(
@@ -1354,9 +1365,9 @@ class MusicHandlers {
 
 		let footerText;
 		if (usedLrclib) {
-			footerText = "-# • Source: lrclib.net";
+			footerText = "-# Source: lrclib.net";
 		} else if (usedAI) {
-			footerText = "-# • Generated by AI";
+			footerText = "-# Generated by AI";
 		} else {
 			footerText = await this.t(interaction, "core.utils.about.embed.footer");
 		}
@@ -1370,7 +1381,10 @@ class MusicHandlers {
 
 		const container = new ContainerBuilder()
 			.setAccentColor(
-				this.convertColor(kythia.bot.color, { from: "hex", to: "decimal" }),
+				this.convertColor(this.config.bot.color, {
+					from: "hex",
+					to: "decimal",
+				}),
 			)
 			.addTextDisplayComponents(
 				new TextDisplayBuilder().setContent(
@@ -1415,17 +1429,18 @@ class MusicHandlers {
 	async handlePlaylist(interaction, player) {
 		await interaction.deferReply();
 		const s = interaction.options.getSubcommand();
-		if (s === "save") return _handlePlaylistSave(interaction, player);
-		if (s === "load") return _handlePlaylistLoad(interaction, player);
-		if (s === "list") return _handlePlaylistList(interaction);
-		if (s === "delete") return _handlePlaylistDelete(interaction);
-		if (s === "append") return _handlePlaylistAppend(interaction, player);
-		if (s === "rename") return _handlePlaylistRename(interaction);
-		if (s === "track-remove") return _handlePlaylistRemoveTrack(interaction);
-		if (s === "track-list") return _handlePlaylistTrackList(interaction);
-		if (s === "track-add") return _handlePlaylistTrackAdd(interaction);
-		if (s === "share") return _handlePlaylistShare(interaction);
-		if (s === "import") return _handlePlaylistImport(interaction);
+		if (s === "save") return this._handlePlaylistSave(interaction, player);
+		if (s === "load") return this._handlePlaylistLoad(interaction, player);
+		if (s === "list") return this._handlePlaylistList(interaction);
+		if (s === "delete") return this._handlePlaylistDelete(interaction);
+		if (s === "append") return this._handlePlaylistAppend(interaction, player);
+		if (s === "rename") return this._handlePlaylistRename(interaction);
+		if (s === "track-remove")
+			return this._handlePlaylistRemoveTrack(interaction);
+		if (s === "track-list") return this._handlePlaylistTrackList(interaction);
+		if (s === "track-add") return this._handlePlaylistTrackAdd(interaction);
+		if (s === "share") return this._handlePlaylistShare(interaction);
+		if (s === "import") return this._handlePlaylistImport(interaction);
 	}
 
 	async _handlePlaylistSave(interaction, player) {
@@ -1435,11 +1450,11 @@ class MusicHandlers {
 		const playlistCount = await this.Playlist.countWithCache({
 			where: { userId },
 		});
-		const userIsPremium = await isPremium(userId);
+		const userIsPremium = await this.isPremium(userId);
 
 		if (
 			!this.isOwner(interaction.user.id) &&
-			playlistCount >= kythia.addons.music.playlistLimit &&
+			playlistCount >= this.config.addons.music.playlistLimit &&
 			!userIsPremium
 		) {
 			const embed = new EmbedBuilder()
@@ -1450,7 +1465,7 @@ class MusicHandlers {
 						interaction,
 						"music.helpers.handlers.music.playlist.save.limit.desc",
 						{
-							count: kythia.addons.music.playlistLimit,
+							count: this.config.addons.music.playlistLimit,
 						},
 					),
 				);
@@ -1515,7 +1530,7 @@ class MusicHandlers {
 		await this.PlaylistTrack.bulkCreate(tracksToSave);
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setFooter(await this.embedFooter(interaction))
 			.setDescription(
 				await this.t(
@@ -1597,7 +1612,7 @@ class MusicHandlers {
 		if (!newPlayer.isPlaying) newPlayer.play();
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setFooter(await this.embedFooter(interaction))
 			.setDescription(
 				await this.t(
@@ -1609,6 +1624,84 @@ class MusicHandlers {
 		await interaction.editReply({ embeds: [embed] });
 	}
 
+	async _createPlaylistListContainer(
+		interaction,
+		playlists,
+		itemsPerPage,
+		totalPages,
+		page = 1,
+	) {
+		page = Math.max(1, Math.min(page, totalPages));
+		const start = (page - 1) * itemsPerPage;
+		const end = start + itemsPerPage;
+		const currentPagePlaylists = playlists.slice(start, end);
+
+		const list = currentPagePlaylists
+			.map((p, idx) => `**${start + idx + 1}.** ${p.name}`)
+			.join("\n");
+
+		const buttons = new ActionRowBuilder().addComponents(
+			new ButtonBuilder()
+				.setCustomId(`playlistlist_prev_${page}`)
+				.setEmoji("◀️")
+				.setStyle(ButtonStyle.Secondary)
+				.setDisabled(page === 1),
+			new ButtonBuilder()
+				.setCustomId(`playlistlist_next_${page}`)
+				.setEmoji("▶️")
+				.setStyle(ButtonStyle.Secondary)
+				.setDisabled(page === totalPages),
+		);
+
+		const container = new ContainerBuilder()
+			.setAccentColor(
+				this.convertColor(this.config.bot.color, {
+					from: "hex",
+					to: "decimal",
+				}),
+			)
+			.addTextDisplayComponents(
+				new TextDisplayBuilder().setContent(
+					`${await this.t(interaction, "music.helpers.handlers.music.playlist.list.title")}`,
+				),
+			)
+			.addTextDisplayComponents(
+				new TextDisplayBuilder().setContent(
+					list ||
+						(await this.t(
+							interaction,
+							"music.helpers.handlers.music.playlist.list.empty",
+						)),
+				),
+			)
+			.addSeparatorComponents(
+				new SeparatorBuilder()
+					.setSpacing(SeparatorSpacingSize.Small)
+					.setDivider(true),
+			)
+			.addActionRowComponents(buttons)
+			.addSeparatorComponents(
+				new SeparatorBuilder()
+					.setSpacing(SeparatorSpacingSize.Small)
+					.setDivider(true),
+			)
+			.addTextDisplayComponents(
+				new TextDisplayBuilder().setContent(
+					await this.t(interaction, "music.helpers.handlers.queue.footer", {
+						page: page,
+						totalPages: totalPages,
+						totalTracks: playlists.length,
+					}),
+				),
+			);
+
+		return {
+			components: [container],
+			flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
+			fetchReply: true,
+		};
+	}
+
 	async _handlePlaylistList(interaction) {
 		const _client = interaction.client;
 		const userId = interaction.user.id;
@@ -1616,8 +1709,9 @@ class MusicHandlers {
 		const playlists = await this.Playlist.getAllCache({
 			where: { userId: userId },
 			order: [["name", "ASC"]],
-			cacheTags: [`Playlist:byUser:${userId}`],
+			// cacheTags: [`Playlist:byUser:${userId}`],
 		});
+		console.log(playlists);
 
 		if (!playlists || playlists.length === 0) {
 			const embed = new EmbedBuilder()
@@ -1635,81 +1729,18 @@ class MusicHandlers {
 		const itemsPerPage = 10;
 		const totalPages = Math.ceil(playlists.length / itemsPerPage) || 1;
 
-		async function createPlaylistListContainer(page = 1) {
-			page = Math.max(1, Math.min(page, totalPages));
-			const start = (page - 1) * itemsPerPage;
-			const end = start + itemsPerPage;
-			const currentPagePlaylists = playlists.slice(start, end);
-
-			const list = currentPagePlaylists
-				.map((p, idx) => `**${start + idx + 1}.** ${p.name}`)
-				.join("\n");
-
-			const buttons = new ActionRowBuilder().addComponents(
-				new ButtonBuilder()
-					.setCustomId(`playlistlist_prev_${page}`)
-					.setEmoji("◀️")
-					.setStyle(ButtonStyle.Secondary)
-					.setDisabled(page === 1),
-				new ButtonBuilder()
-					.setCustomId(`playlistlist_next_${page}`)
-					.setEmoji("▶️")
-					.setStyle(ButtonStyle.Secondary)
-					.setDisabled(page === totalPages),
-			);
-
-			const container = new ContainerBuilder()
-				.setAccentColor(
-					this.convertColor(kythia.bot.color, { from: "hex", to: "decimal" }),
-				)
-				.addTextDisplayComponents(
-					new TextDisplayBuilder().setContent(
-						`${await this.t(interaction, "music.helpers.handlers.music.playlist.list.title")}`,
-					),
-				)
-				.addTextDisplayComponents(
-					new TextDisplayBuilder().setContent(
-						list ||
-							(await this.t(
-								interaction,
-								"music.helpers.handlers.music.playlist.list.empty",
-							)),
-					),
-				)
-				.addSeparatorComponents(
-					new SeparatorBuilder()
-						.setSpacing(SeparatorSpacingSize.Small)
-						.setDivider(true),
-				)
-				.addActionRowComponents(buttons)
-				.addSeparatorComponents(
-					new SeparatorBuilder()
-						.setSpacing(SeparatorSpacingSize.Small)
-						.setDivider(true),
-				)
-				.addTextDisplayComponents(
-					new TextDisplayBuilder().setContent(
-						await this.t(interaction, "music.helpers.handlers.queue.footer", {
-							page: page,
-							totalPages: totalPages,
-							totalTracks: playlists.length,
-						}),
-					),
-				);
-
-			return {
-				components: [container],
-				flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
-				fetchReply: true,
-			};
-		}
-
 		let initialPage = 1;
 		if (interaction.isChatInputCommand()) {
 			initialPage = interaction.options.getInteger("page") || 1;
 		}
 
-		const messageOptions = await createPlaylistListContainer(initialPage);
+		const messageOptions = await this._createPlaylistListContainer(
+			interaction,
+			playlists,
+			itemsPerPage,
+			totalPages,
+			initialPage,
+		);
 		const message = await interaction.editReply(messageOptions);
 
 		const collector = message.createMessageComponentCollector({
@@ -1728,14 +1759,25 @@ class MusicHandlers {
 				currentPage--;
 			}
 
-			const updatedMessageOptions =
-				await createPlaylistListContainer(currentPage);
+			const updatedMessageOptions = await this._createPlaylistListContainer(
+				buttonInteraction,
+				playlists,
+				itemsPerPage,
+				totalPages,
+				currentPage,
+			);
 			await buttonInteraction.update(updatedMessageOptions);
 		});
 
 		collector.on("end", async () => {
 			if (message.editable) {
-				const finalState = await createPlaylistListContainer(1);
+				const finalState = await this._createPlaylistListContainer(
+					interaction,
+					playlists,
+					itemsPerPage,
+					totalPages,
+					1,
+				);
 				finalState.components = [];
 				await message.edit(finalState).catch(() => {});
 			}
@@ -1769,7 +1811,7 @@ class MusicHandlers {
 		await playlist.destroy();
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setFooter(await this.embedFooter(interaction))
 			.setDescription(
 				await this.t(
@@ -1846,7 +1888,7 @@ class MusicHandlers {
 		}
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setFooter(await this.embedFooter(interaction))
 			.setDescription(
 				await this.t(
@@ -1918,7 +1960,7 @@ class MusicHandlers {
 		await track.destroy();
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setFooter(await this.embedFooter(interaction))
 			.setDescription(
 				await this.t(
@@ -1976,7 +2018,7 @@ class MusicHandlers {
 		await playlist.saveAndUpdateCache();
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setFooter(await this.embedFooter(interaction))
 			.setDescription(
 				await this.t(
@@ -1988,17 +2030,109 @@ class MusicHandlers {
 		await interaction.editReply({ embeds: [embed] });
 	}
 
+	async _createTrackListContainer(
+		interaction,
+		playlist,
+		page = 1,
+		itemsPerPage,
+		totalPages,
+	) {
+		page = Math.max(1, Math.min(page, totalPages));
+		const start = (page - 1) * itemsPerPage;
+		const end = start + itemsPerPage;
+		const currentTracks = playlist.tracks.slice(start, end);
+
+		const trackList = currentTracks
+			.map((t, i) => `**${start + i + 1}.** [${t.title}](${t.uri})`)
+			.join("\n");
+
+		const buttons = new ActionRowBuilder().addComponents(
+			new ButtonBuilder()
+				.setCustomId(`playlisttracklist_prev_${page}`)
+				.setEmoji("◀️")
+				.setStyle(ButtonStyle.Secondary)
+				.setDisabled(page === 1),
+			new ButtonBuilder()
+				.setCustomId(`playlisttracklist_next_${page}`)
+				.setEmoji("▶️")
+				.setStyle(ButtonStyle.Secondary)
+				.setDisabled(page === totalPages),
+		);
+
+		const container = new ContainerBuilder()
+			.setAccentColor(
+				this.convertColor(this.config.bot.color, {
+					from: "hex",
+					to: "decimal",
+				}),
+			)
+			.addTextDisplayComponents(
+				new TextDisplayBuilder().setContent(
+					(await this.t(
+						interaction,
+						"music.helpers.handlers.music.playlist.track.list.title",
+						{ name: playlist.name },
+					)) || playlist.name,
+				),
+			)
+			.addTextDisplayComponents(
+				new TextDisplayBuilder().setContent(
+					trackList ||
+						(await this.t(interaction, "music.helpers.handlers.music.more")),
+				),
+			)
+			.addSeparatorComponents(
+				new SeparatorBuilder()
+					.setSpacing(SeparatorSpacingSize.Small)
+					.setDivider(true),
+			)
+			.addActionRowComponents(buttons)
+			.addSeparatorComponents(
+				new SeparatorBuilder()
+					.setSpacing(SeparatorSpacingSize.Small)
+					.setDivider(true),
+			)
+			.addTextDisplayComponents(
+				new TextDisplayBuilder().setContent(
+					await this.t(interaction, "music.helpers.handlers.queue.footer", {
+						page: page,
+						totalPages: totalPages,
+						totalTracks: playlist.tracks.length,
+					}),
+				),
+			);
+
+		return {
+			components: [container],
+			flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
+			fetchReply: true,
+		};
+	}
+
 	async _handlePlaylistTrackList(interaction) {
 		const _client = interaction.client;
 		const playlistName = interaction.options.getString("name");
 		const userId = interaction.user.id;
 
-		const playlist = await this.Playlist.getCache({
-			userId: userId,
-			name: playlistName,
+		const playlistRaw = await this.Playlist.findOne({
+			where: {
+				userId: userId,
+				name: playlistName,
+			},
 			include: [{ model: this.PlaylistTrack, as: "tracks" }],
 		});
-
+		// const playlistRaw = await this.Playlist.getCache({
+		// 	userId: userId,
+		// 	name: playlistName,
+		// 	include: [
+		// 		{
+		// 			model: this.PlaylistTrack, // Pastikan ini TIDAK undefined
+		// 			as: "tracks",
+		// 		},
+		// 	],
+		// 	customCacheKey: `Playlist:WithTracks:${userId}:${playlistName}`,
+		// });
+		const playlist = Array.isArray(playlistRaw) ? playlistRaw[0] : playlistRaw;
 		if (!playlist) {
 			const embed = new EmbedBuilder()
 				.setColor("Red")
@@ -2030,74 +2164,14 @@ class MusicHandlers {
 		const itemsPerPage = 10;
 		const totalPages = Math.ceil(playlist.tracks.length / itemsPerPage) || 1;
 
-		async function createTrackListContainer(page = 1) {
-			page = Math.max(1, Math.min(page, totalPages));
-			const start = (page - 1) * itemsPerPage;
-			const end = start + itemsPerPage;
-			const currentTracks = playlist.tracks.slice(start, end);
-
-			const trackList = currentTracks
-				.map((t, i) => `**${start + i + 1}.** [${t.title}](${t.uri})`)
-				.join("\n");
-
-			const buttons = new ActionRowBuilder().addComponents(
-				new ButtonBuilder()
-					.setCustomId(`playlisttracklist_prev_${page}`)
-					.setEmoji("◀️")
-					.setStyle(ButtonStyle.Secondary)
-					.setDisabled(page === 1),
-				new ButtonBuilder()
-					.setCustomId(`playlisttracklist_next_${page}`)
-					.setEmoji("▶️")
-					.setStyle(ButtonStyle.Secondary)
-					.setDisabled(page === totalPages),
-			);
-
-			const container = new ContainerBuilder()
-				.setAccentColor(
-					this.convertColor(kythia.bot.color, { from: "hex", to: "decimal" }),
-				)
-				.addTextDisplayComponents(
-					new TextDisplayBuilder().setContent(
-						`${(await this.t(interaction, "music.helpers.handlers.music.playlist.track.list.title", { name: playlistName })) || playlistName}`,
-					),
-				)
-				.addTextDisplayComponents(
-					new TextDisplayBuilder().setContent(
-						trackList ||
-							(await this.t(interaction, "music.helpers.handlers.music.more")),
-					),
-				)
-				.addSeparatorComponents(
-					new SeparatorBuilder()
-						.setSpacing(SeparatorSpacingSize.Small)
-						.setDivider(true),
-				)
-				.addActionRowComponents(buttons)
-				.addSeparatorComponents(
-					new SeparatorBuilder()
-						.setSpacing(SeparatorSpacingSize.Small)
-						.setDivider(true),
-				)
-				.addTextDisplayComponents(
-					new TextDisplayBuilder().setContent(
-						await this.t(interaction, "music.helpers.handlers.queue.footer", {
-							page: page,
-							totalPages: totalPages,
-							totalTracks: playlist.tracks.length,
-						}),
-					),
-				);
-
-			return {
-				components: [container],
-				flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
-				fetchReply: true,
-			};
-		}
-
 		const initialPage = 1;
-		const messageOptions = await createTrackListContainer(initialPage);
+		const messageOptions = await this._createTrackListContainer(
+			interaction,
+			playlist,
+			initialPage,
+			itemsPerPage,
+			totalPages,
+		);
 
 		const message = await interaction.editReply(messageOptions);
 
@@ -2118,14 +2192,26 @@ class MusicHandlers {
 				currentPage--;
 			}
 
-			const updatedMessageOptions = await createTrackListContainer(currentPage);
+			const updatedMessageOptions = await this._createTrackListContainer(
+				interaction,
+				playlist,
+				currentPage,
+				itemsPerPage,
+				totalPages,
+			);
 
 			await buttonInteraction.update(updatedMessageOptions);
 		});
 
 		collector.on("end", async () => {
 			if (message.editable) {
-				const finalState = await createTrackListContainer(1);
+				const finalState = await this._createTrackListContainer(
+					interaction,
+					playlist,
+					1,
+					itemsPerPage,
+					totalPages,
+				);
 				finalState.components = [];
 				await message.edit(finalState).catch(() => {});
 			}
@@ -2183,7 +2269,7 @@ class MusicHandlers {
 		}
 
 		try {
-			await _saveTracksToPlaylist(playlist, [trackToAdd]);
+			await this._saveTracksToPlaylist(playlist, [trackToAdd]);
 
 			await interaction.editReply({
 				content: await this.t(
@@ -2236,7 +2322,7 @@ class MusicHandlers {
 		}
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				`${await this.t(interaction, "music.helpers.handlers.playlist.share.title", { name: playlist.name })}\n${await this.t(
 					interaction,
@@ -2259,7 +2345,7 @@ class MusicHandlers {
 				codeOrUrl.trim(),
 			)
 		) {
-			return _importFromSpotify(interaction, codeOrUrl);
+			return this._importFromSpotify(interaction, codeOrUrl);
 		}
 
 		try {
@@ -2293,10 +2379,10 @@ class MusicHandlers {
 			const playlistCount = await this.Playlist.countWithCache({
 				userId: userId,
 			});
-			const userIsPremium = await isPremium(userId);
+			const userIsPremium = await this.isPremium(userId);
 			if (
 				!this.isOwner(userId) &&
-				playlistCount >= kythia.addons.music.playlistLimit &&
+				playlistCount >= this.config.addons.music.playlistLimit &&
 				!userIsPremium
 			) {
 				const embed = new EmbedBuilder()
@@ -2305,7 +2391,7 @@ class MusicHandlers {
 						`${await this.t(interaction, "music.helpers.handlers.music.playlist.save.limit.title")}\n${await this.t(
 							interaction,
 							"music.helpers.handlers.music.playlist.save.limit.desc",
-							{ count: kythia.addons.music.playlistLimit },
+							{ count: this.config.addons.music.playlistLimit },
 						)}`,
 					);
 				return interaction.editReply({ embeds: [embed] });
@@ -2328,7 +2414,7 @@ class MusicHandlers {
 			await this.PlaylistTrack.bulkCreate(tracksToCopy);
 
 			const embed = new EmbedBuilder()
-				.setColor(kythia.bot.color)
+				.setColor(this.config.bot.color)
 				.setDescription(
 					`${await this.t(interaction, "music.helpers.handlers.playlist.import.success.title")}\n${await this.t(
 						interaction,
@@ -2439,10 +2525,10 @@ class MusicHandlers {
 					await this.PlaylistTrack.destroy({
 						where: { playlistId: existingPlaylist.id },
 					});
-					await _saveTracksToPlaylist(existingPlaylist, tracksFromSpotify);
+					await this._saveTracksToPlaylist(existingPlaylist, tracksFromSpotify);
 
 					const successEmbed = new EmbedBuilder()
-						.setColor(kythia.bot.color)
+						.setColor(this.config.bot.color)
 						.setDescription(
 							await this.t(
 								interaction,
@@ -2477,10 +2563,10 @@ class MusicHandlers {
 						userId,
 						name: newName,
 					});
-					await _saveTracksToPlaylist(newPlaylist, tracksFromSpotify);
+					await this._saveTracksToPlaylist(newPlaylist, tracksFromSpotify);
 
 					const successEmbed = new EmbedBuilder()
-						.setColor(kythia.bot.color)
+						.setColor(this.config.bot.color)
 						.setDescription(
 							await this.t(
 								interaction,
@@ -2524,10 +2610,10 @@ class MusicHandlers {
 			const playlistCount = await this.Playlist.countWithCache({
 				userId: userId,
 			});
-			const userIsPremium = await isPremium(userId);
+			const userIsPremium = await this.isPremium(userId);
 			if (
 				!this.isOwner(userId) &&
-				playlistCount >= kythia.addons.music.playlistLimit &&
+				playlistCount >= this.config.addons.music.playlistLimit &&
 				!userIsPremium
 			) {
 				const embed = new EmbedBuilder().setColor("Red").setDescription(
@@ -2535,7 +2621,7 @@ class MusicHandlers {
 						interaction,
 						"music.helpers.handlers.music.playlist.save.limit.desc",
 						{
-							count: kythia.addons.music.playlistLimit,
+							count: this.config.addons.music.playlistLimit,
 						},
 					),
 				);
@@ -2546,10 +2632,10 @@ class MusicHandlers {
 				userId,
 				name: spotifyPlaylistName,
 			});
-			await _saveTracksToPlaylist(newPlaylist, tracksFromSpotify);
+			await this._saveTracksToPlaylist(newPlaylist, tracksFromSpotify);
 
 			const embed = new EmbedBuilder()
-				.setColor(kythia.bot.color)
+				.setColor(this.config.bot.color)
 				.setDescription(
 					await this.t(
 						interaction,
@@ -2584,10 +2670,10 @@ class MusicHandlers {
 		} else {
 			s = interaction.customId.split("_")[2];
 		}
-		if (s === "play") return _handleFavoritePlay(interaction, player);
-		if (s === "list") return _handleFavoriteList(interaction);
-		if (s === "add") return _handleFavoriteAdd(interaction, player);
-		if (s === "remove") return _handleFavoriteRemove(interaction);
+		if (s === "play") return this._handleFavoritePlay(interaction, player);
+		if (s === "list") return this._handleFavoriteList(interaction);
+		if (s === "add") return this._handleFavoriteAdd(interaction, player);
+		if (s === "remove") return this._handleFavoriteRemove(interaction);
 	}
 
 	async _handleFavoritePlay(interaction, player) {
@@ -2643,7 +2729,7 @@ class MusicHandlers {
 		if (!newPlayer.isPlaying) newPlayer.play();
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				await this.t(
 					interaction,
@@ -2653,12 +2739,89 @@ class MusicHandlers {
 			);
 		await interaction.editReply({ embeds: [embed] });
 	}
+	async _createFavoriteListContainer(
+		page = 1,
+		totalPages = 1,
+		favorites,
+		itemsPerPage,
+		interaction,
+	) {
+		page = Math.max(1, Math.min(page, totalPages));
+		const start = (page - 1) * itemsPerPage;
+		const end = start + itemsPerPage;
+		const currentPageFavorites = favorites.slice(start, end);
+
+		const list = currentPageFavorites
+			.map((f, idx) => `**${start + idx + 1}.** [${f.title}](${f.uri})`)
+			.join("\n");
+
+		const buttons = new ActionRowBuilder().addComponents(
+			new ButtonBuilder()
+				.setCustomId(`favoritelist_prev_${page}`)
+				.setEmoji("◀️")
+				.setStyle(ButtonStyle.Secondary)
+				.setDisabled(page === 1),
+			new ButtonBuilder()
+				.setCustomId(`favoritelist_next_${page}`)
+				.setEmoji("▶️")
+				.setStyle(ButtonStyle.Secondary)
+				.setDisabled(page === totalPages),
+		);
+
+		const container = new ContainerBuilder()
+			.setAccentColor(
+				this.convertColor(this.config.bot.color, {
+					from: "hex",
+					to: "decimal",
+				}),
+			)
+			.addTextDisplayComponents(
+				new TextDisplayBuilder().setContent(
+					`${await this.t(interaction, "music.helpers.handlers.favorite.list.title")}`,
+				),
+			)
+			.addTextDisplayComponents(
+				new TextDisplayBuilder().setContent(
+					list ||
+						(await this.t(
+							interaction,
+							"music.helpers.handlers.favorite.list.empty",
+						)),
+				),
+			)
+			.addSeparatorComponents(
+				new SeparatorBuilder()
+					.setSpacing(SeparatorSpacingSize.Small)
+					.setDivider(true),
+			)
+			.addActionRowComponents(buttons)
+			.addSeparatorComponents(
+				new SeparatorBuilder()
+					.setSpacing(SeparatorSpacingSize.Small)
+					.setDivider(true),
+			)
+			.addTextDisplayComponents(
+				new TextDisplayBuilder().setContent(
+					await this.t(interaction, "music.helpers.handlers.queue.footer", {
+						page: page,
+						totalPages: totalPages,
+						totalTracks: favorites.length,
+					}),
+				),
+			);
+
+		return {
+			components: [container],
+			flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
+			fetchReply: true,
+		};
+	}
 
 	async _handleFavoriteList(interaction) {
 		await interaction.deferReply();
 		const userId = interaction.user.id;
 
-		const favorites = await this.Favorite.getAllCache({
+		const favorites = await this.Favorite.findAll({
 			where: { userId },
 			order: [["createdAt", "ASC"]],
 			cacheTags: [`Favorite:byUser:${userId}`],
@@ -2679,81 +2842,18 @@ class MusicHandlers {
 		const itemsPerPage = 10;
 		const totalPages = Math.ceil(favorites.length / itemsPerPage) || 1;
 
-		async function createFavoriteListContainer(page = 1) {
-			page = Math.max(1, Math.min(page, totalPages));
-			const start = (page - 1) * itemsPerPage;
-			const end = start + itemsPerPage;
-			const currentPageFavorites = favorites.slice(start, end);
-
-			const list = currentPageFavorites
-				.map((f, idx) => `**${start + idx + 1}.** [${f.title}](${f.uri})`)
-				.join("\n");
-
-			const buttons = new ActionRowBuilder().addComponents(
-				new ButtonBuilder()
-					.setCustomId(`favoritelist_prev_${page}`)
-					.setEmoji("◀️")
-					.setStyle(ButtonStyle.Secondary)
-					.setDisabled(page === 1),
-				new ButtonBuilder()
-					.setCustomId(`favoritelist_next_${page}`)
-					.setEmoji("▶️")
-					.setStyle(ButtonStyle.Secondary)
-					.setDisabled(page === totalPages),
-			);
-
-			const container = new ContainerBuilder()
-				.setAccentColor(
-					this.convertColor(kythia.bot.color, { from: "hex", to: "decimal" }),
-				)
-				.addTextDisplayComponents(
-					new TextDisplayBuilder().setContent(
-						`${await this.t(interaction, "music.helpers.handlers.favorite.list.title")}`,
-					),
-				)
-				.addTextDisplayComponents(
-					new TextDisplayBuilder().setContent(
-						list ||
-							(await this.t(
-								interaction,
-								"music.helpers.handlers.favorite.list.empty",
-							)),
-					),
-				)
-				.addSeparatorComponents(
-					new SeparatorBuilder()
-						.setSpacing(SeparatorSpacingSize.Small)
-						.setDivider(true),
-				)
-				.addActionRowComponents(buttons)
-				.addSeparatorComponents(
-					new SeparatorBuilder()
-						.setSpacing(SeparatorSpacingSize.Small)
-						.setDivider(true),
-				)
-				.addTextDisplayComponents(
-					new TextDisplayBuilder().setContent(
-						await this.t(interaction, "music.helpers.handlers.queue.footer", {
-							page: page,
-							totalPages: totalPages,
-							totalTracks: favorites.length,
-						}),
-					),
-				);
-
-			return {
-				components: [container],
-				flags: MessageFlags.IsPersistent | MessageFlags.IsComponentsV2,
-				fetchReply: true,
-			};
-		}
-
 		let initialPage = 1;
 		if (interaction.isChatInputCommand()) {
 			initialPage = interaction.options.getInteger("page") || 1;
 		}
 
-		const messageOptions = await createFavoriteListContainer(initialPage);
+		const messageOptions = await this._createFavoriteListContainer(
+			initialPage,
+			totalPages,
+			favorites,
+			itemsPerPage,
+			interaction,
+		);
 		const message = await interaction.editReply(messageOptions);
 
 		const collector = message.createMessageComponentCollector({
@@ -2772,14 +2872,25 @@ class MusicHandlers {
 				currentPage--;
 			}
 
-			const updatedMessageOptions =
-				await createFavoriteListContainer(currentPage);
+			const updatedMessageOptions = await this._createFavoriteListContainer(
+				currentPage,
+				totalPages,
+				favorites,
+				itemsPerPage,
+				interaction,
+			);
 			await buttonInteraction.update(updatedMessageOptions);
 		});
 
 		collector.on("end", async () => {
 			if (message.editable) {
-				const finalState = await createFavoriteListContainer(1);
+				const finalState = await this._createFavoriteListContainer(
+					1,
+					totalPages,
+					favorites,
+					itemsPerPage,
+					interaction,
+				);
 				finalState.components = [];
 				await message.edit(finalState).catch(() => {});
 			}
@@ -2856,7 +2967,7 @@ class MusicHandlers {
 		});
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				await this.t(
 					interaction,
@@ -2905,7 +3016,7 @@ class MusicHandlers {
 		await favorite.destroy();
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(
 				await this.t(
 					interaction,
@@ -2968,7 +3079,7 @@ class MusicHandlers {
 		}
 
 		const embed = new EmbedBuilder()
-			.setColor(kythia.bot.color)
+			.setColor(this.config.bot.color)
 			.setDescription(await this.t(interaction, msgKey));
 		await interaction.editReply({ embeds: [embed] });
 	}
@@ -2984,7 +3095,7 @@ class MusicHandlers {
 	async handleRadio(interaction, player) {
 		const { client, member, guild, channel } = interaction;
 		const query = interaction.options.getString("search");
-		const accentColor = this.convertColor(kythia.bot.color, {
+		const accentColor = this.convertColor(this.config.bot.color, {
 			from: "hex",
 			to: "decimal",
 		});

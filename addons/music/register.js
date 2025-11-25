@@ -23,22 +23,6 @@ module.exports = {
 
 		summary.push("   └─ 🎵 Initialize Music Manager");
 
-		bot.addDbReadyHook((sequelize) => {
-			const { Playlist, PlaylistTrack } = sequelize.models;
-
-			if (Playlist && PlaylistTrack) {
-				Playlist.hasMany(PlaylistTrack, {
-					foreignKey: "playlistId",
-					as: "tracks",
-				});
-				PlaylistTrack.belongsTo(Playlist, {
-					foreignKey: "playlistId",
-					as: "playlist",
-				});
-			}
-		});
-		summary.push("   └─ 🎵 Model associations registered.");
-
 		bot.addClientReadyHook(async (client) => {
 			logger.info("🎵 [24/7 Resurrector] Checking persistent 24/7 sessions...");
 

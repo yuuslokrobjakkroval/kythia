@@ -6,29 +6,15 @@
  * @version 0.9.12-beta
  */
 
-const { DataTypes } = require("sequelize");
-
 const { KythiaModel } = require("kythia-core");
 
 class TempVoiceConfig extends KythiaModel {
-	static init(sequelize) {
-		KythiaModel.init(
-			{
-				guildId: { type: DataTypes.STRING, primaryKey: true, allowNull: false },
-				triggerChannelId: { type: DataTypes.STRING, allowNull: false },
-				controlPanelChannelId: { type: DataTypes.STRING, allowNull: true },
-				interfaceMessageId: { type: DataTypes.STRING, allowNull: true },
-				categoryId: { type: DataTypes.STRING, allowNull: false },
-			},
-			{
-				sequelize,
-				modelName: "TempVoiceConfig",
-				tableName: "temp_voice_configs",
-				timestamps: true,
-			},
-		);
+	static guarded = [];
 
-		return TempVoiceConfig;
+	static get structure() {
+		return {
+			options: { timestamps: true },
+		};
 	}
 }
 

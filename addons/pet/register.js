@@ -7,21 +7,7 @@
  */
 
 module.exports = {
-	async initialize(bot) {
-		bot.addDbReadyHook((sequelize) => {
-			const { KythiaUser, UserPet, Pet } = sequelize.models;
-
-			if (KythiaUser && UserPet) {
-				KythiaUser.hasMany(UserPet, { foreignKey: "userId", as: "pets" });
-			}
-			if (UserPet && KythiaUser) {
-				UserPet.belongsTo(KythiaUser, { foreignKey: "userId", as: "user" });
-			}
-			if (UserPet && Pet) {
-				UserPet.belongsTo(Pet, { foreignKey: "petId", as: "pet" });
-			}
-		});
-
-		return [" └─ Model associations registered."];
+	async initialize(_bot) {
+		return [" └─ 🐾 Pet models loaded & associated automatically."];
 	},
 };

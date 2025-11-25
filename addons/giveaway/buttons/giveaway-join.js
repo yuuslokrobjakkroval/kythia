@@ -1,8 +1,9 @@
 /**
- * @namespace: addons/giveaway/buttons/giveawayjoin.js
+ * @namespace: addons/giveaway/buttons/giveaway-join.js
  * @type: Module
  * @copyright © 2025 kenndeclouv
- * @version 0.9.17-beta (RESTORED & POLISHED)
+ * @assistant chaa & graa
+ * @version 0.9.12-beta
  */
 
 const { MessageFlags } = require("discord.js");

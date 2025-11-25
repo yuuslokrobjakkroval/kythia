@@ -3,41 +3,27 @@
  * @type: Database Model
  * @copyright © 2025 kenndeclouv
  * @assistant chaa & graa
- * @version 0.9.12-beta
+ * @version 0.11.0-beta
  */
 
-const { DataTypes } = require("sequelize");
-
 const { KythiaModel } = require("kythia-core");
-const Playlist = require("./Playlist");
 
 class PlaylistTrack extends KythiaModel {
-	static init(sequelize) {
-		KythiaModel.init(
-			{
-				id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-				playlistId: {
-					type: DataTypes.INTEGER,
-					allowNull: false,
-					references: { model: "playlists", key: "id" },
-				},
-				title: { type: DataTypes.STRING, allowNull: false },
-				identifier: { type: DataTypes.STRING, allowNull: false },
-				author: { type: DataTypes.STRING, allowNull: false },
-				length: { type: DataTypes.BIGINT, allowNull: false },
-				uri: { type: DataTypes.STRING, allowNull: false },
-			},
-			{
-				sequelize,
-				modelName: "PlaylistTrack",
-				tableName: "playlist_tracks",
-				timestamps: false,
-			},
-		);
+	static guarded = [];
 
-		PlaylistTrack.setupParentTouch("playlistId", Playlist, "updatedAt");
+	static get structure() {
+		return {
+			options: { timestamps: false },
+		};
+	}
 
-		return PlaylistTrack;
+	static associate(models) {
+		this.belongsTo(models.Playlist, {
+			foreignKey: "playlistId",
+			as: "playlist",
+		});
+
+		this.setupParentTouch("playlistId", models.Playlist, "updatedAt");
 	}
 }
 
